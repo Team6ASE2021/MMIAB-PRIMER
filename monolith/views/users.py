@@ -33,3 +33,9 @@ def create_user():
         return render_template('create_user.html', form=form)
     else:
         raise RuntimeError('This should not happen!')
+
+
+@users.route('/read_message', methods=['GET'])
+def read_message():
+    if request.method == 'GET':
+        print("Hello World!")
