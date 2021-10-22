@@ -35,7 +35,3 @@ def create_user():
         raise RuntimeError('This should not happen!')
 
 
-@users.route('/read_message', methods=['GET'])
-def read_message():
-    if request.method == 'GET':
-        print("Hello World!")

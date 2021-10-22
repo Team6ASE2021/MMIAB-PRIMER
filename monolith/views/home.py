@@ -12,3 +12,10 @@ def index():
     else:
         welcome = None
     return render_template("index.html", welcome=welcome)
+
+
+@home.route('/read_message')
+#get message id to retrive from it from db
+def read_message():
+    mess = "Questo è un messaggio di testo!!"
+    return render_template("read_select_message.html", mess = mess)

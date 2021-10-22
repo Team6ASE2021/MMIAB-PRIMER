@@ -1,0 +1,12 @@
+<h1>My Message in a Bottle -- Primer</h1>
+
+{% if current_user.is_authenticated %}
+  Ei {{ current_user.firstname }}, this is the message you selected !
+  <h3>Message Text:</h3>
+  {{ mess }}
+
+  <h3>Sender: </h3> sgfgfsgsgsdgsdgds
+
+  <h3>Date of send: </h3> ggdsgsdgdsgsgsdsdg
+
+  {% endif %}
