@@ -1,10 +1,10 @@
 from flask import Blueprint, redirect, render_template, request
 
+from monolith.auth import current_user
 from monolith.database import Message, db
 from monolith.forms import MessageForm
 
 messages = Blueprint('messages', __name__)
-
 
 @messages.route('/draft', methods=['POST', 'GET'])
 def draft():
@@ -14,9 +14,10 @@ def draft():
         if form.validate_on_submit():
             new_draft = Message()
             form.populate_obj(new_draft)
+            new_draft.id_sender = current_user.get_id()
             db.session.add(new_draft)
             db.session.commit()
-            return form.body_message.data
+            return redirect('/read_message/' + str(new_draft.id_message))
     elif request.method == 'GET':
         # form.submit.label.text = 'Save as Draft'
         return render_template('create_message.html', form=form)
