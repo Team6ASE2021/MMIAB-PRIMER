@@ -45,10 +45,8 @@ class Message(db.Model):
     id_message = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     #id of sender and receipent
-    id_sender = db.Column(db.Integer, db.ForeignKey('user.id'))
-    sender = db.relationship("User")
-    id_receipent = db.Column(db.Integer, db.ForeignKey('user.id'))
-    receipent = db.relationship("User")
+    id_sender = db.Column(db.Integer)
+    id_receipent = db.Column(db.Integer)
 
     #body of message and date of send
     body_message = db.Column(db.Unicode(256))
