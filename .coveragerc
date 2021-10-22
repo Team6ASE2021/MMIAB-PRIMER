@@ -1,0 +1,4 @@
+[run]
+omit = 
+    monolith/templates/*
+    monolith/classes/views/__init__.py
