@@ -37,3 +37,27 @@ class User(db.Model):
     def get_id(self):
         return self.id
 
+class Message(db.Model):
+
+    __tablename__ = 'message'
+
+    #id_message is the primary key that identify a message
+    id_message = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    #id of sender and receipent
+    id_sender = db.Column(db.Integer, db.ForeignKey('user.id'))
+    sender = db.relationship("User")
+    id_receipent = db.Column(db.Integer, db.ForeignKey('user.id'))
+    receipent = db.relationship("User")
+
+    #body of message and date of send
+    body_message = db.Column(db.Unicode(256))
+    date_of_send = db.Column(db.DateTime)
+
+    #boolean variables that describe the state of the message
+    is_sended = db.Column(db.Boolean, default = False)
+    is_arrived = db.Column(db.Boolean, default = False)
+
+    #constructor of the message object
+    def __init__(self, *args, **kw):
+        super(Message, self).__init__(*args, **kw)
