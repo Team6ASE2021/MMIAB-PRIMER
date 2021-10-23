@@ -37,4 +37,4 @@ def create_user():
 def user_info():
     if request.method == 'GET':
         user = UserModel.get_user_info_by_id(current_user.id)
-    return render_template('user_info.html', user=user)
+    return render_template('user_info.html', user=current_user)

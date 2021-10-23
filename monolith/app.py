@@ -7,11 +7,14 @@ from monolith.database import User, db
 from monolith.views import blueprints
 
 
-def create_app():
+def create_app(testing=False):
     app = Flask(__name__)
     app.config['WTF_CSRF_SECRET_KEY'] = 'A SECRET KEY'
     app.config['SECRET_KEY'] = 'ANOTHER ONE'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../mmiab.db'
+    if testing:
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../mmiab.db'
+    else:       
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tests/mmiab.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     for bp in blueprints:
