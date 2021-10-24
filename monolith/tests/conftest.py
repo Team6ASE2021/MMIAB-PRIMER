@@ -6,13 +6,18 @@ from monolith.app import create_app
 Fixture for the client and the db used during testing
 
 """
+
+
 @pytest.fixture(scope='session', autouse=True)
 def test_client():
     app = create_app(testing=True)
     app.config["TESTING"] = True
-    with app.test_client() as testing_client:
-        with app.app_context():
-            yield testing_client
+    app.config["WTF_CSRF_ENABLED"] = False
+    ctx = app.app_context()
+    ctx.push()
+
+    with app.test_client() as client:
+        yield client
 
 
 @pytest.fixture(scope="session", autouse=True)

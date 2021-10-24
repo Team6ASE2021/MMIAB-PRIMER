@@ -12,9 +12,9 @@ def create_app(testing=False):
     app.config['WTF_CSRF_SECRET_KEY'] = 'A SECRET KEY'
     app.config['SECRET_KEY'] = 'ANOTHER ONE'
     if testing:
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../mmiab.db'
-    else:       
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tests/mmiab.db'
+    else:       
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../mmiab.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     for bp in blueprints:
