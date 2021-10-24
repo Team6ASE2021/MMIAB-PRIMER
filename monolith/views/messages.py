@@ -22,21 +22,13 @@ def draft():
             db.session.add(new_draft)
             db.session.commit()
             return redirect('/read_message/' + str(new_draft.id_message))
-    elif request.method == 'GET':
-        # form.submit.label.text = 'Save as Draft'
+    else:
         return render_template('create_message.html', form=form)
 
 @messages.route('/read_message/<int:id>', methods=['GET'])
 def read_message(id):
-    result = ''
-    if request.method == 'GET':
-        msg = db.session.query(Message).filter(Message.id_message == id).first()
-        result = jsonify(id=msg.id_message, body=msg.body_message, sender=msg.id_sender)
-
-    return result
-
-
-
+    msg = db.session.query(Message).filter(Message.id_message == id).first()
+    return jsonify(id=msg.id_message, body=msg.body_message, sender=msg.id_sender)
 
 
 
