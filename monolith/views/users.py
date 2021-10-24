@@ -26,15 +26,12 @@ def create_user():
             s is a secret key.
             """
             UserModel.create_user(new_user, form.password.data)
-            return redirect('/users')
-    elif request.method == 'GET':
-        return render_template('create_user.html', form=form)
+            return redirect('/')
     else:
-        raise RuntimeError('This should not happen!')
+        return render_template('create_user.html', form=form)
 
 
 @users.route('/user/info', methods=['GET'])
 def user_info():
-    if request.method == 'GET':
-        user = UserModel.get_user_info_by_id(current_user.id)
+    user = UserModel.get_user_info_by_email(current_user.email)
     return render_template('user_info.html', user=current_user)
