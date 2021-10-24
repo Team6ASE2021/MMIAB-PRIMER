@@ -1,21 +1,28 @@
 <html>
  <body>
-  <form action="" method="POST">
-    {{ form.hidden_tag() }}
-    <dl>
-     {% for field in form.display %}
-     <dt>{{ form[field].label }}</dt>
-     <dd>{{ form[field]() }}</dd>
-       {% if form[field].errors %}
-          {% for e in form[field].errors %}
-           <p class="help-block">{{ e }}</p>
-          {% endfor %}
-       {% endif %}
-     {% endfor %}
-    </dl>
-    <p>
-    <input type=submit value="Submit">
-  </form>
+
+ {% if current_user.is_authenticated %}
+
+   <form action="" method="POST">
+     {{ form.hidden_tag() }}
+     <dl>
+      {% for field in form.display %}
+      <dt>{{ form[field].label }}</dt>
+      <dd>{{ form[field]() }}</dd>
+        {% if form[field].errors %}
+           {% for e in form[field].errors %}
+            <p class="help-block">{{ e }}</p>
+           {% endfor %}
+        {% endif %}
+      {% endfor %}
+     </dl>
+     <p>
+     <input type=submit value="Save as Draft">
+   </form>
+  
+ {% else %}
+   Hi Anonymous, please <a href="/login">Log in</a> to draft a message
+ {% endif %}
  </body>
 </html>
 
