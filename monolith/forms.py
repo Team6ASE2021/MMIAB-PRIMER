@@ -18,5 +18,5 @@ class UserForm(FlaskForm):
     display = ['email', 'firstname', 'lastname', 'password', 'dateofbirth']
 
 class MessageForm(FlaskForm):
-    body_message = f.TextField('Message', validators=[DataRequired()])
+    body_message = f.StringField('Message', validators=[DataRequired()])
     display = ['body_message']
