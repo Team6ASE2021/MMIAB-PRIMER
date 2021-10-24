@@ -1,0 +1,14 @@
+<html>
+  <body>
+    <h1>User info</h1>
+    <ul>
+        <li>
+            {{user.firstname}} {{user.lastname}}
+        </li>
+        <li>
+            {{user.email}}
+        </li>
+        <li>{{user.dateofbirth|datetime_format}}</li>
+    </ul>
+  </body>
+</html>
