@@ -1,8 +1,8 @@
 from flask import Blueprint, redirect, render_template, request
-
+from flask_login import current_user
 from monolith.database import User, db
 from monolith.forms import UserForm
-
+from monolith.classes.user import UserModel
 users = Blueprint('users', __name__)
 
 
@@ -25,11 +25,13 @@ def create_user():
             where x is in [md5, sha1, bcrypt], the hashed_password should be = x(password + s) where
             s is a secret key.
             """
-            new_user.set_password(form.password.data)
-            db.session.add(new_user)
-            db.session.commit()
-            return redirect('/users')
-    elif request.method == 'GET':
-        return render_template('create_user.html', form=form)
+            UserModel.create_user(new_user, form.password.data)
+            return redirect('/')
     else:
-        raise RuntimeError('This should not happen!')
+        return render_template('create_user.html', form=form)
+
+
+@users.route('/user/info', methods=['GET'])
+def user_info():
+    user = UserModel.get_user_info_by_email(current_user.email)
+    return render_template('user_info.html', user=current_user)
