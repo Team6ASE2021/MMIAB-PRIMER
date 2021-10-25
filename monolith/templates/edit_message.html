@@ -1,0 +1,33 @@
+<html>
+ <body>
+
+ {% if current_user.is_authenticated %}
+
+   <form action="" method="POST">
+     {{ form.hidden_tag() }}
+     <dl>
+      <dt>{{ form.date_of_send.label }}</dt>
+      <dd>{{ form.date_of_send(value=old_date|delivery_datetime_format) }}</dd>
+        {% if form.date_of_send.errors %}
+           {% for e in form.date_of_send.errors %}
+            <p class="help-block">{{ e }}</p>
+           {% endfor %}
+        {% endif %}
+      <dt>{{ form.recipient.label }}</dt>
+      <dd>{{ form.recipient(value=old_recipient) }}</dd>
+        {% if form.recipient.errors %}
+           {% for e in form.recipient.errors %}
+            <p class="help-block">{{ e }}</p>
+           {% endfor %}
+        {% endif %}
+     </dl>
+     <p>
+     <input type=submit value="Save as Draft">
+   </form>
+  
+ {% else %}
+   Hi Anonymous, please <a href="/login">Log in</a> to edit this message
+ {% endif %}
+ </body>
+</html>
+

@@ -1,6 +1,6 @@
 import wtforms as f
 from flask_wtf import FlaskForm
-from wtforms.validators import DataRequired, Length
+from wtforms.validators import DataRequired, Length, Optional
 
 
 class LoginForm(FlaskForm):
@@ -18,5 +18,12 @@ class UserForm(FlaskForm):
     display = ['email', 'firstname', 'lastname', 'password', 'dateofbirth']
 
 class MessageForm(FlaskForm):
-    body_message = f.StringField('Message', validators=[DataRequired()])
+    body_message = f.TextAreaField('Message', validators=[DataRequired()])
     display = ['body_message']
+
+class EditMessageForm(FlaskForm):
+    date_of_send = f.DateTimeField("Delivery Date", format='%H:%M %d/%m/%Y', validators=[Optional()])
+    recipient = f.StringField("Recipient email", validators=[])
+    display = ['date_of_send', 'recipient']
+
+    def validate_delivery_date(form, field):
