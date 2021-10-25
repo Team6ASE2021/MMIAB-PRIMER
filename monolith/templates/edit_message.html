@@ -7,6 +7,7 @@
      {{ form.hidden_tag() }}
      <dl>
       <dt>{{ form.date_of_send.label }}</dt>
+      <dd style="font-size: 10pt;">{{ form.date_of_send.format }}</dt>
       <dd>{{ form.date_of_send(value=old_date|delivery_datetime_format) }}</dd>
         {% if form.date_of_send.errors %}
            {% for e in form.date_of_send.errors %}

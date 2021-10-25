@@ -61,17 +61,15 @@ def edit_draft(id):
         if(current_user.get_id() != draft.id_sender):
             abort(401, description='You must be the sender to edit this message')
 
-        # Does not validate if date field is empty
         if form.validate_on_submit():
-            print(form.date_of_send.data)
             draft.date_of_send = form.date_of_send.data
             recipient = db.session.query(User).filter(User.email == form.recipient.data).first()
             if recipient != None:
                 draft.id_receipent = recipient.get_id()
             db.session.commit()
             return redirect('/read_message/' + str(draft.id_message))
-    else:
-        return render_template('edit_message.html', form=form, old_date=old_date, old_recipient=old_recipient)
+
+    return render_template('edit_message.html', form=form, old_date=old_date, old_recipient=old_recipient)
 
 
 
