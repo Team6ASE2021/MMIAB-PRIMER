@@ -46,3 +46,4 @@ def user_list():
     if request.method == "GET":
         user_list = UserModel.get_user_list()
         return render_template('user_list.html', list=user_list)
+
