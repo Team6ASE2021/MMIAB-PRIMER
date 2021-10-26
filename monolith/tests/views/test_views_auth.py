@@ -1,7 +1,3 @@
-
-from flask.wrappers import Response
-from monolith.forms import UserForm
-
 class TestViewsAuth:
     
     def test_login_user_exists(self, test_client):
@@ -21,6 +17,5 @@ class TestViewsAuth:
         assert response.status_code == 200       
         assert b"Hi" not in response.data
 
-    def test_login_user_valid_form(self,test_client):
-        form = UserForm()
+
         

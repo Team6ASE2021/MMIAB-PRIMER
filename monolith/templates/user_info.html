@@ -10,5 +10,7 @@
         </li>
         <li>{{user.dateofbirth|datetime_format}}</li>
     </ul>
+    <a href="{{url_for('auth.logout')}}">Logout</a>
+    <h1></h1><a href="{{url_for('users.delete_user',id=user.id)}}">Delete your account</a></h1>
   </body>
 </html>

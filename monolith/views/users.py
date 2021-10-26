@@ -1,8 +1,12 @@
-from flask import Blueprint, redirect, render_template, request
+from flask import Blueprint, redirect, render_template, request,abort
+from flask.helpers import flash
 from flask_login import current_user
+from http import HTTPStatus
+
+from flask_login.utils import login_required
 from monolith.database import User, db
 from monolith.forms import UserForm
-from monolith.classes.user import UserModel
+from monolith.classes.user import UserModel, NotExistingUser
 users = Blueprint('users', __name__)
 
 
@@ -30,8 +34,19 @@ def create_user():
     else:
         return render_template('create_user.html', form=form)
 
-
-@users.route('/user/info', methods=['GET'])
-def user_info():
-    user = UserModel.get_user_info_by_email(current_user.email)
+@login_required
+@users.route('/users/<int:id>', methods=['GET'])
+def user_info(id):
+    user = UserModel.get_user_info_by_id(current_user.id)
     return render_template('user_info.html', user=current_user)
+
+@login_required
+@users.route('/users/<int:id>/delete',methods=['GET'])
+def delete_user(id):
+    try:
+        UserModel.delete_user(id)
+        return redirect('/')
+    except NotExistingUser:
+        abort(HTTPStatus.NOT_FOUND)
+
+        
