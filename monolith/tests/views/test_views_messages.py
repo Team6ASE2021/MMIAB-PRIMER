@@ -1,6 +1,7 @@
 import pytest
 from monolith import app
 from monolith.database import Message, User, db
+import datetime
 
 class TestViewsMessages():
 
@@ -45,9 +46,61 @@ class TestViewsMessages():
         assert b'Message' in response.data
         assert b'submit' in response.data
 
+    def test_send_message_not_logged(self, test_client):
+        test_client.get('/logout')
 
+        message = Message(id_receipent = 1, \
+                          id_sender = 1, \
+                          body_message = "Ciao", \
+                          date_of_send = datetime.datetime.strptime("01/01/2022", "%d/%m/%Y"))
 
+        db.session.add(message)
+        db.session.commit()
 
+        response = test_client.post('/send_message/' + str(message.id_message))
+        
+        assert response.status_code == 401
 
+        db.session.delete(message)
+        db.session.commit()
 
+    def test_send_message_id_wrong(self, test_client):
+        admin_user = { 'email': 'example@example.com', 'password': 'admin' }
+        response = test_client.post('/login', data=admin_user)
 
+        message = Message(id_receipent = 1, \
+                          id_sender = 2, \
+                          body_message = "Ciao", \
+                          date_of_send = datetime.datetime.strptime("01/01/2022", "%d/%m/%Y"))
+
+        db.session.add(message)
+        db.session.commit()
+
+        response = test_client.post('/send_message/' + str(message.id_message))
+        
+        assert response.status_code == 410
+
+        db.session.delete(message)
+        db.session.commit()
+
+    def test_send_message(self, test_client):
+
+        message = Message(id_receipent = 1, \
+                          id_sender = 1, \
+                          body_message = "Ciao", \
+                          date_of_send = datetime.datetime.strptime("01/01/2022", "%d/%m/%Y"))
+
+        db.session.add(message)
+        db.session.commit()
+
+        response = test_client.post('/send_message/' + str(message.id_message))
+        assert b'Message has been sent correctly' in response.data
+
+        db.session.delete(message)
+        db.session.commit()
+
+    def test_send_message_not_exists(wself, test_client):
+
+        response = test_client.post('/send_message/1000')
+        assert b'1000 message not found' in response.data
+        assert response.status_code == 411
