@@ -3,6 +3,7 @@ from flask import Blueprint, redirect, render_template, request, jsonify, abort
 from monolith.auth import current_user
 from monolith.database import Message, User, db
 from monolith.forms import MessageForm, EditMessageForm
+from monolith.classes.message import MessageModel, NotExistingMessageError
 
 messages = Blueprint('messages', __name__)
 
@@ -38,10 +39,9 @@ def read_message(id):
 @messages.route('/draft/edit/<int:id>', methods=['POST', 'GET'])
 def edit_draft(id):
 
-    draft_fields = ['date_of_send', 'id_recipient']
-
-    draft = db.session.query(Message).filter(Message.id_message == id).first()
-    if draft == None:
+    try:
+        draft = MessageModel.id_message_exists(id)
+    except NotExistingMessageError:
         abort(404, description='Message not found')
 
     form = EditMessageForm()
@@ -63,13 +63,16 @@ def edit_draft(id):
 
         if form.validate_on_submit():
             draft.date_of_send = form.date_of_send.data
-            recipient = db.session.query(User).filter(User.email == form.recipient.data).first()
-            if recipient != None:
-                draft.id_receipent = recipient.get_id()
+            if form.recipient.data != '':
+                recipient = db.session.query(User).filter(User.email == form.recipient.data).first()
+                if recipient != None:
+                    draft.id_receipent = recipient.get_id()
+            else:
+                draft.id_receipent = None
             db.session.commit()
             return redirect('/read_message/' + str(draft.id_message))
 
-    return render_template('edit_message.html', form=form, old_date=old_date, old_recipient=old_recipient)
+    return render_template('edit_message.html', form=form, old_date=old_date, old_recipient=old_recipient, id_sender=draft.id_sender)
 
 
 
