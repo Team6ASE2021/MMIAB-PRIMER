@@ -20,4 +20,11 @@ class UserModel:
         db.session.commit()
         user = db.session.query(User).filter(user.email == User.email).first()
         return user
+
+    @staticmethod
+    def get_user_list():
+        user_list = []
+        for user in db.session.query(User):
+            user_list.append(user)
+        return user_list
     

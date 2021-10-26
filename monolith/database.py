@@ -46,6 +46,7 @@ class Message(db.Model):
     id_message = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     #id of sender and receipent
+
     id_sender = db.Column(db.Integer)
     id_receipent = db.Column(db.Integer)
 

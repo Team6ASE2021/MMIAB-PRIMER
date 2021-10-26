@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, render_template, request
+from flask import Blueprint, redirect, render_template, request, abort
 from flask_login import current_user
 from monolith.database import User, db
 from monolith.forms import UserForm
@@ -36,8 +36,14 @@ def user_info():
     user = UserModel.get_user_info_by_email(current_user.email)
     return render_template('user_info.html', user=current_user)
 
+
 @users.route('/user_list', methods=['GET'])
 def user_list():
-    user_list = UserModel.get_user_list()
-    return render_template('user_list.html', list=user_list)
+    #check if the current user is logged
+    if(current_user.get_id() == None):
+        abort(401, description='You must be see the user list')
+
+    if request.method == "GET":
+        user_list = UserModel.get_user_list()
+        return render_template('user_list.html', list=user_list)
 
