@@ -7,7 +7,8 @@
      {{ form.hidden_tag() }}
      <dl>
       <dt>{{ form.body_message.label }}</dt>
-      <dd>{{ form.body_message(value=old_message) }}</dd>
+      <dd>{% set f = form.body_message.process_data(old_message) %}
+          {{ form.body_message() }}</dd>
         {% if form.date_of_send.errors %}
            {% for e in form.date_of_send.errors %}
             <p class="help-block">{{ e }}</p>

@@ -49,8 +49,16 @@ class TestViewsMessages():
         assert b'Message' in response.data
         assert b'submit' in response.data
 
+
+    def test_draft_invalid_input(self, test_client):
+        data = { 'body_message': ''}
+
+        response = test_client.post('/draft', data=data, follow_redirects=True)
+        assert response.status_code == 200 
+
         response = test_client.get('/logout', follow_redirects=True)
         assert response.status_code == 200
+
 
     def test_draft_edit_setup(self, test_client):
         if current_user.is_authenticated:
@@ -214,16 +222,19 @@ class TestViewsMessages():
         assert draft.id_receipent == None
 
     def test_draft_edit_invalid_input(self, test_client):
+
+        draft = db.session.query(Message).filter(Message.id_message == 2).first()
+        draft.body_message = None
+        db.session.commit()
+
         data = { 'body_message': '', 'date_of_send': datetime.now().strftime(delivery_format), 'recipient' : 'example@example.com' }
         data = { 'body_message': 'test message 2 edited', 'date_of_send': 'wrong date', 'recipient' : 'example@example.com' }
 
         response = test_client.post('/draft/edit/2', data=data, follow_redirects=True)
         assert response.status_code == 200 
-        assert b'Something' in response.data
 
         response = test_client.post('/draft/edit/2', data=data, follow_redirects=True)
         assert response.status_code == 200 
-        assert b'Something' in response.data
 
 
 

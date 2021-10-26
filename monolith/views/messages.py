@@ -23,8 +23,9 @@ def draft():
             db.session.add(new_draft)
             db.session.commit()
             return redirect('/read_message/' + str(new_draft.id_message))
-    else:
-        return render_template('create_message.html', form=form)
+
+    return render_template('create_message.html', form=form)
+
 
 @messages.route('/read_message/<int:id>', methods=['GET'])
 def read_message(id):
@@ -45,7 +46,9 @@ def edit_draft(id):
         abort(404, description='Message not found')
 
     form = EditMessageForm()
-    old_date, old_recipient = None, "" 
+    old_date, old_recipient, old_message = None, "", ""
+    if draft.body_message != None:
+        old_message = draft.body_message
     if draft.date_of_send != None:
         old_date = draft.date_of_send
     if draft.id_receipent != None:
@@ -62,6 +65,7 @@ def edit_draft(id):
             abort(401, description='You must be the sender to edit this message')
 
         if form.validate_on_submit():
+            draft.body_message = form.body_message.data
             draft.date_of_send = form.date_of_send.data
             if form.recipient.data != '':
                 recipient = db.session.query(User).filter(User.email == form.recipient.data).first()
@@ -74,7 +78,12 @@ def edit_draft(id):
             db.session.commit()
             return redirect('/read_message/' + str(draft.id_message))
 
-    return render_template('edit_message.html', form=form, old_date=old_date, old_recipient=old_recipient, id_sender=draft.id_sender)
+    return render_template('edit_message.html',\
+            form=form,\
+            old_date=old_date,\
+            old_recipient=old_recipient,\
+            old_message=old_message,\
+            id_sender=draft.id_sender)
 
 
 
