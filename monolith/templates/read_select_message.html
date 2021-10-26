@@ -3,11 +3,11 @@
 {% if current_user.is_authenticated %}
   Ei {{ current_user.firstname }}, this is the message you selected !
   <h3>Message Text:</h3>
-  {{ mess }}
+  {{ mess_text }}
 
-  <h3>Sender: </h3> Gianluigi Rossi
+  <h3>Sender: </h3>  {{ sender }}
 
-  <h3>Date of receipt: </h3> 15/10/2021
+  <h3>Date of receipt: </h3>  {{ date_receipt }}
 
   <h3>Return to the <a href="/">Home Page</a></h3>
 

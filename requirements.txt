@@ -5,6 +5,7 @@ Click==7.0
 click-didyoumean==0.3.0
 click-plugins==1.1.1
 click-repl==0.2.0
+coverage
 flake8==3.9.2
 flake8-flask==0.9.3
 flake8-isort==4.1.1
@@ -24,7 +25,10 @@ pip-tools==6.4.0
 prompt-toolkit==3.0.20
 pycodestyle==2.7.0
 pyflakes==2.3.1
+pytest
+pytest-cov
 pytz==2021.3
+
 r2c-py-ast==0.1.0b1
 redis==3.5.3
 six==1.16.0

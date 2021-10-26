@@ -14,8 +14,4 @@ def index():
     return render_template("index.html", welcome=welcome)
 
 
-@home.route('/read_message')
-#get message id to retrive message from the db table
-def read_message():
-    mess = "Questo è un messaggio di testo!!"
-    return render_template("read_select_message.html", mess = mess)
+
