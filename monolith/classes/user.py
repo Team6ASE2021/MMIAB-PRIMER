@@ -1,6 +1,7 @@
 from typing import Optional
 from monolith.database import db, User
 
+
 class UserModel:
 
     """
@@ -8,10 +9,20 @@ class UserModel:
     """
 
     @staticmethod
+    def get_user_info_by_id(id: int) -> Optional[User]:
+        user = db.session.query(User).filter(id == User.id).first()
+        if user is None:
+            raise NotExistingUser("No user found!")
+
+        return user
+
+    @staticmethod
     def get_user_info_by_email(email: str) -> Optional[User]:
         user = db.session.query(User).filter(email == User.email).first()
+        if user is None:
+            raise NotExistingUser(f"No user with email {email} was found")
+
         return user
-    
 
     @staticmethod
     def create_user(user: User, password: str) -> Optional[User]:
@@ -22,9 +33,24 @@ class UserModel:
         return user
 
     @staticmethod
+    def delete_user(id: Optional[int] = None, email: str = ''):
+        if id is not None:
+            rows = db.session.query(User).filter_by(id=id).delete()
+        else:
+            rows = db.session.query(User).filter_by(email=email).delete()
+        
+        if rows > 0:
+            db.session.commit()
+        else:
+            raise NotExistingUser("No user found!")
+        return rows
+
     def get_user_list():
         user_list = []
         for user in db.session.query(User):
             user_list.append(user)
         return user_list
     
+
+class NotExistingUser(Exception):
+    pass

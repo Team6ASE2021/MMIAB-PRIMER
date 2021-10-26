@@ -3,7 +3,8 @@
 {% if current_user.is_authenticated %}
   Hi {{ current_user.firstname }}! <a href="/logout">Logout</a>
     <h2>{{ welcome }}</h2>
+    <a href="{{url_for('users.user_info',id=current_user.id)}}">Account info</a>
 
 {% else %}
-  Hi Anonymous, <a href="/login">Log in</a>
+  Hi Anonymous, <a href="/login">Log in</a> or <a href='/create_user'> create an account</a>
 {% endif %}
