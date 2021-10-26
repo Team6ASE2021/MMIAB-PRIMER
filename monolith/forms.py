@@ -1,6 +1,6 @@
 import wtforms as f
 from flask_wtf import FlaskForm
-from wtforms.validators import DataRequired, Length, Optional, ValidationError, StopValidation
+from wtforms.validators import DataRequired, InputRequired, Length, Optional, ValidationError, StopValidation
 from datetime import datetime
 
 delivery_format = '%H:%M %d/%m/%Y'
@@ -23,7 +23,8 @@ class MessageForm(FlaskForm):
     display = ['body_message']
 
 class EditMessageForm(FlaskForm):
+    body_message = f.TextAreaField("Message", validators=[InputRequired()])
     date_of_send = f.DateTimeField("Delivery Date", format=delivery_format, validators=[Optional()])
     recipient = f.StringField("Recipient email", validators=[])
-    display = ['date_of_send', 'recipient']
+    display = ['body_message', 'date_of_send', 'recipient']
 
