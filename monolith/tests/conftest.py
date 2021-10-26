@@ -32,5 +32,6 @@ def _clean_testing_db():
     try:
         path = os.path.abspath(os.path.dirname(__file__))
         os.remove(f"{path}/mmiab.db")
+        
     except:
         assert False  # should never run
