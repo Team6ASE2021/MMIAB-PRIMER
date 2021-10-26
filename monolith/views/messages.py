@@ -67,6 +67,8 @@ def edit_draft(id):
                 recipient = db.session.query(User).filter(User.email == form.recipient.data).first()
                 if recipient != None:
                     draft.id_receipent = recipient.get_id()
+                elif old_recipient == '':
+                    draft.id_receipent = None
             else:
                 draft.id_receipent = None
             db.session.commit()

@@ -144,14 +144,14 @@ class TestViewsMessages():
         assert draft.date_of_send == None
         assert draft.id_receipent == db.session.query(User).filter(User.email == update1['recipient']).first().id
 
-        test_client.post('/draft/edit/2', data=update2, follow_redirects=True)
+        response = test_client.post('/draft/edit/2', data=update2, follow_redirects=True)
         assert response.status_code == 200 
         draft = db.session.query(Message).filter(Message.id_message == 2).first()
         assert draft != None
         assert draft.date_of_send == datetime.strptime(update2['date_of_send'], delivery_format)
         assert draft.id_receipent == None 
 
-        test_client.post('/draft/edit/2', data=data, follow_redirects=True)
+        response = test_client.post('/draft/edit/2', data=data, follow_redirects=True)
         assert response.status_code == 200 
         draft = db.session.query(Message).filter(Message.id_message == 2).first()
         assert draft != None
@@ -159,13 +159,9 @@ class TestViewsMessages():
         assert draft.id_receipent == None
 
     def test_draft_edit_full_fields(self, test_client):
-        admin_user = { 'email': 'example@example.com', 'password': 'admin' }
-        response = test_client.post('/login', data=admin_user, follow_redirects=True)
-        assert response.status_code == 200
-
         data = { 'date_of_send': datetime.now().strftime(delivery_format), 'recipient' : 'example@example.com' }
 
-        test_client.post('/draft/edit/2', data=data, follow_redirects=True)
+        response = test_client.post('/draft/edit/2', data=data, follow_redirects=True)
         assert response.status_code == 200 
         draft = db.session.query(Message).filter(Message.id_message == 2).first()
         assert draft != None
@@ -173,20 +169,43 @@ class TestViewsMessages():
         assert draft.id_receipent == db.session.query(User).filter(User.email == data['recipient']).first().id
 
     def test_draft_edit_update_fields(self, test_client):
-        admin_user = { 'email': 'example@example.com', 'password': 'admin' }
-        response = test_client.post('/login', data=admin_user, follow_redirects=True)
-        assert response.status_code == 200
-
         dt = datetime.now()
         dt = dt.replace(year = 2022)
         data = { 'date_of_send': dt.strftime(delivery_format), 'recipient' : 'example@example.com' }
 
-        test_client.post('/draft/edit/2', data=data, follow_redirects=True)
+        response = test_client.post('/draft/edit/2', data=data, follow_redirects=True)
         assert response.status_code == 200 
         draft = db.session.query(Message).filter(Message.id_message == 2).first()
         assert draft != None
         assert draft.date_of_send == datetime.strptime(data['date_of_send'], delivery_format)
         assert draft.id_receipent == db.session.query(User).filter(User.email == data['recipient']).first().id
+
+    def test_draft_edit_invalid_recipient(self, test_client):
+        data = { 'date_of_send': datetime.now().strftime(delivery_format), 'recipient' : 'example@example.com' }
+        dt = datetime.now()
+        dt = dt.replace(year = 2022)
+        update = { 'date_of_send': dt.strftime(delivery_format), 'recipient' : 'none@none.com' }
+
+        response = test_client.post('/draft/edit/2', data=data, follow_redirects=True)
+        assert response.status_code == 200 
+        response = test_client.post('/draft/edit/2', data=update, follow_redirects=True)
+        assert response.status_code == 200 
+        draft = db.session.query(Message).filter(Message.id_message == 2).first()
+        assert draft != None
+        assert draft.date_of_send == datetime.strptime(update['date_of_send'], delivery_format)
+        assert draft.id_receipent == db.session.query(User).filter(User.email == data['recipient']).first().id
+
+        draft.id_receipent = 100
+        db.session.commit()
+
+        response = test_client.post('/draft/edit/2', data=update, follow_redirects=True)
+        assert response.status_code == 200 
+        draft = db.session.query(Message).filter(Message.id_message == 2).first()
+        assert draft != None
+        assert draft.date_of_send == datetime.strptime(update['date_of_send'], delivery_format)
+        assert draft.id_receipent == None
+
+
 
 
 
