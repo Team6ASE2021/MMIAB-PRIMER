@@ -8,7 +8,7 @@ read_message = Blueprint('read_message', __name__)
 
 @read_message.route('/read_message/<int:id>',methods=['GET'])
 #get message id to retrive message from the db table
-def read_message(id):
+def read_messages(id):
     #query to retrive the correct message from the db
     if (current_user.get_id() == None):
         abort(401,description='You must be logged into read the message')
