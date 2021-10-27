@@ -8,21 +8,6 @@ import pytest
 
 class TestReadMessages:
 
-    '''
-message = Message(id_message = 1,\
-
-id_receipent = 1, \
-
-id_sender = 2, \
-
-body_message = "Ciao", \
-
-date_of_send = datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"))
-
-db.session.add(message)
-db.session.commit()
-'''
-
     def test_read_message(self):
         message = Message(
         id_receipent = 1, \

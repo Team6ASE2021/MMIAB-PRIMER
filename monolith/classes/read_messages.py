@@ -17,7 +17,7 @@ class MessModel:
         return mess
 
     @staticmethod
-    def test_insert_db():
+    def insert_db():
         message = Message(
         id_receipent = 1, \
         id_sender = 0, \
@@ -32,12 +32,23 @@ class MessModel:
         date_of_send = datetime.datetime.strptime("07/01/2006", "%d/%m/%Y"))
         db.session.add(message1)
 
+        message2 = Message(
+        id_receipent = 1, \
+        is_arrived = 1, \
+        id_sender = None, \
+        body_message = "mess anonimo", \
+        date_of_send = datetime.datetime.strptime("07/01/2006", "%d/%m/%Y"))
+        db.session.add(message2)
+
         db.session.commit()
 
     @staticmethod
-    def test_remove_db():
+    def remove_db():
         db.session.query(Message).filter(Message.id_sender == 0).delete()
         db.session.commit()
 
         db.session.query(Message).filter(Message.id_sender == 1).delete()
+        db.session.commit()
+
+        db.session.query(Message).filter(Message.body_message == "mess anonimo").delete()
         db.session.commit()

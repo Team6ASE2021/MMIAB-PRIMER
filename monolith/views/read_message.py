@@ -17,18 +17,18 @@ def read_messages(id):
     sender_id = mess.id_sender
     mess_text = mess.body_message
     date_receipt = mess.date_of_send
-    sender_email = UserModel.get_user_info_by_id(sender_id).email
+    sender_email = UserModel.get_user_info_by_id(sender_id)
 
     #some controls to check if user is allowed to read the message or not
     if (mess.is_arrived == 1):
         if (current_user.get_id() != mess.id_receipent and \
-        current_user.get_id() != mess.in_sender):
+        current_user.get_id() != mess.id_sender):
              abort(401,description='You are not allowed to read this message')
     elif (current_user.get_id() != mess.id_sender):
              abort(401,description='You are not allowed to read this message')
 
     if sender_email is not None:
-        sender = sender_email
+        sender = sender_email.email
     else:
         sender = "Anonymous"
     return render_template("read_select_message.html", mess_text = mess_text, sender=sender,date_receipt=date_receipt)
