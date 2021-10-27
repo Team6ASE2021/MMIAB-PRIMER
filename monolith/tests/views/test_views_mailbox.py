@@ -22,7 +22,7 @@ def clean_db_and_logout(request, test_client):
 
 
 @pytest.fixture(scope='class')
-def test_mailbox_setup(test_client):
+def mailbox_setup(test_client):
     new_user = {\
             'email': 'example1@example1.com',\
             'firstname': 'jack',\
@@ -136,7 +136,7 @@ def test_mailbox_setup(test_client):
 
 
 
-@pytest.mark.usefixtures("test_mailbox_setup", "clean_db_and_logout")
+@pytest.mark.usefixtures("mailbox_setup", "clean_db_and_logout")
 class TestViewsMailbox():
     def test_mailbox_not_logged(self, test_client):
         response = test_client.get('/message/list/received')
