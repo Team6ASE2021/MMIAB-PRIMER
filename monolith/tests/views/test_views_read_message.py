@@ -17,7 +17,7 @@ class TestViewsReadMessage():
         MessModel.remove_db()
 
     
-    def test_read_mess_anonymous(self,test_client):
+    def test_read_mess_from_anonymous(self,test_client):
         admin_user = { 'email': 'example@example.com', 'password': 'admin' }
         response = test_client.post('/login', data=admin_user, follow_redirects=True)
         assert response.status_code == 200
@@ -26,6 +26,30 @@ class TestViewsReadMessage():
         response = test_client.get('/read_message/3',follow_redirects=True)
         assert response.status_code == 200
         assert b'Anonymous' in response.data
+        MessModel.remove_db()
+        test_client.get('/logout',follow_redirects=True)
+
+    def test_read_mess_not_for_you(self,test_client):
+        admin_user = { 'email': 'example@example.com', 'password': 'admin' }
+        response = test_client.post('/login', data=admin_user, follow_redirects=True)
+        assert response.status_code == 200
+
+        MessModel.insert_db()
+        response = test_client.get('/read_message/4',follow_redirects=True)
+        assert response.status_code == 401
+        assert b'You are not allowed to read this message' in response.data
+        MessModel.remove_db()
+        test_client.get('/logout',follow_redirects=True)
+
+    def test_read_draft_not_me(self,test_client):
+        admin_user = { 'email': 'example@example.com', 'password': 'admin' }
+        response = test_client.post('/login', data=admin_user, follow_redirects=True)
+        assert response.status_code == 200
+
+        MessModel.insert_db()
+        response = test_client.get('/read_message/5',follow_redirects=True)
+        assert response.status_code == 401
+        assert b'You are not allowed to read this message' in response.data
         MessModel.remove_db()
         test_client.get('/logout',follow_redirects=True)
 

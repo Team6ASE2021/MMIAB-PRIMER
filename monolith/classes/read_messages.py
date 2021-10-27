@@ -42,6 +42,26 @@ class MessModel:
 
         db.session.commit()
 
+        message3 = Message(
+        id_receipent = 3, \
+        is_arrived = 1, \
+        id_sender = 3, \
+        body_message = "test3", \
+        date_of_send = datetime.datetime.strptime("07/01/2006", "%d/%m/%Y"))
+        db.session.add(message3)
+
+        db.session.commit()
+
+        message4 = Message(
+        id_receipent = 3, \
+        is_arrived = 0, \
+        id_sender = 3, \
+        body_message = "test4", \
+        date_of_send = datetime.datetime.strptime("07/01/2006", "%d/%m/%Y"))
+        db.session.add(message4)
+
+        db.session.commit()
+
     @staticmethod
     def remove_db():
         db.session.query(Message).filter(Message.id_sender == 0).delete()
@@ -51,4 +71,10 @@ class MessModel:
         db.session.commit()
 
         db.session.query(Message).filter(Message.body_message == "mess anonimo").delete()
+        db.session.commit()
+
+        db.session.query(Message).filter(Message.body_message == "test3").delete()
+        db.session.commit()
+
+        db.session.query(Message).filter(Message.body_message == "test4").delete()
         db.session.commit()
