@@ -1,0 +1,12 @@
+<html>
+  <body>
+    <h1>Mailbox</h1>
+    <ul>
+        {% for Message in message_list: %}
+        <li>
+            {{Message.body_message}}
+        </li>
+        {% endfor %}
+    </ul>
+  </body>
+</html>
