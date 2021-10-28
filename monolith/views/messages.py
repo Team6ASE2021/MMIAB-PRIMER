@@ -2,7 +2,7 @@ from datetime import date
 import datetime
 from monolith.classes.message import MessageModel, NotExistingMessageError
 from flask import Blueprint, redirect, render_template, request, jsonify, abort
-from monolith.background import celery
+from monolith.background import celery, test
 
 from monolith.auth import current_user
 from monolith.database import Message, User, db
@@ -49,6 +49,9 @@ def edit_draft(id):
     except NotExistingMessageError:
         abort(404, description='Message not found')
 
+    if draft.is_sended:
+        abort(401, description='You cannot edit a message after it\'s been sent')
+
     form = EditMessageForm()
     old_date, old_recipient, old_message = None, "", ""
     if draft.body_message != None:
@@ -90,7 +93,7 @@ def edit_draft(id):
             id_sender=draft.id_sender)
 
 
-@messages.route('/send_message/<int:id>', methods=['POST'])
+@messages.route('/send_message/<int:id>', methods=['GET', 'POST'])
 def send_message(id):
     #check if the current user is logged
     if (current_user.get_id() == None):
