@@ -27,20 +27,23 @@ class MessageModel:
     @staticmethod
     def arrived_message():
         
-        messages = db.session.query(Message).filter((Message.is_sended == 1) and \
-                                                    (Message.is_arrived == 0) and \
-                                                    (Message.date_of_send is not None))
+        messages = db.session.query(Message).filter(Message.is_sended == True,\
+                Message.is_arrived == False,\
+                Message.date_of_send is not None)
+
         messages_arrived = []
-        for message in messages:
-            
-            time_delta = (message.date_of_send - datetime.datetime.now()).total_seconds()
-
-            if time_delta <= 0:
-                db.session.query(Message).filter(Message.id_message == message.id_message).update({Message.is_arrived : 1})
-                messages_arrived.append(message)
-
+        for m in messages:
+            if (m.date_of_send - datetime.datetime.now()).total_seconds() <= 0:
+                m.is_arrived = True
+                messages_arrived.append(m)
+        
         db.session.commit()
-        return messages_arrived
+
+        # return messages_arrived
+        return [{'id' : m.id_message,\
+                'date' : m.date_of_send.strftime("%H:%M %d/%m/%Y"),\
+                'sent': m.is_sended,\
+                'received' : m.is_arrived} for m in messages_arrived]
 
 class NotExistingMessageError(Exception):
     def __init__(self, value):
