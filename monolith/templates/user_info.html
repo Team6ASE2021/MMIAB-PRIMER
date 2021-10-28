@@ -9,6 +9,10 @@
             {{user.email}}
         </li>
         <li>{{user.dateofbirth|datetime_format}}</li>
+        <li>{{user.nickname}}</li>
+        <li>{{user.location}}</li>
     </ul>
+    <p><a href="{{url_for('auth.logout')}}">Logout</a></p>
+    <p><a href="{{url_for('users.delete_user',id=user.id)}}">Delete your account</a></p>
   </body>
 </html>

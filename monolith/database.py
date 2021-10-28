@@ -11,10 +11,13 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.Unicode(128), nullable=False, unique=True)
+    nickname = db.Column(db.Unicode(128),unique=False)
+    location = db.Column(db.Unicode(128))
     firstname = db.Column(db.Unicode(128))
     lastname = db.Column(db.Unicode(128))
     password = db.Column(db.Unicode(128))
     dateofbirth = db.Column(db.DateTime)
+
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
     is_anonymous = False
@@ -46,6 +49,7 @@ class Message(db.Model):
     id_message = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     #id of sender and receipent
+
     id_sender = db.Column(db.Integer)
     id_receipent = db.Column(db.Integer)
 

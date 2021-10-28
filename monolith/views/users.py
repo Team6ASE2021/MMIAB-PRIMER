@@ -1,8 +1,11 @@
-from flask import Blueprint, redirect, render_template, request
+from flask import Blueprint, redirect, render_template, request,abort
 from flask_login import current_user
+from http import HTTPStatus
+
+from flask_login.utils import login_required
 from monolith.database import User, db
 from monolith.forms import UserForm
-from monolith.classes.user import UserModel
+from monolith.classes.user import UserModel, NotExistingUser
 users = Blueprint('users', __name__)
 
 
@@ -25,13 +28,35 @@ def create_user():
             where x is in [md5, sha1, bcrypt], the hashed_password should be = x(password + s) where
             s is a secret key.
             """
-            UserModel.create_user(new_user, form.password.data)
-            return redirect('/')
+            user = UserModel.create_user(new_user, form.password.data)
+            return redirect('/login')
     else:
         return render_template('create_user.html', form=form)
 
-
-@users.route('/user/info', methods=['GET'])
-def user_info():
-    user = UserModel.get_user_info_by_email(current_user.email)
+@login_required
+@users.route('/users/<int:id>', methods=['GET'])
+def user_info(id):
+    user = UserModel.get_user_info_by_id(current_user.id)
     return render_template('user_info.html', user=current_user)
+
+
+@users.route('/user_list', methods=['GET'])
+def user_list():
+    #check if the current user is logged
+    if(current_user.get_id() == None):
+        abort(401, description='You must be see the user list')
+
+    if request.method == "GET":
+        user_list = UserModel.get_user_list()
+        return render_template('user_list.html', list=user_list)
+
+@login_required
+@users.route('/users/<int:id>/delete',methods=['GET'])
+def delete_user(id):
+    try:
+        UserModel.delete_user(id)
+        return redirect('/')
+    except NotExistingUser:
+        abort(HTTPStatus.NOT_FOUND)
+
+        
