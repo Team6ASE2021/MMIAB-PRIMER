@@ -49,6 +49,9 @@ def edit_draft(id):
     except NotExistingMessageError:
         abort(404, description='Message not found')
 
+    if draft.is_sended:
+        abort(401, description='You cannot edit a message after it\'s been sent')
+
     form = EditMessageForm()
     old_date, old_recipient, old_message = None, "", ""
     if draft.body_message != None:
