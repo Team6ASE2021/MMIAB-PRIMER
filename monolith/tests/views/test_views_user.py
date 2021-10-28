@@ -27,7 +27,7 @@ class TestViewsUser:
          }
          response = test_client.post('/create_user', data=data, follow_redirects=True)
          assert response.status_code == HTTPStatus.OK
-         assert b'Hi' in response.data
+         assert b'Login' in response.data
          response = test_client.get('/users/2/delete',follow_redirects=True)
          assert response.status_code == HTTPStatus.OK
          assert b'Anonymous' in response.data

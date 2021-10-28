@@ -1,7 +1,6 @@
 import wtforms as f
 from flask_wtf import FlaskForm
-from wtforms.validators import DataRequired, InputRequired, Length, Optional, ValidationError, StopValidation
-from datetime import datetime
+from wtforms.validators import DataRequired, InputRequired, Length, Optional
 
 delivery_format = '%H:%M %d/%m/%Y'
 
@@ -16,7 +15,9 @@ class UserForm(FlaskForm):
     lastname = f.StringField('lastname', validators=[DataRequired()])
     password = f.PasswordField('password', validators=[DataRequired()])
     dateofbirth = f.DateField('dateofbirth', format='%d/%m/%Y')
-    display = ['email', 'firstname', 'lastname', 'password', 'dateofbirth']
+    nickname = f.StringField('nickname', validators=[Optional()])
+    location = f.StringField('location', validators=[Optional()])
+    display = ['email', 'firstname', 'lastname','nickname','location', 'password', 'dateofbirth']
 
 class MessageForm(FlaskForm):
     body_message = f.TextAreaField('Message', validators=[InputRequired()])
