@@ -1,6 +1,6 @@
 from celery import Celery
 
-from monolith.database import User, db
+from monolith.database import db
 
 BACKEND = BROKER = 'redis://localhost:6379'
 celery = Celery(__name__, backend=BACKEND, broker=BROKER)
