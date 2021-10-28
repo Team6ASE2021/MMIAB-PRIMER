@@ -1,0 +1,14 @@
+<h1>My Message in a Bottle -- Primer</h1>
+
+{% if current_user.is_authenticated %}
+  Ei {{ current_user.firstname }}, this is the message you selected !
+  <h3>Message Text:</h3>
+  {{ mess_text }}
+
+  <h3>Sender: </h3>  {{ sender }}
+
+  <h3>Date of receipt: </h3>  {{ date_receipt }}
+
+  <h3>Return to the <a href="/">Home Page</a></h3>
+
+  {% endif %}

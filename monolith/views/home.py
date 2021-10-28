@@ -12,3 +12,6 @@ def index():
     else:
         welcome = None
     return render_template("index.html", welcome=welcome)
+
+
+
