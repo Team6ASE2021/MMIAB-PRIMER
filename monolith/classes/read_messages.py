@@ -1,6 +1,7 @@
 from typing import Optional
 from monolith.database import db, User, Message
 from datetime import datetime
+
 import sqlalchemy
 
 
@@ -114,3 +115,4 @@ class MessModel:
     @staticmethod
     def remove_db():
         db.session.query(Message).delete()
+        db.session.commit()

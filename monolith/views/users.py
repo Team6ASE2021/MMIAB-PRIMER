@@ -28,8 +28,8 @@ def create_user():
             where x is in [md5, sha1, bcrypt], the hashed_password should be = x(password + s) where
             s is a secret key.
             """
-            UserModel.create_user(new_user, form.password.data)
-            return redirect('/')
+            user = UserModel.create_user(new_user, form.password.data)
+            return redirect('/login')
     else:
         return render_template('create_user.html', form=form)
 
