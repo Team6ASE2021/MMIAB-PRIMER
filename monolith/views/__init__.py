@@ -1,4 +1,3 @@
-from monolith.classes import read_messages
 from .auth import auth
 from .home import home
 from .users import users

@@ -31,16 +31,6 @@ def draft():
     return render_template('create_message.html', form=form)
 
 
-@messages.route('/read_message/<int:id>', methods=['GET'])
-def read_message(id):
-    msg = db.session.query(Message).filter(Message.id_message == id).first()
-    return jsonify(id=msg.id_message,\
-                    body=msg.body_message,\
-                    sender=msg.id_sender,\
-                    recipient=msg.id_receipent,\
-                    delivery_date=msg.date_of_send)
-
-
 @messages.route('/draft/edit/<int:id>', methods=['POST', 'GET'])
 def edit_draft(id):
 

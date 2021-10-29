@@ -1,12 +1,19 @@
 <!doctype html>
 <html>
     <head>
-        <link rel="stylesheet" href="css/style.css">
+        <style type="text/css">
+            @font-face {
+              font-family: "Happy Lucky";
+              src: url("{{ url_for('static', filename='fonts/happy_lucky.ttf') }}");
+            }
+        </style>
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/style.css') }}">
     </head>
     <body>
         <div class="title">
             <div>my message in a bottle</div>
         </div>
+      {% if current_user.is_authenticated %}
         <div class="main-container">
             <div class="left-container">
                 <div class="redirect" {% if list_type == 'received' %} id="redirect-selected" {% endif %}>
@@ -43,128 +50,11 @@
                     </div>
                 </div>
                 {% endfor %}
-                <div class="message-block">
-                    <div class="main" id="message-to-read">
-                        <div class="user">
-                            <div>from: </div>
-                        </div>
-                        <div class="body">
-                            <div>
-                           </div>
-                        </div>
-                    </div>
-                    <div class="extra">
-                        <div class="datetime">
-                            <div>when</div>
-                        </div>
-                        <div class="actions">
-                            <div>edit</div>
-                            <div>send</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="message-block">
-                    <div class="main">
-                        <div class="user">
-                            <div>from: </div>
-                        </div>
-                        <div class="body">
-                            <div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="extra">
-                        <div class="datetime">
-                            <div>when</div>
-                        </div>
-                        <div class="actions">
-                            <div>edit</div>
-                            <div>send</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="message-block">
-                    <div class="main">
-                        <div class="user">
-                            <div>from: </div>
-                        </div>
-                        <div class="body">
-                            <div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="extra">
-                        <div class="datetime">
-                            <div>when</div>
-                        </div>
-                        <div class="actions">
-                            <div>edit</div>
-                            <div>send</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="message-block">
-                    <div class="main">
-                        <div class="user">
-                            <div>from: </div>
-                        </div>
-                        <div class="body">
-                            <div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="extra">
-                        <div class="datetime">
-                            <div>when</div>
-                        </div>
-                        <div class="actions">
-                            <div>edit</div>
-                            <div>send</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="message-block">
-                    <div class="main">
-                        <div class="user">
-                            <div>from: </div>
-                        </div>
-                        <div class="body">
-                            <div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="extra">
-                        <div class="datetime">
-                            <div>when</div>
-                        </div>
-                        <div class="actions">
-                            <div>edit</div>
-                            <div>send</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="message-block">
-                    <div class="main">
-                        <div class="user">
-                            <div>from: </div>
-                        </div>
-                        <div class="body">
-                            <div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="extra">
-                        <div class="datetime">
-                            <div>when</div>
-                        </div>
-                        <div class="actions">
-                            <div>edit</div>
-                            <div>send</div>
-                        </div>
-                    </div>
-                </div>
             </div>
             <!-- <div class="closeup"></div> -->
         </div>
+      {% else %}
+        <div> Hi Anonymous, please <a href="/login">Log in</a> to edit this message</div>
+      {% endif %}
     </body>
 </html>

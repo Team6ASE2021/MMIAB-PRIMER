@@ -1,8 +1,9 @@
+/*
 @font-face{
     font-family: "Happy Lucky";
-    src: url("../fonts/happy_lucky.ttf");
+    src: url("/monolith/templates/fonts/happy_lucky.ttf");
 }
-
+*/
 :root{
     --primary: rgba(3,109,248,1);
     --primary-faded: rgba(3,109,248,0.3);
