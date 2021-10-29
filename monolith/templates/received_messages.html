@@ -1,10 +1,13 @@
 <html>
   <body>
     <h1>Mailbox</h1>
+    <h3>Received messages</h3>
     <ul>
-        {% for Message in message_list: %}
+        {% for mess in message_list: %}
         <li>
-            {{Message.body_message}}
+            {{mess.User.email}}<br>
+            {{mess.User.firstname}}<br>
+            {{mess.Message.body_message}}
         </li>
         {% endfor %}
     </ul>

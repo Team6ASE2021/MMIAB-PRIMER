@@ -19,7 +19,7 @@ def get_mailbox_sent_messages():
 
     message_list = MailboxUtility.get_sended_message_by_id_user(current_user.get_id())
     
-    return render_template("sent_messages.html", message_list=message_list)
+    return render_template("sent_messages.html", message_list=message_list,list_type="sent")
 
 @mailbox.route('/message/list/received',methods=['GET'])
 def get_mailbox_received_messages():
@@ -32,7 +32,7 @@ def get_mailbox_received_messages():
 
     message_list = MailboxUtility.get_received_message_by_id_user(current_user.get_id())
     
-    return render_template("received_messages.html", message_list=message_list)
+    return render_template("received_messages.html", message_list=message_list,list_type="received")
 
 @mailbox.route('/message/list/draft',methods=['GET'])
 def get_mailbox_draft_messages():
@@ -45,4 +45,4 @@ def get_mailbox_draft_messages():
 
     message_list = MailboxUtility.get_draft_message_by_id_user(current_user.get_id())
     
-    return render_template("draft_messages.html", message_list=message_list)
+    return render_template("draft_messages.html", message_list=message_list,list_type="draft")
