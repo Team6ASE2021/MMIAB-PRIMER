@@ -6,5 +6,6 @@ from .filters import filters
 from .messages import messages
 from .mailbox import mailbox
 from .read_message import read_message
+from .forward import forward
 
-blueprints = [home, auth, users, filters, messages, read_message, mailbox]
+blueprints = [home, auth, users, filters, messages, read_message, mailbox, forward]
