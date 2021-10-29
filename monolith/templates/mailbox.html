@@ -9,44 +9,32 @@
         </div>
         <div class="main-container">
             <div class="left-container">
-                <div class="redirect">
+                <div class="redirect" {% if list_type == 'received' %} id="redirect-selected" {% endif %}>
                     <div>Received</div>
                 </div>
-                <div class="redirect">
+                <div class="redirect" {% if list_type == 'sent' %} id="redirect-selected" {% endif %}>
                     <div>Sent</div>
                 </div>
-                <div class="redirect">
+                <div class="redirect" {% if list_type == 'draft' %} id="redirect-selected" {% endif %}>
                     <div>Draft</div>
                 </div>
             </div>
             <div class="message-container">
+              {% for m in message_list: %}
                 <div class="message-block">
                     <div class="main">
                         <div class="user">
-                            <div>from: </div>
+                            <div> {{ m.User.firstname }} {{ m.User.lastname }} </div>
                         </div>
                         <div class="body">
-                            <div>
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                            </div>
+                            <div> {{ m.Message.body_message }} </div>
                         </div>
                     </div>
                     <div class="extra">
                         <div class="datetime">
-                            <div class="time">14:30</div>
-                            <div class="date">28/10/2021</div>
+                            {% set datetime_list = (m.Message.date_of_send|delivery_datetime_format).split(' ') %}
+                            <div class="time"> {{ datetime_list[0] }} </div>
+                            <div class="date"> {{ datetime_list[1] }} </div>
                         </div>
                         <div class="actions">
                             <div>edit</div>
@@ -54,6 +42,7 @@
                         </div>
                     </div>
                 </div>
+                {% endfor %}
                 <div class="message-block">
                     <div class="main" id="message-to-read">
                         <div class="user">
@@ -61,19 +50,26 @@
                         </div>
                         <div class="body">
                             <div>
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
-                                test message
+                           </div>
+                        </div>
+                    </div>
+                    <div class="extra">
+                        <div class="datetime">
+                            <div>when</div>
+                        </div>
+                        <div class="actions">
+                            <div>edit</div>
+                            <div>send</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="message-block">
+                    <div class="main">
+                        <div class="user">
+                            <div>from: </div>
+                        </div>
+                        <div class="body">
+                            <div>
                             </div>
                         </div>
                     </div>
@@ -94,7 +90,6 @@
                         </div>
                         <div class="body">
                             <div>
-                                test message
                             </div>
                         </div>
                     </div>
@@ -115,7 +110,6 @@
                         </div>
                         <div class="body">
                             <div>
-                                test message
                             </div>
                         </div>
                     </div>
@@ -136,7 +130,6 @@
                         </div>
                         <div class="body">
                             <div>
-                                test message
                             </div>
                         </div>
                     </div>
@@ -157,28 +150,6 @@
                         </div>
                         <div class="body">
                             <div>
-                                test message
-                            </div>
-                        </div>
-                    </div>
-                    <div class="extra">
-                        <div class="datetime">
-                            <div>when</div>
-                        </div>
-                        <div class="actions">
-                            <div>edit</div>
-                            <div>send</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="message-block">
-                    <div class="main">
-                        <div class="user">
-                            <div>from: </div>
-                        </div>
-                        <div class="body">
-                            <div>
-                                test message
                             </div>
                         </div>
                     </div>

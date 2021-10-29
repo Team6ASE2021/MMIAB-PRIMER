@@ -73,6 +73,10 @@ body {
     border-radius: 12px;;
 }
 
+#redirect-selected {
+    background-color: var(--primary-faded);
+}
+
 .message-container{
     position: relative;
     flex: 70 70;
