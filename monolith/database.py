@@ -64,3 +64,4 @@ class Message(db.Model):
     #constructor of the message object
     def __init__(self, *args, **kw):
         super(Message, self).__init__(*args, **kw)
+        

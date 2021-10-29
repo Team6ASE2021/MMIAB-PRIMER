@@ -1,10 +1,13 @@
 from datetime import date
 import datetime
+
+from flask_login.utils import login_required
 from monolith.classes.message import MessageModel, NotExistingMessageError
 from flask import Blueprint, redirect, render_template, request, jsonify, abort
 from monolith.background import celery
 
 from monolith.auth import current_user
+from monolith.classes.user import UserModel
 from monolith.database import Message, User, db
 from monolith.forms import MessageForm, EditMessageForm
 from monolith.classes.message import MessageModel, NotExistingMessageError
@@ -24,8 +27,7 @@ def draft():
             new_draft = Message()
             form.populate_obj(new_draft)
             new_draft.id_sender = current_user.get_id()
-            db.session.add(new_draft)
-            db.session.commit()
+            MessageModel.add_draft(new_draft)
             return redirect('/read_message/' + str(new_draft.id_message))
 
     return render_template('create_message.html', form=form)
@@ -113,3 +115,10 @@ def send_message(id):
     except NotExistingMessageError as e:
         #return status code 401 with the message of error
         abort(411, str(e))
+
+@login_required
+@messages.route('/recipients',methods=['GET'])
+def get_recipients():
+    users = filter(lambda u: u.id != current_user.get_id(), UserModel.get_user_list())
+    ##TODO: add filtering to exclude blocked users or users that blocked you (or non public accounts idk)
+    return render_template("choose_recipient.html", users=users)

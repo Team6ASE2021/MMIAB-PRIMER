@@ -1,5 +1,6 @@
-from typing import Optional
-from monolith.database import db, User
+from typing import List, Optional
+
+from monolith.database import User, db
 
 
 class UserModel:
@@ -33,24 +34,21 @@ class UserModel:
         return user
 
     @staticmethod
-    def delete_user(id: Optional[int] = None, email: str = ''):
+    def delete_user(id: Optional[int] = None, email: str = '') -> int:
         if id is not None:
             rows = db.session.query(User).filter_by(id=id).delete()
         else:
             rows = db.session.query(User).filter_by(email=email).delete()
-        
+
         if rows > 0:
             db.session.commit()
         else:
             raise NotExistingUser("No user found!")
         return rows
 
-    def get_user_list():
-        user_list = []
-        for user in db.session.query(User):
-            user_list.append(user)
-        return user_list
-    
+    def get_user_list() -> List[User]:
+        return db.session.query(User).all()
+
 
 class NotExistingUser(Exception):
     pass

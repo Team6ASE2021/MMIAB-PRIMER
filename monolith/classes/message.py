@@ -16,7 +16,10 @@ class MessageModel:
             raise NotExistingMessageError(str(id_message) + " message not found")
         else:
             return message
-
+    @staticmethod
+    def add_draft(msg: Message) -> None:
+        db.session.add(msg)
+        db.session.commit()
     @staticmethod 
     def send_message(id_message):
         db.session.query(Message).filter(Message.id_message == id_message)\
