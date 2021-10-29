@@ -1,0 +1,191 @@
+@font-face{
+    font-family: "Happy Lucky";
+    src: url("../fonts/happy_lucky.ttf");
+}
+
+:root{
+    --primary: rgba(3,109,248,1);
+    --primary-faded: rgba(3,109,248,0.3);
+    --primary-extra-faded: rgba(3,109,248,0.1);
+    --secondary: rgba(188,228,248,1);
+}
+body {
+    background-color: var(--secondary);
+}
+
+.title {
+    position: absolute;
+    width: 100%; 
+    height: 60px;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+    background-color: var(--primary);
+    font-family: "Happy Lucky";
+    font-size: 30pt;
+    color: white;
+}
+
+.title>div {
+    margin-left: 2%;
+}
+
+.main-container{
+    position: relative;
+    width: 95%;
+    top: 70px;
+    left: 2.5%;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-around;
+    background-color: transparent;
+    padding-bottom: 60px;
+}
+
+.left-container{
+    position: relative;
+    flex: 30 30;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-items: flex-end;
+}
+
+.left-container>.redirect{
+    position: relative;
+    margin: 1.5% 1.5% 0% 1.5% ;
+    flex: 0 1 80px;
+    width: 72%;
+    background-color: var(--primary);
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0px 5%;
+    color: white;
+    font-family: "Arial";
+    font-size: 16pt;
+    font-weight: bold;
+    border-radius: 12px;;
+}
+
+#redirect-selected {
+    background-color: var(--primary-faded);
+}
+
+.message-container{
+    position: relative;
+    flex: 70 70;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    flex-flow: column nowrap;
+    border-left: 3px solid var(--primary-faded);
+    padding-bottom: 200px;
+}
+
+.message-block {
+    position: relative;
+    flex: 1 1 120px;
+    display: flex;
+    flex-flow: row nowrap;
+    background-color: transparent;
+    padding-right: 2%;
+}
+
+.message-block:after{
+    content: "";
+    position: absolute;
+    width: 98%;
+    left: 1%;
+    bottom: 0px;
+    height: 1px;
+    border-bottom: 2px solid var(--primary-faded);
+}
+
+.message-block:hover {
+    background-color: var(--primary-extra-faded);
+}
+
+.message-block>.main{
+    position: relative;
+    flex: 6 6;
+    padding: 0px 2%;
+    display: flex;
+    flex-direction: column;
+    background-color: transparent;
+    border-left: 5px solid transparent;
+}
+
+#message-to-read{
+    border-left: 5px solid var(--primary);
+}
+
+.message-block>.main>.user{
+    position: relative;
+    flex: 9 9;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    font-family: "Arial";
+    font-size: 18pt;
+}
+
+.message-block>.main>.body{
+    position: relative;
+    flex: 11 11;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: flex-start;
+    justify-content: flex-start;
+    background-color: transparent;
+    font-family: "Arial";
+    font-size: 13pt;
+}
+
+.message-block>.extra{
+    position: relative;
+    flex: 1 1;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: stretch;
+}
+
+.message-block>.extra>.datetime{
+    position: relative;
+    flex: 6 6;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+}
+
+.datetime>.time{
+    font-family: "Arial";
+    font-size: 13pt;
+}
+.datetime>.date{
+    font-family: "Arial";
+    font-size: 11pt;
+    padding-top: 2px;
+}
+
+
+.message-block>.extra>.actions{
+    position: relative;
+    flex: 4 4;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.message-block>.extra>.actions>div{
+    padding: 0px 2%;
+}
+
