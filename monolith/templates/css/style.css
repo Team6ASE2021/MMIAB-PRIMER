@@ -1,108 +1,146 @@
+@font-face{
+    font-family: "Happy Lucky";
+    src: url("../fonts/happy_lucky.ttf");
+}
+
+:root{
+    --primary: rgba(3,109,248,1);
+    --primary-faded: rgba(3,109,248,0.3);
+    --primary-extra-faded: rgba(3,109,248,0.1);
+    --secondary: rgba(188,228,248,1);
+}
 body {
-    background-color: var(--back-color, white);
+    background-color: var(--secondary);
 }
 
 .title {
-    position: relative;
-    width: 90%;
-    left: 5%;
+    position: absolute;
+    width: 100%; 
+    height: 60px;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-start;
     text-align: center;
-    padding: 70px 0 50px 0;
-    background-color: transparent;
-    font-size: 48pt;
-    color: green;
+    background-color: var(--primary);
+    font-family: "Happy Lucky";
+    font-size: 30pt;
+    color: white;
+}
 
+.title>div {
+    margin-left: 2%;
 }
 
 .main-container{
     position: relative;
     width: 95%;
+    top: 70px;
     left: 2.5%;
     display: flex;
     flex-flow: row nowrap;
     justify-content: space-around;
-    background-color: lightblue;
-    padding-bottom: 200px;
+    background-color: transparent;
+    padding-bottom: 60px;
 }
 
 .left-container{
     position: relative;
-    flex: 25 25;
+    flex: 30 30;
     display: flex;
     flex-flow: column nowrap;
     justify-content: flex-start;
-    align-items: stretch;
+    align-items: flex-end;
 }
 
 .left-container>.redirect{
     position: relative;
     margin: 1.5% 1.5% 0% 1.5% ;
     flex: 0 1 80px;
-    background-color: blue;
+    width: 72%;
+    background-color: var(--primary);
     display: flex;
     flex-flow: row nowrap;
-    justify-content: flex-start;
+    justify-content: flex-end;
     align-items: center;
-    padding: 0px 2%;
+    padding: 0px 5%;
+    color: white;
+    font-family: "Arial";
+    font-size: 16pt;
+    font-weight: bold;
+    border-radius: 12px;;
 }
 
 .message-container{
     position: relative;
-    flex: 75 75;
+    flex: 70 70;
     display: flex;
     align-items: stretch;
     justify-content: center;
     flex-flow: column nowrap;
+    border-left: 3px solid var(--primary-faded);
+    padding-bottom: 200px;
 }
 
 .message-block {
+    position: relative;
     flex: 1 1 120px;
     display: flex;
     flex-flow: row nowrap;
-    background-color: green;
-    padding: 0px 2%;
+    background-color: transparent;
+    padding-right: 2%;
 }
 
-.message-block>.header{
-    position: relative;
-    flex: 1 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    flex-direction: row;
-    padding: 0px 5%;
-    background-color: pink;
+.message-block:after{
+    content: "";
+    position: absolute;
+    width: 98%;
+    left: 1%;
+    bottom: 0px;
+    height: 1px;
+    border-bottom: 2px solid var(--primary-faded);
+}
+
+.message-block:hover {
+    background-color: var(--primary-extra-faded);
 }
 
 .message-block>.main{
     position: relative;
     flex: 6 6;
+    padding: 0px 2%;
     display: flex;
     flex-direction: column;
-    background-color: lightgreen;
+    background-color: transparent;
+    border-left: 5px solid transparent;
+}
+
+#message-to-read{
+    border-left: 5px solid var(--primary);
 }
 
 .message-block>.main>.user{
     position: relative;
-    flex: 4 4;
+    flex: 9 9;
     display: flex;
     align-items: flex-end;
     justify-content: flex-start;
-    background-color: yellow;
-}
-
-.message-block>.main>.user>div{
-    background-color: gray;
+    font-family: "Arial";
+    font-size: 18pt;
 }
 
 .message-block>.main>.body{
     position: relative;
-    flex: 6 6;
+    flex: 11 11;
     display: flex;
-    align-items: center;
+    flex-flow: row nowrap;
+    align-items: flex-start;
     justify-content: flex-start;
-    background-color: orange;
+    background-color: transparent;
+    font-family: "Arial";
+    font-size: 13pt;
 }
 
 .message-block>.extra{
@@ -117,9 +155,20 @@ body {
     position: relative;
     flex: 6 6;
     display: flex;
+    flex-flow: column nowrap;
     align-items: center;
     justify-content: center;
-    background-color: pink;
+    background-color: transparent;
+}
+
+.datetime>.time{
+    font-family: "Arial";
+    font-size: 13pt;
+}
+.datetime>.date{
+    font-family: "Arial";
+    font-size: 11pt;
+    padding-top: 2px;
 }
 
 
@@ -129,408 +178,10 @@ body {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-evenly;
-    background-color: cyan;
+    justify-content: center;
 }
 
-.card {
-    position: relative;
-    background-color: transparent;
-    width: 100%;
-    height: 100%;
-    top: 0%;
-    left: 0%;
+.message-block>.extra>.actions>div{
+    padding: 0px 2%;
 }
 
-.card>.front {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0%;
-    left: 0%;
-    background-color: yellow;
-    border-radius: 25px;
-    backface-visibility: hidden;
-    /*transition: transform .5s linear 0s;*/
-    box-shadow: 7px 7px 7px rgba(60,60,60,1);
-}
-
-.card>.front-unflip {
-    transform:perspective(900px) rotateX(0deg);
-}
-
-.card>.front-flip {
-    transform:perspective(900px) rotateX(180deg);
-}
-
-.card>.back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0%;
-    left: 0%;
-    background-color: purple;
-    border-radius: 25px;
-    backface-visibility: hidden;
-    /*transition: transform .5s linear 0s;*/
-    box-shadow: 5px 5px 5px rgba(60,60,60,1);
-}
-
-.card>.back-unflip {
-    transform:perspective(900px) rotateX(180deg);
-}
-
-.card>.back-flip {
-    transform:perspective(900px) rotateX(360deg);
-}
-
-.card-back-bg {
-    position: absolute;
-    object-fit: cover;
-    border-radius: 25px;
-    object-position: 0% 30%;
-    width: 100%;
-    height: 100%;
-}
-
-.card-back-over {
-    position: absolute;
-    border-radius: 25px;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(90,90,90,0.6);
-    overflow: hidden;
-}
-
-.card-back-tri {
-    position: absolute;
-    width: 6%;
-    padding-top: 6%;
-    top: 0%;
-    left: 0%;
-    background-color: #1ba8a8;
-    box-shadow: 2px 2px 5px  #066666;
-
-    /*border-radius: 25px 0 0 0;*/
-}
-
-.card-back-meta {
-    position: relative;
-    width: 100%;
-    height: 55%;
-    background-color: transparent;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-}
-
-.card-back-title {
-    position: relative;
-    width: 92%;
-    display: flex;
-    flex-direction: column-reverse;
-    flex: 0.6;
-    background-color: transparent;
-    border-bottom: 3px solid #9A9A9A;
-}
-
-.card-back-title>div{
-    background-color: transparent;
-    margin: 0 0 5px 0;
-    font-size: 28pt;
-    font-family: Bebas;
-    color:rgba(220, 220, 220, 1);
-    text-shadow: 0 0 5px black, 0 0 10px black;
-}
-
-.card-back-author{
-    position: relative;
-    width: 92%;
-    flex: 0.4;
-    background-color: transparent;
-}
-
-.card-back-author>div{
-    margin: 5px 0 0 0;
-    background-color: transparent;
-    font-size: 18pt;
-    font-family: Bebas;
-    color:rgba(180, 180, 180, 1);
-    text-shadow: 0 0 5px black, 0 0 10px black;
-}
-
-.card-back-music {
-    position: relative;
-    width: 100%;
-    height: 45%;
-    background-color: transparent;
-    display: flex;
-    flex-direction: row-reverse;
-    align-items: center;
-}
-
-.card-back-yt {
-    flex: 1 18%;
-    background-color: transparent;
-    height: 70%;
-    flex-grow: 0;
-    margin-left: 0px;
-    margin-right: 10px;
-}
-
-.card-back-yt>img {
-    height: 100%;
-    width: 100%;
-    object-fit: contain;
-}
-
-.card-back-sp {
-    flex: 1 20%;
-    background-color: transparent;
-    height: 60%;
-    flex-grow: 0;
-    object-fit: contain;
-}
-
-.card-back-sp>img {
-    height: 100%;
-    width: 100%;
-    object-fit: contain;
-}
-
-.card-front-bg {
-    position: absolute;
-    object-fit: cover;
-    border-radius: 25px;
-    object-position: 75% 0%;
-    width: 100%;
-    height: 100%;
-}
-
-/* ANIMATIONS */
-
-.closeup-open-anim {
-    animation-name: closeup_open;
-    animation-duration: 1s;
-}
-
-.closeup-close-anim {
-    animation-name: closeup_close;
-    animation-duration: 0.5s;
-}
-
-.closeup-textshow-anim {
-    animation-name: closeup_textshow;
-    animation-duration: 0.5s;
-    animation-fill-mode: forwards;
-}
-
-.cardfront-fflip {
-    animation-name: cardfront-flip;
-    animation-duration: 0.5s;
-    animation-fill-mode: forwards;
-    animation-timing-function: ease-in;
-}
-
-.cardfront-bflip {
-    animation-name: cardfront-flip;
-    animation-duration: 0.5s;
-    animation-direction: reverse;
-    animation-fill-mode: forwards;
-    animation-timing-function: ease-out;
-}
-
-.cardback-fflip {
-    animation-name: cardback-flip;
-    animation-duration: 0.5s;
-    animation-fill-mode: forwards;
-    animation-timing-function: ease-in;
-}
-
-.cardback-bflip {
-    animation-name: cardback-flip;
-    animation-duration: 0.5s;
-    animation-direction: reverse;
-    animation-fill-mode: forwards;
-    animation-timing-function: ease-out;
-}
-
-.twinkle-anim {
-    animation-name: twinkle;
-    animation-duration: .24s;
-    animation-timing-function: linear;
-}
-
-@keyframes closeup_open {
-    from {
-        width: 0%;
-        height: 0%;
-        top: 50%;
-        left: 50%;
-    }
-
-    20% {
-        width: 16%;
-        height: 16%;
-        top: 42%;
-        left: 42%;
-    }
-
-    60% {
-        width: 80%;
-        height: 16%;
-        top: 42%;
-        left: 10%;
-    }
-
-    to {
-        width: 80%;
-        height: 80%;
-        top: 10%;
-        left: 10%;
-    }
-}
-
-@keyframes closeup_close {
-    from {
-        opacity: 1;
-    }
-
-    to {
-        opacity: 0;
-    }
-}
-
-@keyframes closeup_textshow {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes cardfront-flip {
-    from {
-        transform: perspective(900px) rotateX(0deg);
-    }
-
-    to {
-        transform: perspective(900px) rotateX(180deg);
-    }
-}
-
-@keyframes cardback-flip {
-    from {
-        transform: perspective(900px) rotateX(180deg);
-    }
-
-    to {
-        transform: perspective(900px) rotateX(360deg);
-    }
-}
-
-@keyframes twinkle {
-    from {
-        transform: rotateZ(0deg);
-    }
-
-    17% {
-        transform: rotateZ(4deg);
-    }
-
-    50% {
-        transform: rotateZ(-4deg);
-    }
-
-    83% {
-        transform: rotateZ(4deg);
-    }
-
-    to {
-        transform: rotateZ(0deg);
-    }
-}
-
-/* MEDIA */
-
-@media screen and (max-width: 990px) {
-    .container {
-        width: 90%;
-        left: 5%;
-    }
-
-    .block {
-        height: 460px;
-    }
-
-    #day25 {
-        flex-grow: 1;
-    }
-
-    .card-back-title>div{
-        font-size: 48pt;
-    }
-    
-    .card-back-author>div{
-        font-size: 38pt;
-    }
-
-    .closeup-text {
-        width: 80%;
-        left: 10%;
-        font-size: 50pt;
-    }
-
-    @keyframes cardfront-flip {
-        from {
-            transform: perspective(1500px) rotateX(0deg);
-        }
-    
-        to {
-            transform: perspective(1500px) rotateX(180deg);
-        }
-    }
-    
-    @keyframes cardback-flip {
-        from {
-            transform: perspective(1500px) rotateX(180deg);
-        }
-    
-        to {
-            transform: perspective(1500px) rotateX(360deg);
-        }
-    }
-}
-
-
-@media screen and (max-width: 1580px) and (min-width: 991px) {
-    .block {
-        flex: 1 360px;
-        height: 280px;
-        margin: 8px 16px;
-        flex-grow: 1;
-    }
-
-    .card-front-bg {
-        position: absolute;
-        object-fit: cover;
-        border-radius: 25px;
-        object-position: 90% 0%;
-        width: 100%;
-        height: 100%;
-    }
-
-}
-
-
-/*
-.card:hover>.front {
-    transform:perspective(600px) rotateX(180deg);
-}
-
-.card:hover>.back {
-    transform:perspective(600px) rotateX(360deg);
-}
-*/
