@@ -1,6 +1,7 @@
 from typing import Optional
 from monolith.database import db, User, Message
-import datetime
+from datetime import datetime
+
 import sqlalchemy
 
 
@@ -18,63 +19,100 @@ class MessModel:
 
     @staticmethod
     def insert_db():
-        message = Message(
-        id_receipent = 1, \
-        id_sender = 0, \
-        body_message = "Ciao", \
-        date_of_send = datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"))
-        db.session.add(message)
+        admin_draft1 = Message()
+        admin_draft1.body_message = 'admin draft 1'
+        admin_draft1.id_sender = 1
+        admin_draft1.id_receipent = 1
+        db.session.add(admin_draft1)
 
-        message1 = Message(
-        id_receipent = 1, \
-        id_sender = 1, \
-        body_message = "Ciao sono gino", \
-        date_of_send = datetime.datetime.strptime("07/01/2006", "%d/%m/%Y"))
-        db.session.add(message1)
+        admin_draft2 = Message()
+        admin_draft2.body_message = 'admin draft 2'
+        admin_draft2.id_sender = 1
+        admin_draft2.id_receipent = 1
+        db.session.add(admin_draft2)
 
-        message2 = Message(
-        id_receipent = 1, \
-        is_arrived = 1, \
-        id_sender = None, \
-        body_message = "mess anonimo", \
-        date_of_send = datetime.datetime.strptime("07/01/2006", "%d/%m/%Y"))
-        db.session.add(message2)
+        admin_sent1 = Message()
+        admin_sent1.body_message = 'admin send 1'
+        admin_sent1.id_sender = 1
+        admin_sent1.id_receipent = 1
+        admin_sent1.date_of_send = datetime.now()
+        admin_sent1.is_sended = True
+        db.session.add(admin_sent1)
 
-        db.session.commit()
+        admin_sent2 = Message()
+        admin_sent2.body_message = 'admin send 2'
+        admin_sent2.id_sender = 1
+        admin_sent2.id_receipent = 1
+        admin_sent2.date_of_send = datetime.now()
+        admin_sent2.is_sended = True
+        admin_sent2.is_received = True
+        db.session.add(admin_sent2)
 
-        message3 = Message(
-        id_receipent = 3, \
-        is_arrived = 1, \
-        id_sender = 3, \
-        body_message = "test3", \
-        date_of_send = datetime.datetime.strptime("07/01/2006", "%d/%m/%Y"))
-        db.session.add(message3)
+        admin_sent3 = Message()
+        admin_sent3.body_message = 'admin send 3'
+        admin_sent3.id_sender = 1
+        admin_sent3.id_receipent = 1
+        admin_sent3.date_of_send = datetime.now()
+        admin_sent3.is_sended = True
+        admin_sent3.is_received = True
+        db.session.add(admin_sent3)
 
-        db.session.commit()
+        new_user_draft1 = Message()
+        new_user_draft1.body_message = 'new_user draft 1'
+        new_user_draft1.id_sender = 1
+        new_user_draft1.id_receipent = 1
+        db.session.add(new_user_draft1)
 
-        message4 = Message(
-        id_receipent = 3, \
-        is_arrived = 0, \
-        id_sender = 3, \
-        body_message = "test4", \
-        date_of_send = datetime.datetime.strptime("07/01/2006", "%d/%m/%Y"))
-        db.session.add(message4)
+        new_user_draft2 = Message()
+        new_user_draft2.body_message = 'new_user draft 2'
+        new_user_draft2.id_sender = 1
+        new_user_draft2.id_receipent = 1
+        db.session.add(new_user_draft2)
+
+        new_user_draft3 = Message()
+        new_user_draft3.body_message = 'new_user draft 3'
+        new_user_draft3.id_sender = 1
+        new_user_draft3.id_receipent = 1
+        db.session.add(new_user_draft3)
+
+        new_user_sent1 = Message()
+        new_user_sent1.body_message = 'new_user send 1'
+        new_user_sent1.id_sender = 1
+        new_user_sent1.id_receipent = 1
+        new_user_sent1.date_of_send = datetime.now()
+        new_user_sent1.is_sended = True
+        db.session.add(new_user_sent1)
+
+        new_user_sent2 = Message()
+        new_user_sent2.body_message = 'new_user send 2'
+        new_user_sent2.id_sender = 1
+        new_user_sent2.id_receipent = 1
+        new_user_sent2.date_of_send = datetime.now()
+        new_user_sent2.is_sended = True
+        new_user_sent2.is_arrived = True
+        db.session.add(new_user_sent2)
+
+        new_user_sent3 = Message()
+        new_user_sent3.body_message = 'new_user send 3'
+        new_user_sent3.id_sender = 1
+        new_user_sent3.id_receipent = 1
+        new_user_sent3.date_of_send = datetime.now()
+        new_user_sent3.is_sended = True
+        new_user_sent3.is_arrived = True
+        db.session.add(new_user_sent3)
+
+        new_user_sent4 = Message()
+        new_user_sent4.body_message = 'new_user send 4'
+        new_user_sent4.id_sender = 1
+        new_user_sent4.id_receipent = 1
+        new_user_sent4.date_of_send = datetime.now()
+        new_user_sent4.is_sended = True
+        new_user_sent4.is_arrived = True
+        db.session.add(new_user_sent4)
 
         db.session.commit()
 
     @staticmethod
     def remove_db():
-        db.session.query(Message).filter(Message.id_sender == 0).delete()
-        db.session.commit()
-
-        db.session.query(Message).filter(Message.id_sender == 1).delete()
-        db.session.commit()
-
-        db.session.query(Message).filter(Message.body_message == "mess anonimo").delete()
-        db.session.commit()
-
-        db.session.query(Message).filter(Message.body_message == "test3").delete()
-        db.session.commit()
-
-        db.session.query(Message).filter(Message.body_message == "test4").delete()
+        db.session.query(Message).delete()
         db.session.commit()
