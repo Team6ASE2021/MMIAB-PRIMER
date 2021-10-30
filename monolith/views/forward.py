@@ -27,4 +27,4 @@ def forward_messages(id):
     mess2 = mess2.first()
     id_forwarded_mess = mess2.id_message
 
-    return redirect('draft/edit/' + str(id_forwarded_mess))
+    return redirect('/draft/edit/' + str(id_forwarded_mess))

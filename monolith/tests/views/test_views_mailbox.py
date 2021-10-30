@@ -4,7 +4,6 @@ from monolith import app
 from monolith.auth import current_user
 from monolith.database import Message, User, db
 from monolith.forms import delivery_format
-
 from datetime import datetime
 
 @pytest.fixture(scope='class')

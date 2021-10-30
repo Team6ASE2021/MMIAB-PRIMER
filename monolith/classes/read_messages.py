@@ -18,11 +18,57 @@ class MessModel:
         return mess
 
     @staticmethod
+    def insert_db1():
+        message = Message(
+        id_receipent = 1, \
+        id_sender = 0, \
+        body_message = "Ciao", \
+        date_of_send = datetime.strptime("01/01/2000", "%d/%m/%Y"))
+        db.session.add(message)
+
+        message1 = Message(
+        id_receipent = 1, \
+        id_sender = 1, \
+        body_message = "Ciao sono gino", \
+        date_of_send = datetime.strptime("07/01/2006", "%d/%m/%Y"))
+        db.session.add(message1)
+
+        message2 = Message(
+        id_receipent = 1, \
+        is_arrived = 1, \
+        id_sender = None, \
+        body_message = "mess anonimo", \
+        date_of_send = datetime.strptime("07/01/2006", "%d/%m/%Y"))
+        db.session.add(message2)
+
+        db.session.commit()
+
+        message3 = Message(
+        id_receipent = 3, \
+        is_arrived = 1, \
+        id_sender = 3, \
+        body_message = "test3", \
+        date_of_send = datetime.strptime("07/01/2006", "%d/%m/%Y"))
+        db.session.add(message3)
+
+        db.session.commit()
+
+        message4 = Message(
+        id_receipent = 3, \
+        is_arrived = 0, \
+        id_sender = 3, \
+        body_message = "test4", \
+        date_of_send = datetime.strptime("07/01/2006", "%d/%m/%Y"))
+        db.session.add(message4)
+
+        db.session.commit()
+
+    @staticmethod
     def insert_db():
         admin_draft1 = Message()
         admin_draft1.body_message = 'admin draft 1'
         admin_draft1.id_sender = 1
-        admin_draft1.id_receipent = 1
+        admin_draft1.id_receipent = 5
         db.session.add(admin_draft1)
 
         admin_draft2 = Message()
@@ -93,7 +139,7 @@ class MessModel:
         db.session.add(new_user_sent2)
 
         new_user_sent3 = Message()
-        new_user_sent3.body_message = 'new_user send 3'
+        new_user_sent3.body_message = 'Indeed,theyholdanisolatedversionofanoperatingsystem(OS),whichwecanusetorunapplications.'
         new_user_sent3.id_sender = 1
         new_user_sent3.id_receipent = 1
         new_user_sent3.date_of_send = datetime.now()
@@ -116,3 +162,5 @@ class MessModel:
     def remove_db():
         db.session.query(Message).delete()
         db.session.commit()
+
+    

@@ -6,8 +6,10 @@
         {% for mess in message_list: %}
         <li>
             {{mess.User.email}}<br>
+            {{mess.Message.id_message}}<br>
             {{mess.User.firstname}}<br>
-            {{mess.Message.body_message}}
+            {{mess.Message.body_message}}<br>
+            <a href="/forwarding/{{mess.Message.id_message}}">Forward</a>
         </li>
         {% endfor %}
     </ul>

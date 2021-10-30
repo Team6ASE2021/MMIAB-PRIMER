@@ -14,8 +14,8 @@ def get_mailbox_sent_messages():
     if (current_user.get_id() == None):
         abort(401,description='You must be logged in to open the mailbox')
     
-    MessModel.remove_db()
-    MessModel.insert_db()
+    #MessModel.remove_db()
+    #MessModel.insert_db()
 
     message_list = MailboxUtility.get_sended_message_by_id_user(current_user.get_id())
     
@@ -27,8 +27,8 @@ def get_mailbox_received_messages():
     if (current_user.get_id() == None):
         abort(401,description='You must be logged in to open the mailbox')
     
-    MessModel.remove_db()
-    MessModel.insert_db()
+    #MessModel.remove_db()
+    #MessModel.insert_db()
 
     message_list = MailboxUtility.get_received_message_by_id_user(current_user.get_id())
     
@@ -40,8 +40,8 @@ def get_mailbox_draft_messages():
     if (current_user.get_id() == None):
         abort(401,description='You must be logged in to open the mailbox')
     
-    MessModel.remove_db()
-    MessModel.insert_db()
+    #MessModel.remove_db()
+    #MessModel.insert_db()
 
     message_list = MailboxUtility.get_draft_message_by_id_user(current_user.get_id())
     

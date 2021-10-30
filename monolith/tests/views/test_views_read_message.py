@@ -10,7 +10,8 @@ class TestViewsReadMessage():
 
     def test_read_mess_not_auth(self,test_client):
         test_client.get('/logout',follow_redirects=True)
-        MessModel.insert_db()
+        MessModel.remove_db()
+        MessModel.insert_db1()
         response = test_client.get('/read_message/1',follow_redirects=True)
         assert response.status_code == 401
         assert b'You must be logged into read the message' in response.data
@@ -22,7 +23,8 @@ class TestViewsReadMessage():
         response = test_client.post('/login', data=admin_user, follow_redirects=True)
         assert response.status_code == 200
 
-        MessModel.insert_db()
+        MessModel.remove_db()
+        MessModel.insert_db1()
         response = test_client.get('/read_message/3',follow_redirects=True)
         assert response.status_code == 200
         assert b'Anonymous' in response.data
@@ -34,7 +36,8 @@ class TestViewsReadMessage():
         response = test_client.post('/login', data=admin_user, follow_redirects=True)
         assert response.status_code == 200
 
-        MessModel.insert_db()
+        MessModel.remove_db()
+        MessModel.insert_db1()
         response = test_client.get('/read_message/4',follow_redirects=True)
         assert response.status_code == 401
         assert b'You are not allowed to read this message' in response.data
@@ -46,7 +49,8 @@ class TestViewsReadMessage():
         response = test_client.post('/login', data=admin_user, follow_redirects=True)
         assert response.status_code == 200
 
-        MessModel.insert_db()
+        MessModel.remove_db()
+        MessModel.insert_db1()
         response = test_client.get('/read_message/5',follow_redirects=True)
         assert response.status_code == 401
         assert b'You are not allowed to read this message' in response.data
