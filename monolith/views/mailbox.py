@@ -8,7 +8,7 @@ mailbox = Blueprint('mailbox', __name__)
 
 @mailbox.route('/message/list/sent',methods=['GET'])
 #get message id to retrive message from the db table
-def get_mailbox_sent_messages():
+def mailbox_list_sent():
     
     message_list = []
     if current_user.is_authenticated:
@@ -18,7 +18,7 @@ def get_mailbox_sent_messages():
 
 
 @mailbox.route('/message/list/received',methods=['GET'])
-def get_mailbox_received_messages():
+def mailbox_list_received():
    
     message_list = []
     if current_user.is_authenticated:
@@ -27,7 +27,7 @@ def get_mailbox_received_messages():
     return render_template("mailbox.html", message_list=message_list,list_type="received")
 
 @mailbox.route('/message/list/draft',methods=['GET'])
-def get_mailbox_draft_messages():
+def mailbox_list_draft():
     
     message_list = []
     if current_user.is_authenticated:

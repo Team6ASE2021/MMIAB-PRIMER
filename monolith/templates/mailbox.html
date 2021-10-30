@@ -6,8 +6,9 @@
               font-family: "Happy Lucky";
               src: url("{{ url_for('static', filename='fonts/happy_lucky.ttf') }}");
             }
+            {% include "css/style.css" %}
         </style>
-        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/style.css') }}">
+        <!-- <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/style.css') }}"> -->
     </head>
     <body>
         <div class="title">
@@ -16,24 +17,28 @@
       {% if current_user.is_authenticated %}
         <div class="main-container">
             <div class="left-container">
-                <div class="redirect" {% if list_type == 'received' %} id="redirect-selected" {% endif %}>
+                {% set _url = url_for('mailbox.mailbox_list_received') %}
+                <div class="redirect" {% if list_type == 'received' %} id="redirect-selected" {% endif %} onclick="location.href='{{ _url }}'">
                     <div>Received</div>
                 </div>
-                <div class="redirect" {% if list_type == 'sent' %} id="redirect-selected" {% endif %}>
+                {% set _url = url_for('mailbox.mailbox_list_sent') %}
+                <div class="redirect" {% if list_type == 'sent' %} id="redirect-selected" {% endif %} onclick="location.href='{{ _url }}'">
                     <div>Sent</div>
                 </div>
-                <div class="redirect" {% if list_type == 'draft' %} id="redirect-selected" {% endif %}>
+                {% set _url = url_for('mailbox.mailbox_list_draft') %}
+                <div class="redirect" {% if list_type == 'draft' %} id="redirect-selected" {% endif %} onclick="location.href='{{ _url }}'">
                     <div>Draft</div>
                 </div>
             </div>
             <div class="message-container">
               {% for m in message_list: %}
                 <div class="message-block">
-                    <div class="main">
+                    {% set _url = url_for('read_message.read_messages', id=m.Message.id_message) %}
+                    <div class="main" onclick="location.href='{{ _url }}'">
                         <div class="user">
                             <div> {{ m.User.firstname }} {{ m.User.lastname }} </div>
                         </div>
-                        <div class="body">
+                        <div class="body"> 
                             <div> {{ m.Message.body_message }} </div>
                         </div>
                     </div>
@@ -44,8 +49,21 @@
                             <div class="date"> {{ datetime_list[1] }} </div>
                         </div>
                         <div class="actions">
-                            <div>edit</div>
-                            <div>send</div>
+                          {% if list_type == 'draft' %}
+                            {% set _url = url_for('messages.edit_draft', id=m.Message.id_message) %}
+                            <div class="edit" onclick="location.href='{{ _url }}'">
+                                <div>edit</div>
+                            </div>
+                            {% set _url = url_for('messages.send_message', id=m.Message.id_message) %}
+                            <div class="send" onclick="location.href='{{ _url }}'">
+                                <div>send</div>
+                            </div>
+                          {% else %}
+                            {% set _url = url_for('home.index') %}
+                            <div class="forward" onclick="location.href='{{ _url }}'">
+                                <div>forward</div>
+                            </div>
+                          {% endif %}
                         </div>
                     </div>
                 </div>
@@ -54,7 +72,7 @@
             <!-- <div class="closeup"></div> -->
         </div>
       {% else %}
-        <div> Hi Anonymous, please <a href="/login">Log in</a> to edit this message</div>
+        <div style="position: absolute; top: 80px;"> Hi Anonymous, please <a href="/login">Log in</a> to edit this message</div>
       {% endif %}
     </body>
 </html>
