@@ -33,8 +33,8 @@ def create_user():
     else:
         return render_template('create_user.html', form=form)
 
-@login_required
 @users.route('/users/<int:id>', methods=['GET'])
+@login_required
 def user_info(id):
     user = UserModel.get_user_info_by_id(current_user.id)
     return render_template('user_info.html', user=current_user)
@@ -50,13 +50,28 @@ def user_list():
         user_list = UserModel.get_user_list()
         return render_template('user_list.html', list=user_list)
 
-@login_required
 @users.route('/users/<int:id>/delete',methods=['GET'])
+@login_required
 def delete_user(id):
     try:
         UserModel.delete_user(id)
         return redirect('/')
     except NotExistingUser:
         abort(HTTPStatus.NOT_FOUND)
+
+@users.route('/user/content_filter', methods=['POST'])
+@login_required
+def set_content_filter():
+    try:
+        user_db = UserModel.toggle_content_filter(current_user.id)
+        return redirect('/users/' + str(current_user.id))
+    except NotExistingUser:
+        abort(HTTPStatus.NOT_FOUND, description="You are not a registered user")
+
+
+
+
+
+
 
         

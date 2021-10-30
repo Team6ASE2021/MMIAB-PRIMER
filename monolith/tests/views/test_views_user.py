@@ -29,9 +29,11 @@ class TestViewsUser:
         response = test_client.post('/create_user', data=data, follow_redirects=True)
         assert response.status_code == HTTPStatus.OK
         assert b'Login' in response.data
+        test_client.post("/login", data=data, follow_redirects=True)
         response = test_client.get('/users/2/delete',follow_redirects=True)
         assert response.status_code == HTTPStatus.OK
         assert b'Anonymous' in response.data
+        test_client.get("/logout")
 
     def test_show_user_info(self, test_client):
         response = test_client.post("/login", data={'email': 'example@example.com', 
@@ -62,23 +64,24 @@ class TestViewsUser:
 
     def test_user_content_filter_not_logged(self, test_client):
         test_client.get('/logout')
-        response = test_client.get('/user/content_filter')
-
+        response = test_client.post('/user/content_filter')
         assert response.status_code == 401
 
     def test_user_content_filter_set_unset(self, test_client):
         admin_user = {'email': 'example@example.com', 'password': 'admin'}
         test_client.post('/login', data=admin_user, follow_redirects=True)
 
-        admin_db = db.session.query(User).filter(User.email = admin_user['email']).first()
+        admin_db = db.session.query(User).filter(User.email == admin_user['email']).first()
         assert admin_db.content_filter == False
 
-        response = test_client.get('/user/content_filter', follow_redirects = True)
+        response = test_client.post('/user/content_filter', follow_redirects = True)
         assert response.status_code == 200
+        admin_db = db.session.query(User).filter(User.email == admin_user['email']).first()
         assert admin_db.content_filter == True
 
-        response = test_client.get('/user/content_filter', follow_redirects = True)
+        response = test_client.post('/user/content_filter', follow_redirects = True)
         assert response.status_code == 200
+        admin_db = db.session.query(User).filter(User.email == admin_user['email']).first()
         assert admin_db.content_filter == False
 
 
