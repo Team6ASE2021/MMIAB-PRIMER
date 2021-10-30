@@ -23,9 +23,7 @@ messages = Blueprint('messages', __name__)
 @messages.route('/draft', methods=['POST', 'GET'])
 def draft():
     form = EditMessageForm()
-    
-    recipients = get_recipients()['recipients']
-    form.recipient.choices = [(user.id, user.nickname if user.nickname else user.email ) for user in recipients]
+    form.recipient.choices = get_recipients().json['recipients']
     if request.method == 'POST':
         if form.validate_on_submit():
             new_draft = Message()
@@ -55,18 +53,13 @@ def edit_draft(id):
         draft = MessageModel.id_message_exists(id)
     except NotExistingMessageError:
         abort(404, description='Message not found')
-
+    new_draft=Message()
     form = EditMessageForm()
-    old_date, old_recipient, old_message = None, "", ""
-    if draft.body_message != None:
-        old_message = draft.body_message
-    if draft.date_of_send != None:
-        old_date = draft.date_of_send
-    if draft.id_receipent != None:
-        recipient = db.session.query(User).filter(User.id == draft.id_receipent).first()
-        if recipient != None:
-            old_recipient = recipient.email
-
+    old_recipient = UserModel.get_user_info_by_id(draft.id_receipent)
+    old_recipient = (old_recipient.id,old_recipient.nickname if old_recipient.nickname else old_recipient.email)
+    recipients = get_recipients().json['recipients']
+    form.recipient.choices = recipients
+    print(old_recipient)
     if request.method == 'POST':
 
         if (current_user.get_id() == None):
@@ -75,21 +68,22 @@ def edit_draft(id):
         if(current_user.get_id() != draft.id_sender):
             abort(401, description='You must be the sender to edit this message')
         
-        recipients = get_recipients()['recipients']
-        form.recipient.choices = [(user.id, user.nickname if user.nickname else user.email ) for user in recipients]
+       
+        
         if form.validate_on_submit():
-            draft.body_message = form.body_message.data
-            draft.date_of_send = form.date_of_send.data
-            draft.id_receipent = UserModel.get_user_info_by_id(form.recipient.data[0])
-
+            new_draft.body_message = form.body_message.data
+            new_draft.date_of_send = form.date_of_send.data
+            draft.id_receipent = UserModel.get_user_info_by_id(form.recipient.data[0]).id
+            MessageModel.update_draft(draft.id_receipent, new_draft)
             return redirect('/read_message/' + str(draft.id_message))
 
     return render_template('edit_message.html',\
             form=form,\
-            old_date=old_date,\
-            old_recipient=old_recipient,\
-            old_message=old_message,\
-            id_sender=draft.id_sender)
+            old_date=draft.date_of_send,\
+            old_message=draft.body_message,\
+            old_rec=(old_recipient[0],old_recipient[1]),
+            id_sender=draft.id_sender
+            )
 
 
 @messages.route('/send_message/<int:id>', methods=['POST'])
@@ -119,7 +113,9 @@ def send_message(id):
 ## RESTful API
 @messages.route('/recipients',methods=["GET"])
 def get_recipients():
-    recipients = filter(lambda u: u.id != current_user.get_id(), UserModel.get_user_list())
+    recipients = list(map(lambda u: (u.id,u.nickname if u.nickname  else u.email),
+    filter(lambda u: u.id != current_user.get_id(), UserModel.get_user_list())))
     return jsonify(
         recipients=recipients
+    
     )
