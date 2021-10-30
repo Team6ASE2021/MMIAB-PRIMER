@@ -1,7 +1,7 @@
 from datetime import date
 import datetime
 from monolith.classes.message import MessageModel, NotExistingMessageError
-from flask import Blueprint, redirect, render_template, request, jsonify, abort
+from flask import Blueprint, redirect, render_template, request, jsonify, abort, flash
 from monolith.background import celery, test
 
 from monolith.auth import current_user
@@ -107,6 +107,16 @@ def send_message(id):
         if current_user.get_id() != message.id_sender:
             abort(410, "You can't send this message")
 
+        #check if the date_of_send is not Null
+        if message.date_of_send is None:
+            flash("You have to set the date of send")
+            return redirect('draft/edit/' + str(message.id_message))
+
+        #check if the receipent is not Null
+        if message.id_receipent is None:
+            flash("You have to set the receipent")
+            return redirect('draft/edit/' + str(message.id_message))
+
         #send the message
         MessageModel.send_message(message.id_message)
         result = "Message has been sent correctly"
@@ -116,3 +126,12 @@ def send_message(id):
     except NotExistingMessageError as e:
         #return status code 401 with the message of error
         abort(411, str(e))
+
+@messages.route('/notification/<int:id_message>', methods=['GET', 'POST'])
+def notification(id_message):
+    
+
+    #pop up a message
+    flash("You have received a message!")
+
+    return redirect('/')

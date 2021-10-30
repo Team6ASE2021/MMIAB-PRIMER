@@ -1,6 +1,8 @@
 <html>
  <body>
 
+  {% include 'pop-up.html' %}
+
  {% if current_user.is_authenticated and current_user.id == id_sender %}
 
    <form action="" method="POST">
