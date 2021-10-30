@@ -1,5 +1,6 @@
 import sqlalchemy
 import datetime
+import string
 from monolith.forms import UserForm
 from monolith.database import db, Message
 from monolith.classes.message import MessageModel, NotExistingMessageError, unsafe_words
@@ -91,8 +92,12 @@ class TestMessage:
 class TestMessageContentFilter:
 
     def test_content_filter_unsafe(self):
-        message = ' '.join([unsafe_words[0], unsafe_words[-1], unsafe_words[len(unsafe_words)/2]])
-        assert MessageModel.filter_content(message) == True
+        for d in string.punctuation:
+            message = d.join([unsafe_words[0], unsafe_words[-1], unsafe_words[len(unsafe_words)//2]])
+            assert MessageModel.filter_content(message) == True
+
+        message = ''.join([unsafe_words[0], unsafe_words[-1], unsafe_words[len(unsafe_words)//2]])
+        assert MessageModel.filter_content(message) == False
 
     def test_content_filter_safe(self):
         message = 'good deeds'

@@ -1,8 +1,10 @@
 from typing import Optional
 from monolith.database import db, Message
 import datetime
+import string
 
 unsafe_words = ["bad", "filthy", "trash"]
+alphanumeric = string.ascii_letters + string.digits
 
 class MessageModel:
     """
@@ -62,7 +64,19 @@ class MessageModel:
         return new_msg
 
     def filter_content(message_body) -> bool:
+        global unsafe_words
+        global alphanumeric
+        for uw in unsafe_words:
+            index = message_body.find(uw)
+            while index >=0:
+                if index > 0 and message_body[index - 1] not in alphanumeric and\
+                    index + len(uw) < len(message_body) and message_body[index + len(uw)] not in alphanumeric:
+                    return True
+
+                index = message_body.find(uw, index + 1)
+
         return False
+    
 
 class NotExistingMessageError(Exception):
     def __init__(self, value):
