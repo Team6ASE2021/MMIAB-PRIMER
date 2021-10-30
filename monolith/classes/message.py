@@ -2,7 +2,7 @@ from typing import Optional
 from monolith.database import db, Message
 import datetime
 
-unsafe_words = []
+unsafe_words = ["bad", "filthy", "trash"]
 
 class MessageModel:
     """
