@@ -2,8 +2,9 @@ from typing import Optional
 from monolith.database import db, Message
 import datetime
 
-class MessageModel:
+unsafe_words = []
 
+class MessageModel:
     """
         Wrapper class  for all db operations involving message
     """
@@ -59,6 +60,9 @@ class MessageModel:
         db.session.commit()
 
         return new_msg
+
+    def filter_content(message_body) -> bool:
+        return False
 
 class NotExistingMessageError(Exception):
     def __init__(self, value):
