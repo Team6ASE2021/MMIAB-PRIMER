@@ -1,39 +1,43 @@
 from flask import Blueprint, redirect, render_template, request, abort
 from monolith.database import Message, User, db
 from monolith.auth import current_user
-from monolith.classes.read_messages import MessModel
-from monolith.classes.user import UserModel
+from monolith.classes.message import MessageModel, NotExistingMessageError
+from monolith.classes.user import UserModel, NotExistingUser
 
 read_message = Blueprint('read_message', __name__)
 
 @read_message.route('/read_message/<int:id>',methods=['GET'])
 #get message id to retrive message from the db table
 def read_messages(id):
-    #query to retrive the correct message from the db
-    if (current_user.get_id() == None):
-        abort(401,description='You must be logged into read the message')
-    #get all the info from the message
-    mess = MessModel.get_message_by_id(id)
-    sender_id = mess.id_sender
-    mess_text = mess.body_message
-    date_receipt = mess.date_of_send
+    # check if the user is authenticated
+    mess_text = sender_email = date_receipt = None
+    user_allowed = True
+    if current_user.is_authenticated:
+        #get all the info from the message
+        try:
+            mess = MessageModel.id_message_exists(id)
+        except NotExistingMessageError:
+            abort(404, description="Message not found")
 
-    #some controls to check if user is allowed to read the message or not
-    if (mess.is_arrived == 1):
-        if (current_user.get_id() != mess.id_receipent and \
-        current_user.get_id() != mess.id_sender):
-             abort(401,description='You are not allowed to read this message')
-    elif (current_user.get_id() != mess.id_sender):
-             abort(401,description='You are not allowed to read this message')
+        sender_id = mess.id_sender
+        mess_text = mess.body_message
+        date_receipt = mess.date_of_send
 
-    sender_email = ""
-    try:
-        sender = UserModel.get_user_info_by_id(sender_id)
-        sender_email = sender.email
-    except NotExistingUser:
-        sender_email = "Anonymous"
+        #some controls to check if user is allowed to read the message or not
+        if (mess.is_arrived == True):
+            if current_user.id != mess.id_receipent and current_user.id != mess.id_sender:
+                user_allowed = False
+        elif (current_user.get_id() != mess.id_sender):
+                user_allowed = False
+
+        sender_email = ""
+        try:
+            sender = UserModel.get_user_info_by_id(sender_id)
+            sender_email = sender.email
+        except NotExistingUser:
+            sender_email = "Anonymous"
     
-    return render_template("read_select_message.html", mess_text = mess_text, sender=sender_email,date_receipt=date_receipt)
+    return render_template("read_select_message.html", user_allowed = user_allowed, mess_text = mess_text, sender=sender_email,date_receipt=date_receipt)
 
 
 

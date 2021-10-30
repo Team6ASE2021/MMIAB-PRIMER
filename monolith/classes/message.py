@@ -45,6 +45,21 @@ class MessageModel:
                 'sent': m.is_sended,\
                 'received' : m.is_arrived} for m in messages_arrived]
 
+    @staticmethod
+    def create_message(id_sender=1, id_receipent=1, body_message="", date_of_send=None, is_sended=False, is_arrived=False):
+        new_msg = Message()
+        new_msg.id_sender = id_sender
+        new_msg.id_receipent = id_receipent
+        new_msg.body_message = body_message
+        new_msg.date_of_send = date_of_send
+        new_msg.is_sended = is_sended
+        new_msg.is_arrived = is_arrived
+
+        db.session.add(new_msg)
+        db.session.commit()
+
+        return new_msg
+
 class NotExistingMessageError(Exception):
     def __init__(self, value):
         self.value = value

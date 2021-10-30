@@ -6,20 +6,6 @@ from monolith.forms import delivery_format
 
 from datetime import datetime
 
-@pytest.fixture(scope='class')
-def clean_db_and_logout(request, test_client):
-
-    def _finalizer():
-        test_client.get('/logout')
-
-        admin_user = { 'email': 'example@example.com', 'password': 'admin' }
-        db.session.query(User).filter(User.email != admin_user['email']).delete()
-        db.session.query(Message).delete()
-        db.session.commit()
-
-    request.addfinalizer(_finalizer)
-
-
 @pytest.mark.usefixtures('clean_db_and_logout')
 class TestViewsMessagesDraft():
 
