@@ -64,7 +64,7 @@ class TestViewsUser:
 
     def test_user_content_filter_not_logged(self, test_client):
         test_client.get('/logout')
-        response = test_client.post('/user/content_filter')
+        response = test_client.get('/user/content_filter')
         assert response.status_code == 401
 
     def test_user_content_filter_set_unset(self, test_client):
@@ -74,12 +74,12 @@ class TestViewsUser:
         admin_db = db.session.query(User).filter(User.email == admin_user['email']).first()
         assert admin_db.content_filter == False
 
-        response = test_client.post('/user/content_filter', follow_redirects = True)
+        response = test_client.get('/user/content_filter', follow_redirects = True)
         assert response.status_code == 200
         admin_db = db.session.query(User).filter(User.email == admin_user['email']).first()
         assert admin_db.content_filter == True
 
-        response = test_client.post('/user/content_filter', follow_redirects = True)
+        response = test_client.get('/user/content_filter', follow_redirects = True)
         assert response.status_code == 200
         admin_db = db.session.query(User).filter(User.email == admin_user['email']).first()
         assert admin_db.content_filter == False

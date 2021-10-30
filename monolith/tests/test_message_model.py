@@ -93,8 +93,13 @@ class TestMessageContentFilter:
 
     def test_content_filter_unsafe(self):
         for d in string.punctuation:
+            message = d.join([unsafe_words[0], unsafe_words[-1]])
+            assert MessageModel.filter_content(message) == True
             message = d.join([unsafe_words[0], unsafe_words[-1], unsafe_words[len(unsafe_words)//2]])
             assert MessageModel.filter_content(message) == True
+
+        message = unsafe_words[0]
+        assert MessageModel.filter_content(message) == True
 
         message = ''.join([unsafe_words[0], unsafe_words[-1], unsafe_words[len(unsafe_words)//2]])
         assert MessageModel.filter_content(message) == False

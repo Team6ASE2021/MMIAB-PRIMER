@@ -59,7 +59,7 @@ def delete_user(id):
     except NotExistingUser:
         abort(HTTPStatus.NOT_FOUND)
 
-@users.route('/user/content_filter', methods=['POST'])
+@users.route('/user/content_filter', methods=['GET'])
 @login_required
 def set_content_filter():
     try:

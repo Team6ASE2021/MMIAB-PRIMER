@@ -23,6 +23,8 @@ def draft():
         if form.validate_on_submit():
             new_draft = Message()
             form.populate_obj(new_draft)
+            new_draft.to_filter = MessageModel.filter_content(new_draft.body_message)
+            print(new_draft.to_filter)
             new_draft.id_sender = current_user.get_id()
             db.session.add(new_draft)
             db.session.commit()
@@ -63,6 +65,7 @@ def edit_draft(id):
 
         if form.validate_on_submit():
             draft.body_message = form.body_message.data
+            draft.to_filter = MessageModel.filter_content(draft.body_message)
             draft.date_of_send = form.date_of_send.data
             if form.recipient.data != '':
                 recipient = db.session.query(User).filter(User.email == form.recipient.data).first()

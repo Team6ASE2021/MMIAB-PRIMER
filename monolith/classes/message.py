@@ -66,14 +66,15 @@ class MessageModel:
     def filter_content(message_body) -> bool:
         global unsafe_words
         global alphanumeric
+        _body = message_body.lower()
         for uw in unsafe_words:
-            index = message_body.find(uw)
+            index = _body.find(uw)
             while index >=0:
-                if index > 0 and message_body[index - 1] not in alphanumeric and\
-                    index + len(uw) < len(message_body) and message_body[index + len(uw)] not in alphanumeric:
+                if ((index > 0 and _body[index - 1] not in alphanumeric) or index == 0) and\
+                        ((index + len(uw) < len(_body) and _body[index + len(uw)] not in alphanumeric) or index + len(uw) == len(_body)):
                     return True
 
-                index = message_body.find(uw, index + 1)
+                index = _body.find(uw, index + 1)
 
         return False
     
