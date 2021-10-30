@@ -1,6 +1,7 @@
-from typing import List, Optional
 
-from monolith.database import User, db
+from typing import Optional, List
+
+from monolith.database import db, User
 
 
 class UserModel:

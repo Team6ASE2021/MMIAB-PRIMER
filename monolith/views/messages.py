@@ -1,32 +1,37 @@
 from datetime import date
-import datetime
 
-from flask_login.utils import login_required
-from monolith.classes.message import MessageModel, NotExistingMessageError
-from flask import Blueprint, redirect, render_template, request, jsonify, abort
-from monolith.background import celery
+from flask import abort, json
+from flask import Blueprint
+from flask import jsonify
+from flask import redirect
+from flask import render_template
+from flask import request
+from flask.globals import current_app
+from flask_login import login_required
 
 from monolith.auth import current_user
-from monolith.classes.user import UserModel
-from monolith.database import Message, User, db
-from monolith.forms import MessageForm, EditMessageForm
 from monolith.classes.message import MessageModel, NotExistingMessageError
+from monolith.classes.user import UserModel
+from monolith.database import db
+from monolith.database import Message
+from monolith.database import User
+from monolith.forms import EditMessageForm
 
 messages = Blueprint('messages', __name__)
 
+@login_required
 @messages.route('/draft', methods=['POST', 'GET'])
 def draft():
-
-    form = MessageForm()
+    form = EditMessageForm()
+    
+    recipients = get_recipients()['recipients']
+    form.recipient.choices = [(user.id, user.nickname if user.nickname else user.email ) for user in recipients]
     if request.method == 'POST':
-
-        if (current_user.get_id() == None):
-            abort(401, description='You must be logged in to draft a message')
-
         if form.validate_on_submit():
             new_draft = Message()
             form.populate_obj(new_draft)
             new_draft.id_sender = current_user.get_id()
+            new_draft.id_receipent = form.recipient.data[0]
             MessageModel.add_draft(new_draft)
             return redirect('/read_message/' + str(new_draft.id_message))
 
@@ -69,19 +74,14 @@ def edit_draft(id):
 
         if(current_user.get_id() != draft.id_sender):
             abort(401, description='You must be the sender to edit this message')
-
+        
+        recipients = get_recipients()['recipients']
+        form.recipient.choices = [(user.id, user.nickname if user.nickname else user.email ) for user in recipients]
         if form.validate_on_submit():
             draft.body_message = form.body_message.data
             draft.date_of_send = form.date_of_send.data
-            if form.recipient.data != '':
-                recipient = db.session.query(User).filter(User.email == form.recipient.data).first()
-                if recipient != None:
-                    draft.id_receipent = recipient.get_id()
-                elif old_recipient == '':
-                    draft.id_receipent = None
-            else:
-                draft.id_receipent = None
-            db.session.commit()
+            draft.id_receipent = UserModel.get_user_info_by_id(form.recipient.data[0])
+
             return redirect('/read_message/' + str(draft.id_message))
 
     return render_template('edit_message.html',\
@@ -116,9 +116,10 @@ def send_message(id):
         #return status code 401 with the message of error
         abort(411, str(e))
 
-@login_required
-@messages.route('/recipients',methods=['GET'])
+## RESTful API
+@messages.route('/recipients',methods=["GET"])
 def get_recipients():
-    users = filter(lambda u: u.id != current_user.get_id(), UserModel.get_user_list())
-    ##TODO: add filtering to exclude blocked users or users that blocked you (or non public accounts idk)
-    return render_template("choose_recipient.html", users=users)
+    recipients = filter(lambda u: u.id != current_user.get_id(), UserModel.get_user_list())
+    return jsonify(
+        recipients=recipients
+    )
