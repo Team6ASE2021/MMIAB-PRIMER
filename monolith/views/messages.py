@@ -24,7 +24,6 @@ def draft():
             new_draft = Message()
             form.populate_obj(new_draft)
             new_draft.to_filter = MessageModel.filter_content(new_draft.body_message)
-            print(new_draft.to_filter)
             new_draft.id_sender = current_user.get_id()
             db.session.add(new_draft)
             db.session.commit()

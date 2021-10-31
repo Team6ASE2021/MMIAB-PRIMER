@@ -2,8 +2,24 @@ from typing import Optional
 from monolith.database import db, Message
 import datetime
 import string
+from os import path
 
-unsafe_words = ["bad", "filthy", "trash"]
+unsafe_words = []
+
+def populate_unsafe_words():
+    """
+    Populates unsafe_words list with the contents of a file in monolith/static/txt folder
+    if the list is still empty.
+    """
+    global unsafe_words
+    if len(unsafe_words) == 0:
+        _dir = path.dirname(path.abspath(__file__))
+        with open(path.join(_dir, '../static/txt/unsafe_words.txt'), 'r') as f:
+            lines = f.readlines()
+            for l in lines:
+                unsafe_words.append(l.strip())
+
+# list of alpha-numeric characters
 alphanumeric = string.ascii_letters + string.digits
 
 class MessageModel:
@@ -66,6 +82,8 @@ class MessageModel:
     def filter_content(message_body) -> bool:
         global unsafe_words
         global alphanumeric
+        populate_unsafe_words()
+
         _body = message_body.lower()
         for uw in unsafe_words:
             index = _body.find(uw)
