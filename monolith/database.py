@@ -17,6 +17,7 @@ class User(db.Model):
     lastname = db.Column(db.Unicode(128))
     password = db.Column(db.Unicode(128))
     dateofbirth = db.Column(db.DateTime)
+    content_filter = db.Column(db.Boolean, default=False)
 
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
@@ -60,6 +61,9 @@ class Message(db.Model):
     #boolean variables that describe the state of the message
     is_sended = db.Column(db.Boolean, default = False)
     is_arrived = db.Column(db.Boolean, default = False)
+
+    # boolean flag that tells if the message must be filtered for users who resquest it
+    to_filter = db.Column(db.Boolean, default = False)
 
     #constructor of the message object
     def __init__(self, *args, **kw):

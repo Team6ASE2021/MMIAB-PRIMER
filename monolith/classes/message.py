@@ -1,9 +1,45 @@
 from typing import Optional
 from monolith.database import db, Message
 import datetime
+import string
+from os import path
+
+class ContentFilter:
+    __UNSAFE_WORDS = []
+    __alphanumeric = string.ascii_letters + string.digits
+
+    @staticmethod
+    def unsafe_words():
+        """
+        Populates unsafe_words list with the contents of a file in monolith/static/txt folder
+        if the list is still empty.
+        """
+        if len(ContentFilter.__UNSAFE_WORDS) == 0:
+            _dir = path.dirname(path.abspath(__file__))
+            with open(path.join(_dir, '../static/txt/unsafe_words.txt'), 'r') as f:
+                lines = f.readlines()
+                for l in lines:
+                    ContentFilter.__UNSAFE_WORDS.append(l.strip())
+        return ContentFilter.__UNSAFE_WORDS
+
+    @staticmethod
+    def filter_content(message_body) -> bool:
+        _body = message_body.lower()
+        for uw in ContentFilter.unsafe_words():
+            index = _body.find(uw)
+            while index >=0:
+                if ((index > 0 and _body[index - 1] not in ContentFilter.__alphanumeric) or index == 0) and\
+                        ((index + len(uw) < len(_body) and _body[index + len(uw)] not in ContentFilter.__alphanumeric) or index + len(uw) == len(_body)):
+                    return True
+
+                index = _body.find(uw, index + 1)
+
+        return False
+    
+
+# list of alpha-numeric characters
 
 class MessageModel:
-
     """
         Wrapper class  for all db operations involving message
     """
