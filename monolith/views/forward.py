@@ -2,7 +2,6 @@ from flask import Blueprint, redirect, render_template, request, jsonify, abort
 
 from monolith.auth import current_user
 from monolith.database import Message, db
-from monolith.forms import MessageForm
 from monolith.classes.message import MessageModel, NotExistingMessageError
 
 forward = Blueprint('forward', __name__)

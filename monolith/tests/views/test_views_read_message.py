@@ -1,8 +1,6 @@
 import pytest
-from flask.wrappers import Response
-from monolith import app
-from monolith.database import Message, User, db
-import logging
+from http import HTTPStatus
+from monolith.database import Message, db
 
 
 @pytest.mark.usefixtures('clean_db_and_logout', 'messages_setup')
@@ -11,9 +9,9 @@ class TestViewsReadMessage():
     def test_read_mess_not_auth(self,test_client):
         test_client.get('/logout',follow_redirects=True)
 
-        response = test_client.get('/read_message/1')
-        assert response.status_code == 200 
-        assert b'Hey Anonymous' in response.data
+        response = test_client.get('/read_message/1',follow_redirects=True)
+        assert response.status_code == HTTPStatus.OK
+        assert b'Login' in response.data
 
     def test_read_mess_not_existing(self,test_client):
         # logger = logging.getLogger(__name__)
