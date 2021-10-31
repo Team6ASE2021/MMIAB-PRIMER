@@ -1,10 +1,13 @@
 import os
-import pytest
-from monolith.app import create_app
-from monolith.database import db, User, Message
-from monolith.classes.message import MessageModel
-
 from datetime import datetime
+
+import pytest
+
+from monolith.app import create_app
+from monolith.classes.message import MessageModel
+from monolith.database import db
+from monolith.database import Message
+from monolith.database import User
 
 """
 Fixture for the client and the db used during testing

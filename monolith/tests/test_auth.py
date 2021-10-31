@@ -1,6 +1,7 @@
-from flask_login.utils import login_required
-from monolith.auth import *
 from flask_login import current_user
+from flask_login.utils import login_required
+
+from monolith.auth import *
 
 class TestAuth:
         

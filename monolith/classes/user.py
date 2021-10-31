@@ -1,4 +1,6 @@
-from typing import Optional
+
+from typing import Optional, List
+
 from monolith.database import db, User
 from operator import not_
 
@@ -34,12 +36,12 @@ class UserModel:
         return user
 
     @staticmethod
-    def delete_user(id: Optional[int] = None, email: str = ''):
+    def delete_user(id: Optional[int] = None, email: str = '') -> int:
         if id is not None:
             rows = db.session.query(User).filter_by(id=id).delete()
         else:
             rows = db.session.query(User).filter_by(email=email).delete()
-        
+
         if rows > 0:
             db.session.commit()
         else:

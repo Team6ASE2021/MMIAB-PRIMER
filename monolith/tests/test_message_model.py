@@ -1,10 +1,10 @@
-import sqlalchemy
 import datetime
-import string
-from monolith.forms import UserForm
-from monolith.database import db, Message
-from monolith.classes.message import MessageModel, NotExistingMessageError, ContentFilter
 import pytest
+import string
+from monolith.classes.message import MessageModel,ContentFilter
+from monolith.classes.message import NotExistingMessageError
+from monolith.database import db
+from monolith.database import Message
 
 @pytest.mark.usefixtures('clean_db_and_logout')
 class TestMessage:
