@@ -7,7 +7,7 @@ from monolith.background import celery, test
 from monolith.auth import current_user
 from monolith.database import Message, User, db
 from monolith.forms import MessageForm, EditMessageForm
-from monolith.classes.message import MessageModel, NotExistingMessageError
+from monolith.classes.message import MessageModel, NotExistingMessageError, ContentFilter
 
 messages = Blueprint('messages', __name__)
 
@@ -23,7 +23,7 @@ def draft():
         if form.validate_on_submit():
             new_draft = Message()
             form.populate_obj(new_draft)
-            new_draft.to_filter = MessageModel.filter_content(new_draft.body_message)
+            new_draft.to_filter = ContentFilter.filter_content(new_draft.body_message)
             new_draft.id_sender = current_user.get_id()
             db.session.add(new_draft)
             db.session.commit()
@@ -64,7 +64,7 @@ def edit_draft(id):
 
         if form.validate_on_submit():
             draft.body_message = form.body_message.data
-            draft.to_filter = MessageModel.filter_content(draft.body_message)
+            draft.to_filter = ContentFilter.filter_content(draft.body_message)
             draft.date_of_send = form.date_of_send.data
             if form.recipient.data != '':
                 recipient = db.session.query(User).filter(User.email == form.recipient.data).first()
