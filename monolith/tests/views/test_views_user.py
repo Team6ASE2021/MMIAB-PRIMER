@@ -1,7 +1,8 @@
 from http import HTTPStatus
+
 from monolith.app import db
-from monolith.database import User
 from monolith.classes.user import UserModel  
+from monolith.database import User
 class TestViewsUser:
 
 #TODO: refactor to generate test data automatically
@@ -28,9 +29,7 @@ class TestViewsUser:
          response = test_client.post('/create_user', data=data, follow_redirects=True)
          assert response.status_code == HTTPStatus.OK
          assert b'Login' in response.data
-         response = test_client.get('/users/2/delete',follow_redirects=True)
-         assert response.status_code == HTTPStatus.OK
-         assert b'Anonymous' in response.data
+         UserModel.delete_user(email=data['email'])
 
       def test_show_user_info(self, test_client):
         response = test_client.post("/login", data={'email': 'example@example.com', 
@@ -55,6 +54,6 @@ class TestViewsUser:
 
       def test_user_list_not_logged(self, test_client):
          test_client.get('/logout')
-         response = test_client.get('/user_list')
+         response = test_client.get('/user_list',follow_redirects=True)
 
-         assert response.status_code == 401
+         assert b'Login' in response.data

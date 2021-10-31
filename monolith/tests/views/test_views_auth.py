@@ -16,6 +16,3 @@ class TestViewsAuth:
         response = test_client.post('/login', data={'email':'bla@bla.com','password':'adfv'},follow_redirects=True)
         assert response.status_code == 200       
         assert b"Hi" not in response.data
-
-
-        

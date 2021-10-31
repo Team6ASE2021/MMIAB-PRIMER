@@ -1,35 +1,51 @@
-import sqlalchemy
 import datetime
-from monolith.database import db, User
-from monolith.classes.user import UserModel, NotExistingUser
+
 import pytest
+import sqlalchemy
+
+from monolith.classes.user import NotExistingUser
+from monolith.classes.user import UserModel
+from monolith.database import db
+from monolith.database import User
 
 
 class TestUserModel:
 
-    def test_create_user(self,test_user,session):
-        user = UserModel.create_user(test_user, password="pass")
+    def test_create_user(self):
+        user = User(
+            firstname="Niccolò",
+            lastname="Piazzesi",
+            email="ex@ex.com",
+            dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y")
+        )
+        user = UserModel.create_user(user, password="pass")
         assert user is not None
-        assert user.email == "fake@fake.com"
+        assert user.email == "ex@ex.com"
         assert user.authenticate("pass")
-        session.query(User).filter_by(email=user.email).delete()
-        session.commit()
+        db.session.query(User).filter_by(email=user.email).delete()
+        db.session.commit()
 
-    def test_create_user_not_unique_email(self,test_user,session):
-        
-        user = UserModel.create_user(test_user, password="pass")
+    def test_create_user_not_unique_email(self):
+        user = User(
+            firstname="Niccolò",
+            lastname="Piazzesi",
+            email="ex@ex.com",
+            dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y")
+        )
+
+        user = UserModel.create_user(user, password="pass")
         assert user is not None
         user2 = User(
             firstname="Niccolò",
             lastname="Piazzesi",
-            email="fake@fake.com",
+            email="ex@ex.com",
             dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y")
         )
         with pytest.raises(sqlalchemy.exc.IntegrityError):
             user2 = UserModel.create_user(user2, password="pass")
-        session.rollback()
-        session.query(User).filter_by(email=user.email).delete()
-        session.commit()
+        db.session.rollback()
+        db.session.query(User).filter_by(email=user.email).delete()
+        db.session.commit()
 
     def test_get_user_from_mail_exists(self):
         user = UserModel.get_user_info_by_email("example@example.com")
@@ -51,17 +67,27 @@ class TestUserModel:
             UserModel.get_user_info_by_id(999)
         assert str(ex.value) == "No user found!"
 
-    def test_delete_user_by_id_ok(self, test_user):
-       
-        UserModel.create_user(test_user, password='p')
+    def test_delete_user_by_id_ok(self):
+        user = User(
+            firstname="Niccolò",
+            lastname="Piazzesi",
+            email="ex1@ex.com",
+            dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y")
+        )
+        user = UserModel.create_user(user, password='p')
         rows = UserModel.delete_user(id=2)
         assert rows == 1
 
-    def test_delete_user_by_mail_ok(self,test_user):
-      
-        user = UserModel.create_user(test_user, password='p')
+    def test_delete_user_by_mail_ok(self):
+        user = User(
+            firstname="Niccolò",
+            lastname="Piazzesi",
+            email="ex1@ex.com",
+            dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y")
+        )
+        user = UserModel.create_user(user, password='p')
 
-        rows = UserModel.delete_user(email="fake@fake.com")
+        rows = UserModel.delete_user(email="ex1@ex.com")
         assert rows == 1
 
     def test_delete_user_by_id_not_exists(self):
@@ -74,7 +100,3 @@ class TestUserModel:
         with pytest.raises(NotExistingUser) as ex:
             UserModel.delete_user(email="nomail@fail.com")
         assert str(ex.value) == "No user found!"
-    
-    def test_get_users_ok(self):
-        users = UserModel.get_user_list()
-        assert len(users) == 1 

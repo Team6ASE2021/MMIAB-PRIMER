@@ -1,14 +1,22 @@
 from http import HTTPStatus
-from typing import Optional, Text, Union
+from typing import Optional
+from typing import Text
+from typing import Union
 
-from flask import Blueprint, abort, redirect, render_template, request
+from flask import abort
+from flask import Blueprint
+from flask import redirect
+from flask import render_template
+from flask import request
 from flask.helpers import flash
 from flask.wrappers import Response
 from flask_login import current_user
 from flask_login.utils import login_required
 
-from monolith.classes.user import NotExistingUser, UserModel
-from monolith.database import User, db
+from monolith.classes.user import NotExistingUser
+from monolith.classes.user import UserModel
+from monolith.database import db
+from monolith.database import User
 from monolith.forms import UserForm
 
 users = Blueprint('users', __name__)
@@ -50,8 +58,6 @@ def user_info(id: int) -> Text:
 @users.route('/user_list', methods=['GET'])
 @login_required
 def user_list() -> Optional[Text]:
-
-    if request.method == "GET":
         user_list = UserModel.get_user_list()[1:] #ignore admin
         return render_template('user_list.html', list=user_list)
 
@@ -64,5 +70,3 @@ def delete_user(id:int) -> Response:
         return redirect('/')
     except NotExistingUser:
         abort(HTTPStatus.NOT_FOUND)
-
-        

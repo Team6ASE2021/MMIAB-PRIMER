@@ -23,7 +23,7 @@
            {% endfor %}
         {% endif %}
       <dt>{{ form.recipient.label }}</dt>
-      <dd>{{ form.recipient(choice=old_rec) }}</dd>
+      <dd>{{ form.recipient(value=old_rec) }}</dd>
         {% if form.recipient.errors %}
            {% for e in form.recipient.errors %}
             <p class="help-block">{{ e }}</p>
