@@ -16,7 +16,8 @@ users = Blueprint('users', __name__)
 
 @users.route('/users')
 def _users() -> Text:
-    _users = db.session.query(User)
+    _users = UserModel.get_user_list()
+    _users = _users[1:]
     return render_template("users.html", users=_users)
 
 
@@ -38,25 +39,25 @@ def create_user():
     
     return render_template('create_user.html', form=form)
 
-@login_required
+
 @users.route('/users/<int:id>', methods=['GET'])
+@login_required
 def user_info(id: int) -> Text:
     user = UserModel.get_user_info_by_id(current_user.id)
     return render_template('user_info.html', user=current_user)
 
 
 @users.route('/user_list', methods=['GET'])
+@login_required
 def user_list() -> Optional[Text]:
-    #check if the current user is logged
-    if(current_user.get_id() == None):
-        abort(401, description='You must be see the user list')
 
     if request.method == "GET":
-        user_list = UserModel.get_user_list()
+        user_list = UserModel.get_user_list()[1:] #ignore admin
         return render_template('user_list.html', list=user_list)
 
-@login_required
+
 @users.route('/users/<int:id>/delete',methods=['GET'])
+@login_required
 def delete_user(id:int) -> Response:
     try:
         UserModel.delete_user(id)
