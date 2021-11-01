@@ -10,7 +10,7 @@ import http
 from monolith.auth import current_user
 from monolith.classes.message import MessageModel,ContentFilter
 from monolith.classes.message import NotExistingMessageError
-from monolith.classes.user import UserModel
+from monolith.classes.user import UserModel, UserBlacklist
 from monolith.database import db
 from monolith.database import Message
 from monolith.forms import EditMessageForm
@@ -128,9 +128,9 @@ def delete_message(id: int):
 @messages.route('/recipients', methods=["GET"])
 @login_required
 def get_recipients():
+    user_list = UserBlacklist.filter_blacklist(current_user.id, UserModel.get_user_list())
     recipients = list(map(lambda u: (u.id, u.nickname if u.nickname else u.email),
-                          filter(lambda u: u.id != current_user.get_id(), UserModel.get_user_list())))
+                          filter(lambda u: u.id != current_user.get_id(), user_list)))
     return jsonify(
         recipients=recipients
-
     )

@@ -3,7 +3,7 @@ from flask_login.utils import login_required
 from monolith.database import Message, User, db
 from monolith.auth import current_user
 from monolith.classes.message import MessageModel, NotExistingMessageError
-from monolith.classes.user import UserModel, NotExistingUser
+from monolith.classes.user import UserModel, NotExistingUserError
 
 read_message = Blueprint('read_message', __name__)
 
@@ -35,7 +35,7 @@ def read_messages(id):
     try:
         sender = UserModel.get_user_info_by_id(sender_id)
         sender_email = sender.email
-    except NotExistingUser:
+    except NotExistingUserError:
         sender_email = "Anonymous"
 
     return render_template("read_select_message.html", user_allowed=user_allowed, mess_text=mess_text, sender=sender_email, date_receipt=date_receipt)

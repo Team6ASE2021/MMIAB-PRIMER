@@ -77,7 +77,6 @@ def messages_setup(test_client):
     admin_id = db.session.query(User).filter(User.email == admin_user['email']).first().id
     new_user_id = db.session.query(User).filter(User.email == new_user['email']).first().id
 
-
     admin_draft1 = MessageModel.create_message(id_sender=admin_id, id_receipent=new_user_id, body_message='admin draft 1')
     admin_draft2 = MessageModel.create_message(id_sender=admin_id, id_receipent=new_user_id, body_message='admin draft 2')
     admin_sent1 = MessageModel.create_message(id_sender=admin_id, id_receipent=new_user_id, body_message='admin send 1', date_of_send=datetime.now(), is_sended=True)
