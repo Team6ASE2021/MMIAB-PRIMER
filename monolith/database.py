@@ -60,6 +60,7 @@ class Message(db.Model):
     #boolean variables that describe the state of the message
     is_sended = db.Column(db.Boolean, default = False)
     is_arrived = db.Column(db.Boolean, default = False)
+    is_notified = db.Column(db.Boolean, default = False)
 
     #constructor of the message object
     def __init__(self, *args, **kw):

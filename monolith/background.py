@@ -34,7 +34,4 @@ celery.conf.beat_schedule = {
 @celery.task
 def test():
     message_list = MessageModel.arrived_message()
-
-    
-
-    return {"message arrived" : message_list}
+    return message_list

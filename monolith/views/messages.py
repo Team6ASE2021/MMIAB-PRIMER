@@ -2,7 +2,6 @@ from datetime import date
 import datetime
 from monolith.classes.message import MessageModel, NotExistingMessageError
 from flask import Blueprint, redirect, render_template, request, jsonify, abort, flash
-from monolith.background import celery, test
 
 from monolith.auth import current_user
 from monolith.database import Message, User, db
@@ -126,12 +125,3 @@ def send_message(id):
     except NotExistingMessageError as e:
         #return status code 401 with the message of error
         abort(411, str(e))
-
-@messages.route('/notification/<int:id_message>', methods=['GET', 'POST'])
-def notification(id_message):
-    
-
-    #pop up a message
-    flash("You have received a message!")
-
-    return redirect('/')
