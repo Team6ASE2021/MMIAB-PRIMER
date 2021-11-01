@@ -2,7 +2,7 @@ from flask import Blueprint, redirect, render_template, request
 from flask.helpers import flash, url_for
 from flask_login import login_user, logout_user
 from werkzeug.urls import url_parse
-from monolith.classes.user import NotExistingUser
+from monolith.classes.user import NotExistingUserError
 from monolith.classes.user import UserModel
 from monolith.database import db
 from monolith.database import User
@@ -28,7 +28,7 @@ def login():
                 flash("Wrong password")
                 return redirect(url_for('auth.login'))
 
-        except NotExistingUser:
+        except NotExistingUserError:
             flash('No user with this email was found on this server')
             return redirect(url_for('auth.login'))
 

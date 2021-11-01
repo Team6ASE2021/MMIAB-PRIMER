@@ -9,7 +9,7 @@ from flask.wrappers import Response
 from flask_login import current_user
 from flask_login.utils import login_required
 
-from monolith.classes.user import UserModel, UserBlacklist, NotExistingUser
+from monolith.classes.user import UserModel, UserBlacklist, NotExistingUserError, BlockingCurrentUserError
 from monolith.database import db, User
 from monolith.forms import UserForm
 
@@ -47,16 +47,20 @@ def create_user():
 @users.route('/users/<int:id>', methods=['GET'])
 @login_required
 def user_info(id: int) -> Text:
-    user = UserModel.get_user_info_by_id(current_user.id)
-    return render_template('user_info.html', user=current_user)
+    try:
+        user = UserModel.get_user_info_by_id(id)
+        return render_template('user_info.html' if current_user.id == id else 'user_info_other.html', user=user)
+    except NotExistingUserError:
+        abort(HTTPStatus.NOT_FOUND)
+
 
 
 @users.route('/user_list', methods=['GET'])
 @login_required
 def user_list() -> Optional[Text]:
-        user_list = UserModel.get_user_list()[1:] #ignore admin
-        user_list = UserBlacklist.filter_blacklist(current_user.id, user_list)
-        return render_template('user_list.html', list=user_list)
+    user_list = UserModel.get_user_list()[1:] #ignore admin
+    user_list = UserBlacklist.filter_blacklist(current_user.id, user_list)
+    return render_template('user_list.html', list=user_list)
 
 
 @users.route('/users/<int:id>/delete',methods=['GET'])
@@ -65,17 +69,46 @@ def delete_user(id:int) -> Response:
     try:
         UserModel.delete_user(id)
         return redirect('/')
-    except NotExistingUser:
+    except NotExistingUserError:
         abort(HTTPStatus.NOT_FOUND)
 
 @users.route('/user/content_filter', methods=['GET'])
 @login_required
 def set_content_filter():
+    UserModel.toggle_content_filter(current_user.id)
+    return redirect('/users/' + str(current_user.id))
+
+@users.route('/user/blacklist', methods=['GET'])
+@login_required
+def blacklist():
+    blocked_users = UserBlacklist.get_blocked_users(current_user.id)
+    return render_template('blocked_users.html', list=blocked_users)
+
+@users.route('/user/blacklist/add/<int:id>', methods=['GET'])
+@login_required
+def blacklist_add(id: int):
     try:
-        UserModel.toggle_content_filter(current_user.id)
-        return redirect('/users/' + str(current_user.id))
-    except NotExistingUser:
-        abort(HTTPStatus.NOT_FOUND, description="You are not a registered user")
+        UserBlacklist.add_user_to_blacklist(current_user.id, id)
+    except NotExistingUserError as e:
+        abort(HTTPStatus.NOT_FOUND, description=str(e))
+    except BlockingCurrentUserError as e:
+        abort(HTTPStatus.FORBIDDEN, description=str(e))
+
+    return redirect('/user/blacklist')
+
+@users.route('/user/blacklist/remove/<int:id>', methods=['GET'])
+@login_required
+def blacklist_remove(id: int):
+    try:
+        UserBlacklist.remove_user_from_blacklist(current_user.id, id)
+    except NotExistingUserError as e:
+        abort(HTTPStatus.NOT_FOUND, description=str(e))
+
+    return redirect('/user/blacklist')
+
+
+
+
 
 
 
