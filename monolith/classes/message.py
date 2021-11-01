@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 from monolith.database import db, Message
 import datetime
@@ -110,7 +111,11 @@ class MessageModel:
         db.session.commit()
 
         return new_msg
-
+    @staticmethod
+    def delete_message(id_message: int):
+        mess = MessageModel.id_message_exists(id_message)
+        db.session.delete(mess)
+        db.session.commit()
 class NotExistingMessageError(Exception):
     def __init__(self, value):
         self.value = value

@@ -1,4 +1,5 @@
 from http import HTTPStatus
+import http
 
 from flask import abort
 from flask import Blueprint
@@ -6,6 +7,7 @@ from flask import jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
+from flask.helpers import flash, url_for
 from flask_login.utils import login_required
 
 from monolith.auth import current_user
@@ -95,6 +97,23 @@ def send_message(id):
     except NotExistingMessageError as e:
         # return status code 401 with the message of error
         abort(HTTPStatus.NOT_FOUND, str(e))
+
+@messages.route('/message/<int:id>/delete',methods=['GET'])
+@login_required
+def delete_message(id: int):
+    try:
+        mess = MessageModel.id_message_exists(id)
+        print(mess.body_message)
+    except NotExistingMessageError:
+        abort(404,description='Message not found')
+    
+    if current_user.get_id() != mess.id_receipent or not mess.is_arrived:
+        abort(HTTPStatus.UNAUTHORIZED,description='You are not allowed to delete this message')
+    else:
+        MessageModel.delete_message(id)
+        flash('Message succesfully deleted')
+        return redirect(url_for('mailbox.mailbox_list_received'))
+
 
 # RESTful API
 
