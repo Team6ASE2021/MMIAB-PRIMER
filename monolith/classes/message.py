@@ -69,6 +69,7 @@ class MessageModel:
             
         )
         db.session.commit()
+
     @staticmethod 
     def send_message(id_message):
         db.session.query(Message).filter(Message.id_message == id_message)\

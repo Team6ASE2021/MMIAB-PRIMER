@@ -33,12 +33,13 @@
             <div class="message-container">
               {% for m in message_list: %}
                 <div class="message-block">
-                    {% set _url = url_for('read_message.read_messages', id=m.Message.id_message) %}
-                    <div class="main" onclick="location.href='{{ _url }}'">
-                        <div class="user">
+                    {% set user_url = url_for('users.user_info', id=m.User.id) %}
+                    {% set message_url = url_for('read_message.read_messages', id=m.Message.id_message) %}
+                    <div class="main">
+                        <div class="user" onclick="location.href='{{ user_url }}'">
                             <div> {{ m.User.firstname }} {{ m.User.lastname }} </div>
                         </div>
-                        <div class="body"> 
+                        <div class="body" onclick="location.href='{{ message_url }}'"> 
                             <div> {{ m.Message.body_message }} </div>
                         </div>
                     </div>
