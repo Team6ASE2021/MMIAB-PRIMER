@@ -18,5 +18,3 @@ def delivery_datetime_format(value, format="%H:%M %d/%m/%Y"):
 
 filters.add_app_template_filter(datetime_format)
 filters.add_app_template_filter(delivery_datetime_format)
-
-

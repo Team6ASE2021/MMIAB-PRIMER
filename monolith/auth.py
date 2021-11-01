@@ -5,7 +5,9 @@ from flask_login import LoginManager, current_user
 from monolith.database import User
 
 login_manager = LoginManager()
-
+login_manager.login_view = 'auth.login'
+login_manager.login_message = 'you must be logged in to view this page'
+login_manager.login_message_category = "warning"
 
 def admin_required(func):
     @functools.wraps(func)

@@ -1,27 +1,37 @@
-from flask import Blueprint, redirect, render_template, flash
+from flask import Blueprint, redirect, render_template, request
+from flask.helpers import flash, url_for
 from flask_login import login_user, logout_user
-
-from monolith.database import User, db
+from werkzeug.urls import url_parse
+from monolith.classes.user import NotExistingUser
+from monolith.classes.user import UserModel
+from monolith.database import db
+from monolith.database import User
 from monolith.forms import LoginForm
 
 auth = Blueprint('auth', __name__)
-
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
         email, password = form.data['email'], form.data['password']
-        q = db.session.query(User).filter(User.email == email)
-        user = q.first()
-        if user is not None and user.authenticate(password):
-            login_user(user)
-            flash("Logged in!")
-            return redirect('/')
-        elif user is not None and user.authenticate(password) == 0:
-            flash("Wrong password")
-        else:
-            flash("Wrong email")
+        try:
+            user = UserModel.get_user_info_by_email(email=email)
+            if user.authenticate(password):
+                login_user(user)
+                flash("Logged in!")
+                next_page = request.args.get('next')
+                if not next_page or url_parse(next_page).netloc != '':
+                    next_page = url_for('home.index')
+                return redirect(next_page)
+            else:
+                flash("Wrong password")
+                return redirect(url_for('auth.login'))
+
+        except NotExistingUser:
+            flash('No user with this email was found on this server')
+            return redirect(url_for('auth.login'))
+
     return render_template('login.html', form=form)
 
 

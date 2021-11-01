@@ -1,10 +1,10 @@
-from monolith.classes import read_messages
 from .auth import auth
+from .filters import filters
 from .home import home
 from .users import users
-from .filters import filters
-from .messages import messages 
+from .messages import messages
+from .mailbox import mailbox
 from .read_message import read_message
+from .forward import forward
 
-blueprints = [home, auth, users, filters, messages, read_message]
-
+blueprints = [home, auth, users, filters, messages, read_message, mailbox,forward]

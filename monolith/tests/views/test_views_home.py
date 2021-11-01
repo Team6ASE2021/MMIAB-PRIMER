@@ -14,5 +14,3 @@ class TestViewsHome:
         assert response.status_code == 200
         assert b"Logged In!" in response.data
         test_client.get('/logout')
-        
-    

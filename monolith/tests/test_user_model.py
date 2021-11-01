@@ -1,8 +1,12 @@
-import sqlalchemy
 import datetime
-from monolith.database import db, User
-from monolith.classes.user import UserModel, NotExistingUser
+
 import pytest
+import sqlalchemy
+
+from monolith.classes.user import NotExistingUser
+from monolith.classes.user import UserModel
+from monolith.database import db
+from monolith.database import User
 
 
 class TestUserModel:

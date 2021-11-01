@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, flash
-from werkzeug.utils import redirect
 
 from monolith.auth import current_user
 from monolith.database import Message, User, db
