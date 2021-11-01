@@ -19,11 +19,12 @@ class UserForm(FlaskForm):
     location = f.StringField('location', validators=[Optional()])
     display = ['email', 'firstname', 'lastname','nickname','location', 'password', 'dateofbirth']
 
-
+class RecipientForm(FlaskForm):
+    recipient = f.SelectField("Recipient", default=[])
 
 class EditMessageForm(FlaskForm):
     body_message = f.TextAreaField("Message", validators=[InputRequired()])
     date_of_send = f.DateTimeField("Delivery Date", format=delivery_format, validators=[Optional()])
-    recipient = f.SelectField("Recipient", default=[])
-    display = ['body_message', 'date_of_send', 'recipient']
+    recipients = f.FieldList(f.FormField(RecipientForm))
+    display = ['body_message', 'date_of_send', 'recipients']
 

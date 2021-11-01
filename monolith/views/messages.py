@@ -21,21 +21,23 @@ messages = Blueprint('messages', __name__)
 @messages.route('/draft', methods=['POST', 'GET'])
 @login_required
 def draft():
-    form = EditMessageForm()
-    form.recipient.choices = get_recipients().json['recipients']
+    form = EditMessageForm(recipients=[{'name': 'Recipient'}])
+    for recipient_form in form.recipients:
+        recipient_form.recipient.choices = get_recipients().json['recipients']
     if request.method == 'POST':
         if form.validate_on_submit():
             new_draft = Message()
-            form.populate_obj(new_draft)
+            # form.populate_obj(new_draft)
+            new_draft.body_message = form.body_message.data
+            new_draft.date_of_send = form.date_of_send.data
             new_draft.to_filter = ContentFilter.filter_content(new_draft.body_message)
             new_draft.id_sender = current_user.get_id()
-            new_draft.id_receipent = form.recipient.data[0]
+            # new_draft.id_receipent = form.recipient.data[0]
+            print([int(rf.recipient.data[0]) for rf in form.recipients])
             MessageModel.add_draft(new_draft)
             return redirect('/read_message/' + str(new_draft.id_message))
         
     return render_template('create_message.html', form=form)
-
-
 
 
 @messages.route('/draft/edit/<int:id>', methods=['POST', 'GET'])

@@ -1,28 +1,70 @@
 <html>
- <body>
+    <head>
+        <script>
+            function addRecipient(){
+                console.log("start");
+                var recipients = document.getElementById("recipient-list");
+                var childs = recipients.getElementsByClassName("recipient")
+                var new_id = childs.length
+                var new_recipient = childs[0].cloneNode(true);
+                var nr_childs = new_recipient.getElementsByTagName("*");
+                for(let i = 0; i<nr_childs.length; i++){
+                    if(nr_childs[i].id == "recipients-0-csrf_token") {
+                        nr_childs[i].id = "recipients-" + new_id + "-csrf_token";
+                        nr_childs[i].name = "recipients-" + new_id + "-csrf_token";
+                    }
+                    if(nr_childs[i].htmlFor == "recipients-0-recipient") {
+                        nr_childs[i].htmlFor = "recipients-" + new_id + "-recipient";
+                    }
+                    if(nr_childs[i].id == "recipients-0-recipient") {
+                        nr_childs[i].id = "recipients-" + new_id + "-recipient";
+                        nr_childs[i].name = "recipients-" + new_id + "-recipient";
+                    }
+                }
+                recipients.appendChild(new_recipient);
+            }
+        </script>
+    </head>
+    <body>
 
- {% if current_user.is_authenticated %}
+    {% if current_user.is_authenticated %}
 
-   <form action="" method="POST">
-     {{ form.hidden_tag() }}
-     <dl>
-      {% for field in form.display %}
-      <dt>{{ form[field].label }}</dt>
-      <dd>{{ form[field]() }}</dd>
-        {% if form[field].errors %}
-           {% for e in form[field].errors %}
-            <p class="help-block">{{ e }}</p>
-           {% endfor %}
-        {% endif %}
-      {% endfor %}
-     </dl>
-     <p>
-     <input type=submit value="Save as Draft">
-   </form>
-  
- {% else %}
-   Hi Anonymous, please <a href="/login">Log in</a> to draft a message
- {% endif %}
- </body>
+      <form action="" method="POST">
+        {{ form.hidden_tag() }}
+        <dl>
+         <dt>{{ form.body_message.label }}</dt>
+         <dd>{{ form.body_message() }}</dd>
+           {% if form.date_of_send.errors %}
+              {% for e in form.date_of_send.errors %}
+               <p class="help-block">{{ e }}</p>
+              {% endfor %}
+           {% endif %}
+         <dt>{{ form.date_of_send.label }}</dt>
+         <dd style="font-size: 10pt;">{{ form.date_of_send.format }}</dt>
+         <dd>{{ form.date_of_send() }}</dd>
+           {% if form.date_of_send.errors %}
+              {% for e in form.date_of_send.errors %}
+               <p class="help-block">{{ e }}</p>
+              {% endfor %}
+           {% endif %}
+         <div id="recipient-list">
+         {% for recipient_form in form.recipients %}
+           <div class="recipient">
+             {{ recipient_form.hidden_tag() }}
+             <dt>{{ recipient_form.recipient.label }}</dt>
+             <dd>{{ recipient_form.recipient() }}</dd>
+           </div>
+         {% endfor %}
+         </div>
+         <p><a href="javascript:addRecipient();">Add Recipient</a></p>
+       </dl>
+        <p>
+        <input type=submit value="Save as Draft">
+      </form>
+     
+    {% else %}
+      Hi Anonymous, please <a href="/login">Log in</a> to draft a message
+    {% endif %}
+    </body>
 </html>
 
