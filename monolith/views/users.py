@@ -72,7 +72,7 @@ def delete_user(id:int) -> Response:
 @login_required
 def set_content_filter():
     try:
-        user_db = UserModel.toggle_content_filter(current_user.id)
+        UserModel.toggle_content_filter(current_user.id)
         return redirect('/users/' + str(current_user.id))
     except NotExistingUser:
         abort(HTTPStatus.NOT_FOUND, description="You are not a registered user")

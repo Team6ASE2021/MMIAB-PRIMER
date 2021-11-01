@@ -1,12 +1,11 @@
-from http import HTTPStatus
-
-from flask import abort
-from flask import Blueprint
-from flask import jsonify
-from flask import redirect
-from flask import render_template
-from flask import request
+from datetime import date
+import datetime
+from monolith.classes.message import MessageModel, NotExistingMessageError
+from flask import Blueprint, redirect, render_template, request, jsonify, abort, flash
+from flask.helpers import flash, url_for
 from flask_login.utils import login_required
+from http import HTTPStatus
+import http
 
 from monolith.auth import current_user
 from monolith.classes.message import MessageModel,ContentFilter
@@ -86,7 +85,17 @@ def send_message(id):
         if current_user.get_id() != message.id_sender:
             abort(HTTPStatus.UNAUTHORIZED, "You can't send this message")
 
-        # send the message
+        #check if the date_of_send is not Null
+        if message.date_of_send is None:
+            flash("You have to set the date of send")
+            return redirect('draft/edit/' + str(message.id_message))
+
+        #check if the receipent is not Null
+        if message.id_receipent is None:
+            flash("You have to set the receipent")
+            return redirect('draft/edit/' + str(message.id_message))
+
+        #send the message
         MessageModel.send_message(message.id_message)
         result = "Message has been sent correctly"
 
@@ -95,6 +104,23 @@ def send_message(id):
     except NotExistingMessageError as e:
         # return status code 401 with the message of error
         abort(HTTPStatus.NOT_FOUND, str(e))
+
+@messages.route('/message/<int:id>/delete',methods=['GET'])
+@login_required
+def delete_message(id: int):
+    try:
+        mess = MessageModel.id_message_exists(id)
+        print(mess.body_message)
+    except NotExistingMessageError:
+        abort(404,description='Message not found')
+    
+    if current_user.get_id() != mess.id_receipent or not mess.is_arrived:
+        abort(HTTPStatus.UNAUTHORIZED,description='You are not allowed to delete this message')
+    else:
+        MessageModel.delete_message(id)
+        flash('Message succesfully deleted')
+        return redirect(url_for('mailbox.mailbox_list_received'))
+
 
 # RESTful API
 

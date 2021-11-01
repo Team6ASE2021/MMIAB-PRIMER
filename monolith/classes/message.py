@@ -1,5 +1,6 @@
+import re
 from typing import Optional
-from monolith.database import db, Message
+from monolith.database import db, Message, User
 import datetime
 import string
 from os import path
@@ -91,12 +92,27 @@ class MessageModel:
         
         db.session.commit()
 
-        # return messages_arrived
+        #return messages_arrived
         return [{'id' : m.id_message,\
                 'date' : m.date_of_send.strftime("%H:%M %d/%m/%Y"),\
                 'sent': m.is_sended,\
-                'received' : m.is_arrived} for m in messages_arrived]
+                'received' : m.is_arrived,\
+                'notified' : m.is_notified} for m in messages_arrived]
 
+    @staticmethod
+    def get_notify(user : User):
+        notify_list = db.session.query(Message).filter(user.id == Message.id_receipent,\
+                                                       Message.is_notified == False,\
+                                                       Message.is_arrived == True,
+                                                       Message.is_sended == True)
+
+        for notify in notify_list:
+            notify.is_notified = True
+
+        db.session.commit()
+        
+        return notify_list
+    
     @staticmethod
     def create_message(id_sender=1, id_receipent=1, body_message="", date_of_send=None, is_sended=False, is_arrived=False):
         new_msg = Message()
@@ -111,6 +127,12 @@ class MessageModel:
         db.session.commit()
 
         return new_msg
+
+    @staticmethod
+    def delete_message(id_message: int):
+        mess = MessageModel.id_message_exists(id_message)
+        db.session.delete(mess)
+        db.session.commit()
 
 class NotExistingMessageError(Exception):
     def __init__(self, value):

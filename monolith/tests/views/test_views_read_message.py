@@ -4,7 +4,7 @@ from monolith.database import Message, db
 
 
 @pytest.mark.usefixtures('clean_db_and_logout', 'messages_setup')
-class TestViewsReadMessage():
+class TestViewsReadMessage:
 
     def test_read_mess_not_auth(self,test_client):
         test_client.get('/logout',follow_redirects=True)

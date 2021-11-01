@@ -62,6 +62,7 @@ class Message(db.Model):
     #boolean variables that describe the state of the message
     is_sended = db.Column(db.Boolean, default = False)
     is_arrived = db.Column(db.Boolean, default = False)
+    is_notified = db.Column(db.Boolean, default = False)
 
     # boolean flag that tells if the message must be filtered for users who resquest it
     to_filter = db.Column(db.Boolean, default = False)
