@@ -1,20 +1,14 @@
-from flask import Blueprint
-from flask import redirect
-from flask import render_template
-from flask import request
-from flask.helpers import flash
-from flask.helpers import url_for
-from flask_login import login_user
-from flask_login import logout_user
+from flask import Blueprint, redirect, render_template, request
+from flask.helpers import flash, url_for
+from flask_login import login_user, logout_user
 from werkzeug.urls import url_parse
-
 from monolith.classes.user import NotExistingUser
 from monolith.classes.user import UserModel
 from monolith.database import db
 from monolith.database import User
 from monolith.forms import LoginForm
-auth = Blueprint('auth', __name__)
 
+auth = Blueprint('auth', __name__)
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
@@ -25,13 +19,19 @@ def login():
             user = UserModel.get_user_info_by_email(email=email)
             if user.authenticate(password):
                 login_user(user)
+                flash("Logged in!")
                 next_page = request.args.get('next')
                 if not next_page or url_parse(next_page).netloc != '':
-                        next_page = url_for('home.index')
+                    next_page = url_for('home.index')
                 return redirect(next_page)
+            else:
+                flash("Wrong password")
+                return redirect(url_for('auth.login'))
+
         except NotExistingUser:
             flash('No user with this email was found on this server')
             return redirect(url_for('auth.login'))
+
     return render_template('login.html', form=form)
 
 

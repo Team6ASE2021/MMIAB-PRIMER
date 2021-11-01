@@ -1,11 +1,9 @@
 import datetime
 import pytest
 import string
-from monolith.classes.message import MessageModel, ContentFilter
-from monolith.classes.message import NotExistingMessageError
-from monolith.database import db
-from monolith.database import Message
-
+from monolith.classes.message import MessageModel, ContentFilter, NotExistingMessageError
+from monolith.classes.user import UserModel
+from monolith.database import db, Message
 
 @pytest.mark.usefixtures('clean_db_and_logout')
 class TestMessage:
@@ -88,6 +86,39 @@ class TestMessage:
         MessageModel.send_message(message.id_message)
         assert message.is_sended == 1
 
+    def test_arrived_message(self):
+        message = Message(id_receipent = 1, \
+                          id_sender = 1, \
+                          body_message = "Ciao", \
+                          date_of_send = datetime.datetime.now(), \
+                          is_sended = True, \
+                          is_arrived = False)
+        
+        db.session.add(message)
+
+        MessageModel.arrived_message()
+        assert message.is_arrived == True
+
+        db.session.delete(message)
+        db.session.commit()
+
+    def test_get_notify(self):
+        message = Message(id_receipent = 1, \
+                          id_sender = 1, \
+                          body_message = "Ciao", \
+                          date_of_send = datetime.datetime.now(), \
+                          is_sended = True, \
+                          is_arrived = True, \
+                          is_notified = False)
+        
+        db.session.add(message)
+
+        MessageModel.get_notify(UserModel.get_user_info_by_id(message.id_receipent))
+        assert message.is_notified == True
+
+        db.session.delete(message)
+        db.session.commit()
+
     def test_delete_message_ok(self):
         message = Message(id_receipent=1,
                           id_sender=2,
@@ -123,3 +154,4 @@ class TestMessageContentFilter:
     def test_content_filter_safe(self):
         message = 'good deeds'
         assert ContentFilter.filter_content(message) == False
+

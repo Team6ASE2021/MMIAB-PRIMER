@@ -1,14 +1,11 @@
-from http import HTTPStatus
-import http
-
-from flask import abort
-from flask import Blueprint
-from flask import jsonify
-from flask import redirect
-from flask import render_template
-from flask import request
+from datetime import date
+import datetime
+from monolith.classes.message import MessageModel, NotExistingMessageError
+from flask import Blueprint, redirect, render_template, request, jsonify, abort, flash
 from flask.helpers import flash, url_for
 from flask_login.utils import login_required
+from http import HTTPStatus
+import http
 
 from monolith.auth import current_user
 from monolith.classes.message import MessageModel,ContentFilter
@@ -88,7 +85,17 @@ def send_message(id):
         if current_user.get_id() != message.id_sender:
             abort(HTTPStatus.UNAUTHORIZED, "You can't send this message")
 
-        # send the message
+        #check if the date_of_send is not Null
+        if message.date_of_send is None:
+            flash("You have to set the date of send")
+            return redirect('draft/edit/' + str(message.id_message))
+
+        #check if the receipent is not Null
+        if message.id_receipent is None:
+            flash("You have to set the receipent")
+            return redirect('draft/edit/' + str(message.id_message))
+
+        #send the message
         MessageModel.send_message(message.id_message)
         result = "Message has been sent correctly"
 
