@@ -35,7 +35,7 @@
      <p>
      <input type=submit value="Save as Draft">
    </form>
-  
+
  {% elif current_user.is_authenticated and current_user.id != id_sender  %}
    <p>Hi {{ current_user.firstname }}, it looks like this message was not drafted by you.</p>
    <p>Please <a href="/logout">Logout</a> and log back in with the right account.</p>
