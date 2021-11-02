@@ -1,14 +1,8 @@
-from datetime import datetime
-
 import pytest
-from flask_login import logout_user
 
-from monolith import app
 from monolith.auth import current_user
 from monolith.database import db
 from monolith.database import Message
-from monolith.database import User
-from monolith.forms import delivery_format
 
 
 @pytest.mark.usefixtures("messages_setup", "clean_db_and_logout")

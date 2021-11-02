@@ -4,9 +4,6 @@ from flask import render_template
 
 from monolith.auth import current_user
 from monolith.classes.message import MessageModel
-from monolith.database import db
-from monolith.database import Message
-from monolith.database import User
 
 home = Blueprint("home", __name__)
 

@@ -1,8 +1,6 @@
 from flask import abort
 from flask import Blueprint
-from flask import redirect
 from flask import render_template
-from flask import request
 from flask_login.utils import login_required
 
 from monolith.auth import current_user
@@ -10,9 +8,6 @@ from monolith.classes.message import MessageModel
 from monolith.classes.message import NotExistingMessageError
 from monolith.classes.user import NotExistingUserError
 from monolith.classes.user import UserModel
-from monolith.database import db
-from monolith.database import Message
-from monolith.database import User
 
 read_message = Blueprint("read_message", __name__)
 

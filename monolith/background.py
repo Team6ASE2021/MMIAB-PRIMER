@@ -1,10 +1,6 @@
 from celery import Celery
-from celery.schedules import crontab
 
 from monolith.classes.message import MessageModel
-from monolith.database import db
-from monolith.database import Message
-from monolith.database import User
 
 _APP = None
 

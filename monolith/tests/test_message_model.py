@@ -83,7 +83,7 @@ class TestMessage:
     def test_id_message_not_exists(self):
 
         with pytest.raises(NotExistingMessageError):
-            message = MessageModel.id_message_exists(1000)
+            MessageModel.id_message_exists(1000)
 
     def test_send_message(self):
         message = Message(

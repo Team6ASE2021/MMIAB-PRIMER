@@ -1,6 +1,3 @@
-import datetime
-import http
-from datetime import date
 from http import HTTPStatus
 
 from flask import abort
@@ -20,7 +17,6 @@ from monolith.classes.message import MessageModel
 from monolith.classes.message import NotExistingMessageError
 from monolith.classes.user import UserBlacklist
 from monolith.classes.user import UserModel
-from monolith.database import db
 from monolith.database import Message
 from monolith.forms import EditMessageForm
 

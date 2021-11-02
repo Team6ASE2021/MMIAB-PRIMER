@@ -1,14 +1,12 @@
 from http import HTTPStatus
 from typing import Optional
 from typing import Text
-from typing import Union
 
 from flask import abort
 from flask import Blueprint
 from flask import redirect
 from flask import render_template
 from flask import request
-from flask.helpers import flash
 from flask.wrappers import Response
 from flask_login import current_user
 from flask_login.utils import login_required
@@ -17,7 +15,6 @@ from monolith.classes.user import BlockingCurrentUserError
 from monolith.classes.user import NotExistingUserError
 from monolith.classes.user import UserBlacklist
 from monolith.classes.user import UserModel
-from monolith.database import db
 from monolith.database import User
 from monolith.forms import UserForm
 

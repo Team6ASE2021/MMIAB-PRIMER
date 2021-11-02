@@ -84,20 +84,20 @@ def messages_setup(test_client):
         db.session.query(User).filter(User.email == new_user["email"]).first().id
     )
 
-    admin_draft1 = MessageModel.create_message(
+    MessageModel.create_message(
         id_sender=admin_id, id_receipent=new_user_id, body_message="admin draft 1"
     )
-    admin_draft2 = MessageModel.create_message(
+    MessageModel.create_message(
         id_sender=admin_id, id_receipent=new_user_id, body_message="admin draft 2"
     )
-    admin_sent1 = MessageModel.create_message(
+    MessageModel.create_message(
         id_sender=admin_id,
         id_receipent=new_user_id,
         body_message="admin send 1",
         date_of_send=datetime.now(),
         is_sended=True,
     )
-    admin_sent2 = MessageModel.create_message(
+    MessageModel.create_message(
         id_sender=admin_id,
         id_receipent=new_user_id,
         body_message="admin send 2",
@@ -105,7 +105,7 @@ def messages_setup(test_client):
         is_sended=True,
         is_arrived=True,
     )
-    admin_sent3 = MessageModel.create_message(
+    MessageModel.create_message(
         id_sender=admin_id,
         id_receipent=new_user_id,
         body_message="admin send 3",
@@ -114,23 +114,23 @@ def messages_setup(test_client):
         is_arrived=True,
     )
 
-    new_user_draft1 = MessageModel.create_message(
+    MessageModel.create_message(
         id_sender=new_user_id, id_receipent=admin_id, body_message="new_user draft 1"
     )
-    new_user_draft2 = MessageModel.create_message(
+    MessageModel.create_message(
         id_sender=new_user_id, id_receipent=admin_id, body_message="new_user draft 2"
     )
-    new_user_draft3 = MessageModel.create_message(
+    MessageModel.create_message(
         id_sender=new_user_id, id_receipent=admin_id, body_message="new_user draft 3"
     )
-    new_user_sent1 = MessageModel.create_message(
+    MessageModel.create_message(
         id_sender=new_user_id,
         id_receipent=admin_id,
         body_message="new_user send 1",
         date_of_send=datetime.now(),
         is_sended=True,
     )
-    new_user_sent2 = MessageModel.create_message(
+    MessageModel.create_message(
         id_sender=new_user_id,
         id_receipent=admin_id,
         body_message="new_user send 2",
@@ -138,7 +138,7 @@ def messages_setup(test_client):
         is_sended=True,
         is_arrived=True,
     )
-    new_user_sent3 = MessageModel.create_message(
+    MessageModel.create_message(
         id_sender=new_user_id,
         id_receipent=admin_id,
         body_message="new_user send 3",
@@ -146,7 +146,7 @@ def messages_setup(test_client):
         is_sended=True,
         is_arrived=True,
     )
-    new_user_sent4 = MessageModel.create_message(
+    MessageModel.create_message(
         id_sender=new_user_id,
         id_receipent=admin_id,
         body_message="new_user send 4",

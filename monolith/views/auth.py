@@ -10,8 +10,6 @@ from werkzeug.urls import url_parse
 
 from monolith.classes.user import NotExistingUserError
 from monolith.classes.user import UserModel
-from monolith.database import db
-from monolith.database import User
 from monolith.forms import LoginForm
 
 auth = Blueprint("auth", __name__)

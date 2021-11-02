@@ -1,9 +1,6 @@
 from flask import abort
 from flask import Blueprint
-from flask import jsonify
 from flask import redirect
-from flask import render_template
-from flask import request
 
 from monolith.auth import current_user
 from monolith.classes.message import MessageModel

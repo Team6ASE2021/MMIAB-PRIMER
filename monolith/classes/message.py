@@ -1,5 +1,4 @@
 import datetime
-import re
 import string
 from os import path
 from typing import Optional

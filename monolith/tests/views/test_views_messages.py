@@ -110,7 +110,7 @@ class TestViewsMessagesDraft:
         response = test_client.post("/login", data=admin_user, follow_redirects=True)
         assert response.status_code == 200
 
-        old_len = db.session.query(Message).count()
+        db.session.query(Message).count()
 
         data = {"body_message": draft_body, "date_of_send": "fail", "recipient": "fail"}
         response = test_client.post("/draft", data=data, follow_redirects=True)
