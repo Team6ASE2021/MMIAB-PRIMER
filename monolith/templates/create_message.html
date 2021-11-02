@@ -1,28 +1,14 @@
 <html>
     <head>
-        <script>
-            function addRecipient(){
-                console.log("start");
-                var recipients = document.getElementById("recipient-list");
-                var childs = recipients.getElementsByClassName("recipient")
-                var new_id = childs.length
-                var new_recipient = childs[0].cloneNode(true);
-                var nr_childs = new_recipient.getElementsByTagName("*");
-                for(let i = 0; i<nr_childs.length; i++){
-                    if(nr_childs[i].id == "recipients-0-csrf_token") {
-                        nr_childs[i].id = "recipients-" + new_id + "-csrf_token";
-                        nr_childs[i].name = "recipients-" + new_id + "-csrf_token";
-                    }
-                    if(nr_childs[i].htmlFor == "recipients-0-recipient") {
-                        nr_childs[i].htmlFor = "recipients-" + new_id + "-recipient";
-                    }
-                    if(nr_childs[i].id == "recipients-0-recipient") {
-                        nr_childs[i].id = "recipients-" + new_id + "-recipient";
-                        nr_childs[i].name = "recipients-" + new_id + "-recipient";
-                    }
-                }
-                recipients.appendChild(new_recipient);
+        <style type="text/css">
+            @font-face {
+              font-family: "Happy Lucky";
+              src: url("{{ url_for('static', filename='fonts/happy_lucky.ttf') }}");
             }
+            {% include "css/create_message.css" %}
+        </style>
+        <script>
+            {% include "js/manage_recipients.js" %}
         </script>
     </head>
     <body>
@@ -48,13 +34,16 @@
               {% endfor %}
            {% endif %}
          <div id="recipient-list">
-         {% for recipient_form in form.recipients %}
-           <div class="recipient">
-             {{ recipient_form.hidden_tag() }}
-             <dt>{{ recipient_form.recipient.label }}</dt>
-             <dd>{{ recipient_form.recipient() }}</dd>
-           </div>
-         {% endfor %}
+             <div class="recipient-form" id="recipients-0-form">
+                 {{ form.recipients[0].hidden_tag() }}
+                 <dt>{{ form.recipients[0].recipient.label }}</dt>
+                 <dd>
+                     <div class="recipient-field">
+                         {{ form.recipients[0].recipient() }}
+                         <!--<div class="recipient-delete"><a href="javascript: ();">x</a></div>-->
+                     </div>
+                 </dd>
+             </div>
          </div>
          <p><a href="javascript:addRecipient();">Add Recipient</a></p>
        </dl>
