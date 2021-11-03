@@ -9,6 +9,7 @@ from monolith.classes.message import NotExistingMessageError
 from monolith.classes.user import UserModel
 from monolith.database import db
 from monolith.database import Message
+from monolith.database import Recipient
 
 
 @pytest.mark.usefixtures("clean_db_and_logout")
@@ -16,7 +17,6 @@ class TestMessage:
     def test_read_message(self):
 
         message = Message(
-            id_receipent=1,
             id_sender=0,
             body_message="Ciao",
             date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
@@ -24,14 +24,18 @@ class TestMessage:
         db.session.add(message)
 
         message1 = Message(
-            id_receipent=1,
             id_sender=1,
             body_message="Ciao sono gino",
             date_of_send=datetime.datetime.strptime("07/01/2006", "%d/%m/%Y"),
         )
         db.session.add(message1)
-
         db.session.commit()
+
+        message.recipients = [Recipient(id_recipient=1)]
+        message1.recipients = [Recipient(id_recipient=1)]
+        
+        db.session.commit()
+
 
         conto = db.session.query(Message).count()
         assert conto == 2
@@ -51,8 +55,6 @@ class TestMessage:
         assert mess2.id_sender == 1
 
         db.session.query(Message).filter(Message.id_sender == 0).delete()
-        db.session.commit()
-
         db.session.query(Message).filter(Message.id_sender == 1).delete()
         db.session.commit()
 
@@ -62,12 +64,13 @@ class TestMessage:
 
         message = Message(
             id_message=1,
-            id_receipent=1,
             id_sender=2,
             body_message="Ciao",
-            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y")
         )
         db.session.add(message)
+        db.session.commit()
+        message.recipients = [Recipient(id_recipient=1)]
         db.session.commit()
 
         try:
@@ -80,6 +83,9 @@ class TestMessage:
             "01/01/2000", "%d/%m/%Y"
         )
 
+        db.session.query(Message).delete()
+        db.session.commit()
+
     def test_id_message_not_exists(self):
 
         with pytest.raises(NotExistingMessageError):
@@ -87,29 +93,33 @@ class TestMessage:
 
     def test_send_message(self):
         message = Message(
-            id_receipent=1,
             id_sender=2,
             body_message="Ciao",
-            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y")
         )
         db.session.add(message)
         db.session.commit()
+        message.recipients = [Recipient(id_recipient=1)]
+        db.session.commit()
 
-        assert message.is_sended == 0
+        assert message.is_sent == 0
         MessageModel.send_message(message.id_message)
-        assert message.is_sended == 1
+        assert message.is_sent == 1
+
+        db.session.query(Message).delete()
+        db.session.commit()
 
     def test_arrived_message(self):
         message = Message(
-            id_receipent=1,
-            id_sender=1,
-            body_message="Ciao",
-            date_of_send=datetime.datetime.now(),
-            is_sended=True,
-            is_arrived=False,
+            id_sender = 1,
+            body_message = "Ciao",
+            date_of_send = datetime.datetime.now(),
+            is_sent = True,
+            is_arrived = False
         )
-
         db.session.add(message)
+        db.session.commit()
+        message.recipients = [Recipient(id_recipient=1)]
 
         MessageModel.arrived_message()
         assert message.is_arrived == True
@@ -119,36 +129,38 @@ class TestMessage:
 
     def test_get_notify(self):
         message = Message(
-            id_receipent=1,
-            id_sender=1,
-            body_message="Ciao",
-            date_of_send=datetime.datetime.now(),
-            is_sended=True,
-            is_arrived=True,
-            is_notified=False,
+            id_sender = 1,
+            body_message = "Ciao",
+            date_of_send = datetime.datetime.now(),
+            is_sent = True,
+            is_arrived = True
         )
-
         db.session.add(message)
+        db.session.commit()
+        message.recipients = [Recipient(id_recipient=1)]
 
-        MessageModel.get_notify(UserModel.get_user_info_by_id(message.id_receipent))
-        assert message.is_notified == True
+        MessageModel.get_notify(UserModel.get_user_info_by_id(message.recipients[0].id_recipient))
+        assert message.recipients[0].is_notified == True 
 
         db.session.delete(message)
         db.session.commit()
 
     def test_delete_message_ok(self):
         message = Message(
-            id_receipent=1,
             id_sender=2,
             body_message="Ciao",
-            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y")
         )
         db.session.add(message)
         db.session.commit()
-        len = db.session.query(Message).count()
+        message.recipients = [Recipient(id_recipient=1)]
+        db.session.commit()
+        _len = db.session.query(Message).count()
+
         MessageModel.delete_message(message.id_message)
+        db.session.commit()
         nlen = db.session.query(Message).count()
-        assert len - nlen == 1
+        assert _len - nlen == 1
 
     def test_delete_message_not_exists(self):
         with pytest.raises(NotExistingMessageError):

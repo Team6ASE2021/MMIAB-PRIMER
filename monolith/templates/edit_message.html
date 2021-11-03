@@ -1,47 +1,71 @@
 <html>
- <body>
+    <head>
+        <style type="text/css">
+            {% include "css/create_message.css" %}
+        </style>
+        <script>
+            {% include "js/manage_recipients.js" %}
+        </script>
+    </head>
 
-  {% include 'pop-up.html' %}
+    <body>
 
- {% if current_user.is_authenticated and current_user.id == id_sender %}
+        {% include 'pop-up.html' %}
 
-   <form action="" method="POST">
-     {{ form.hidden_tag() }}
-     <dl>
-      <dt>{{ form.body_message.label }}</dt>
-      <dd>{% set f = form.body_message.process_data(old_message) %}
-          {{ form.body_message() }}</dd>
-        {% if form.date_of_send.errors %}
-           {% for e in form.date_of_send.errors %}
-            <p class="help-block">{{ e }}</p>
-           {% endfor %}
+        {% if current_user.is_authenticated and current_user.id == id_sender %}
+
+            <form action="" method="POST">
+                {{ form.hidden_tag() }}
+                <dl>
+                    <dt>{{ form.body_message.label }}</dt>
+                    <dd>
+                        {% set f = form.body_message.process_data(old_message) %}
+                        {{ form.body_message() }}
+                    </dd>
+                        {% if form.date_of_send.errors %}
+                            {% for e in form.date_of_send.errors %}
+                                <p class="help-block">{{ e }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    <dt>{{ form.date_of_send.label }}</dt>
+                    <dd style="font-size: 10pt;">{{ form.date_of_send.format }}</dt>
+                    <dd>{{ form.date_of_send(value=old_date|delivery_datetime_format) }}</dd>
+                        {% if form.date_of_send.errors %}
+                            {% for e in form.date_of_send.errors %}
+                                <p class="help-block">{{ e }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    <div id="recipient-list">
+                        {% for recipient_form in form.recipients %}
+                            <div class="recipient-form" id="recipients-{{ loop.index0 }}-form">
+                                {{ recipient_form.hidden_tag() }}
+                                <dt>{{ recipient_form.recipient.label }}</dt>
+                                <dd>
+                                    <div class="recipient-field">
+                                        {{ recipient_form.recipient() }}
+                                        <!--<div class="recipient-delete"><a href="javascript: ();">x</a></div>-->
+                                    </div>
+                                </dd>
+                                    {% if recipient_form.recipient.errors %}
+                                        {% for e in recipient_form.recipient.errors %}
+                                            <p class="help-block">{{ e }}</p>
+                                        {% endfor %}
+                                    {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <p><a href="javascript:addRecipient();">Add Recipient</a></p>
+                </dl>
+                <p>
+                <input type=submit value="Save as Draft">
+            </form>
+     
+        {% elif current_user.is_authenticated and current_user.id != id_sender  %}
+            <p>Hi {{ current_user.firstname }}, it looks like this message was not drafted by you.</p>
+            <p>Please <a href="/logout">Logout</a> and log back in with the right account.</p>
+        {% else %}
+            Hi Anonymous, please <a href="/login">Log in</a> to edit this message
         {% endif %}
-      <dt>{{ form.date_of_send.label }}</dt>
-      <dd style="font-size: 10pt;">{{ form.date_of_send.format }}</dt>
-      <dd>{{ form.date_of_send(value=old_date|delivery_datetime_format) }}</dd>
-        {% if form.date_of_send.errors %}
-           {% for e in form.date_of_send.errors %}
-            <p class="help-block">{{ e }}</p>
-           {% endfor %}
-        {% endif %}
-      <dt>{{ form.recipient.label }}</dt>
-      <dd>{{ form.recipient(value=old_rec) }}</dd>
-        {% if form.recipient.errors %}
-           {% for e in form.recipient.errors %}
-            <p class="help-block">{{ e }}</p>
-           {% endfor %}
-        {% endif %}
-     </dl>
-     <p>
-     <input type=submit value="Save as Draft">
-   </form>
-
- {% elif current_user.is_authenticated and current_user.id != id_sender  %}
-   <p>Hi {{ current_user.firstname }}, it looks like this message was not drafted by you.</p>
-   <p>Please <a href="/logout">Logout</a> and log back in with the right account.</p>
- {% else %}
-   Hi Anonymous, please <a href="/login">Log in</a> to edit this message
- {% endif %}
- </body>
+    </body>
 </html>
 

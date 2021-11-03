@@ -6,7 +6,7 @@
               font-family: "Happy Lucky";
               src: url("{{ url_for('static', filename='fonts/happy_lucky.ttf') }}");
             }
-            {% include "css/style.css" %}
+            {% include "css/mailbox.css" %}
         </style>
         <!-- <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/style.css') }}"> -->
     </head>
@@ -41,30 +41,50 @@
             </div>
             <div class="message-container">
               {% for m in message_list: %}
-                <div class="message-block">
-                    {% set user_url = url_for('users.user_info', id=m.User.id) %}
+                {% if list_type != 'received' %}
+                    {% set message_url = url_for('read_message.read_messages', id=m.id_message) %}
+                    {% set body_message = m.body_message %}
+                    {% set datetime_list = (m.date_of_send|delivery_datetime_format).split(' ') %}
+                    {% set id_message = m.id_message %}
+                {% else %}
                     {% set message_url = url_for('read_message.read_messages', id=m.Message.id_message) %}
+                    {% set user_url = url_for('users.user_info', id=m.User.id) %}
+                    {% set firstname = m.User.firstname %}
+                    {% set lastname = m.User.lastname %}
+                    {% set body_message = m.Message.body_message %}
+                    {% set datetime_list = (m.Message.date_of_send|delivery_datetime_format).split(' ') %}
+                    {% set id_message = m.Message.id_message %}
+                {% endif %}
+                <div class="message-block">
                     <div class="main">
-                        <div class="user" onclick="location.href='{{ user_url }}'">
-                            <div> {{ m.User.firstname }} {{ m.User.lastname }} </div>
+                        <div class="user">
+                            {% if list_type != 'received' %}
+                                {% for recipient in m.recipients %}
+                                    {% set firstname = recipient.user.firstname %}
+                                    {% set lastname = recipient.user.lastname %}
+                                    {% set user_url = url_for('users.user_info', id=recipient.id_recipient) %}
+                                    <div onclick="location.href='{{ user_url }}'"> {{ firstname }} {{ lastname }} </div>
+                                {% endfor %}
+                            {% else %}
+                                <div onclick="location.href='{{ user_url }}'"> {{ firstname }} {{ lastname }} </div>
+                            {% endif %}
                         </div>
-                        <div class="body" onclick="location.href='{{ message_url }}'">
-                            <div> {{ m.Message.body_message }} </div>
+                        <div class="body" onclick="location.href='{{ message_url }}'"> 
+                            <div> {{ body_message }} </div>
                         </div>
                     </div>
                     <div class="extra">
                         <div class="datetime">
-                            {% set datetime_list = (m.Message.date_of_send|delivery_datetime_format).split(' ') %}
                             <div class="time"> {{ datetime_list[0] }} </div>
                             <div class="date"> {{ datetime_list[1] }} </div>
                         </div>
                         <div class="actions">
                           {% if list_type == 'draft' %}
-                            {% set _url = url_for('messages.edit_draft', id=m.Message.id_message) %}
+                          {% set _url = url_for('messages.edit_draft', id=id_message) %}
                             <div class="edit" onclick="location.href='{{ _url }}'">
                                 <div>edit</div>
                             </div>
-                            {% set _url = url_for('messages.send_message', id=m.Message.id_message) %}
+                            {% set _url = url_for('messages.send_message', id=id_message) %}
                             <div class="send" onclick="location.href='{{ _url }}'">
                                 <div>send</div>
                             </div>

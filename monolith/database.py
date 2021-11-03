@@ -4,7 +4,6 @@ from werkzeug.security import generate_password_hash
 
 db = SQLAlchemy()
 
-
 class User(db.Model):
 
     __tablename__ = "user"
@@ -48,22 +47,21 @@ class Message(db.Model):
 
     __tablename__ = "message"
 
-    # id_message is the primary key that identify a message
+    #id_message is the primary key that identify a message
     id_message = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    # id of sender and receipent
-
+    #id of sender
     id_sender = db.Column(db.Integer)
-    id_receipent = db.Column(db.Integer)
+    #recipients
+    recipients = db.relationship('Recipient', back_populates='message', cascade='all, delete-orphan')
 
     # body of message and date of send
     body_message = db.Column(db.Unicode(256))
     date_of_send = db.Column(db.DateTime)
 
     # boolean variables that describe the state of the message
-    is_sended = db.Column(db.Boolean, default=False)
-    is_arrived = db.Column(db.Boolean, default=False)
-    is_notified = db.Column(db.Boolean, default=False)
+    is_sent = db.Column(db.Boolean, default = False)
+    is_arrived = db.Column(db.Boolean, default = False)
 
     # boolean flag that tells if the message must be filtered for users who resquest it
     to_filter = db.Column(db.Boolean, default=False)
@@ -71,3 +69,17 @@ class Message(db.Model):
     # constructor of the message object
     def __init__(self, *args, **kw):
         super(Message, self).__init__(*args, **kw)
+       
+class Recipient(db.Model):
+
+    __tablename__ = 'recipient'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    id_message = db.Column(db.ForeignKey('message.id_message'))
+    id_recipient = db.Column(db.ForeignKey('user.id'))
+
+    is_notified = db.Column(db.Boolean, default = False)
+
+    message = db.relationship("Message")
+    user = db.relationship("User")

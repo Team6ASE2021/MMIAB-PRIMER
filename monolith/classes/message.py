@@ -1,12 +1,13 @@
-import datetime
+from datetime import datetime
 import string
 from os import path
 from typing import Optional
+from typing import List
+from sqlalchemy import and_
 
 from monolith.database import db
 from monolith.database import Message
 from monolith.database import User
-
 
 class ContentFilter:
     __UNSAFE_WORDS = []
@@ -49,7 +50,6 @@ class ContentFilter:
         return False
 
 
-# list of alpha-numeric characters
 
 
 class MessageModel:
@@ -75,60 +75,60 @@ class MessageModel:
         db.session.commit()
 
     @staticmethod
-    def update_draft(id: int, msg: Message):
-        db.session.query(Message).filter_by(id_message=id).update(
+    def update_draft(id: int, body_message: str, date_of_send: datetime):
+        db.session.query(Message).filter(Message.id_message == id).update(
             {
-                Message.id_receipent: msg.id_receipent,
-                Message.body_message: msg.body_message,
-                Message.date_of_send: msg.date_of_send,
-            }
+                Message.body_message: body_message,
+                Message.date_of_send: date_of_send
         )
         db.session.commit()
 
     @staticmethod
     def send_message(id_message):
         db.session.query(Message).filter(Message.id_message == id_message).update(
-            {Message.is_sended: 1}
+            {Message.is_sent : 1}
         )
         db.session.commit()
 
     @staticmethod
     def arrived_message():
-
         messages = db.session.query(Message).filter(
-            Message.is_sended == True,
+            Message.is_sent == True,
             Message.is_arrived == False,
             Message.date_of_send is not None,
         )
 
         messages_arrived = []
         for m in messages:
-            if (m.date_of_send - datetime.datetime.now()).total_seconds() <= 0:
+            if (m.date_of_send - datetime.now()).total_seconds() <= 0:
                 m.is_arrived = True
                 messages_arrived.append(m)
 
         db.session.commit()
 
-        # return messages_arrived
+        #return messages_arrived
         return [
             {
-                "id": m.id_message,
-                "date": m.date_of_send.strftime("%H:%M %d/%m/%Y"),
-                "sent": m.is_sended,
-                "received": m.is_arrived,
-                "notified": m.is_notified,
+                'id' : m.id_message,
+                'date' : m.date_of_send.strftime("%H:%M %d/%m/%Y"),
+                'sent': m.is_sent,
+                'received' : m.is_arrived,
+                'notified' : [(rcp.id_recipient, rcp.is_notified) for rcp in m.recipients]
             }
             for m in messages_arrived
         ]
 
     @staticmethod
-    def get_notify(user: User):
-        notify_list = db.session.query(Message).filter(
-            user.id == Message.id_receipent,
-            Message.is_notified == False,
-            Message.is_arrived == True,
-            Message.is_sended == True,
-        )
+    def get_notify(user : User) -> List[Recipient]:
+        notify_list = db.session.query(Recipient).filter(
+            Recipient.id_recipient == user.id,
+            Recipient.is_notified == False
+        ).filter(
+            Recipient.message.has(and_(
+                Message.is_arrived == True,
+                Message.is_sent == True
+            ))
+        ).all()
 
         for notify in notify_list:
             notify.is_notified = True
@@ -136,32 +136,43 @@ class MessageModel:
         db.session.commit()
 
         return notify_list
-
+ 
     @staticmethod
     def create_message(
-        id_sender=1,
-        id_receipent=1,
-        body_message="",
-        date_of_send=None,
-        is_sended=False,
-        is_arrived=False,
+        id_sender: int,
+        body_message: str,
+        recipients: List[int] = [],
+        date_of_send: datetime = datetime.now(),
+        is_sent = False,
+        is_arrived = False,
+        is_notified = False,
+        to_filter = False
     ):
-        new_msg = Message()
-        new_msg.id_sender = id_sender
-        new_msg.id_receipent = id_receipent
-        new_msg.body_message = body_message
-        new_msg.date_of_send = date_of_send
-        new_msg.is_sended = is_sended
-        new_msg.is_arrived = is_arrived
+        message = Message()
+        message.id_sender = id_sender
+        message.body_message = body_message
+        message.date_of_send = date_of_send
+        message.is_sent = is_sent
+        message.is_arrived = is_arrived
+        message.is_notified = is_notified
+        message.to_filter = to_filter
 
-        db.session.add(new_msg)
+        db.session.add(message)
+        db.session.flush()
+
+        message.recipients = [Recipient(id_recipient=recipient_id) for recipient_id in recipients]
+
         db.session.commit()
 
-        return new_msg
-
+        return message
+   
     @staticmethod
     def delete_message(id_message: int):
         mess = MessageModel.id_message_exists(id_message)
+
+        # needed to clean up the Recipient table in the db
+        mess.recipients = []
+
         db.session.delete(mess)
         db.session.commit()
 

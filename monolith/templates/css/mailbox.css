@@ -147,12 +147,20 @@ body {
     position: relative;
     flex: 9 9;
     display: flex;
+    flex-flow: row wrap;
     align-items: flex-end;
     justify-content: flex-start;
     font-family: "Arial";
     font-size: 18pt;
 }
 
+.message-block>.main>.user>div{
+    padding: 8px 10px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    background-color: var(--primary-extra-faded);
+    border-radius: 20px;
+}
 .message-block>.main>.body{
     position: relative;
     flex: 11 11;
@@ -164,6 +172,7 @@ body {
     font-family: "Arial";
     font-size: 13pt;
     user-select: none;
+    margin: 0px 10px;
 }
 
 .message-block>.extra{

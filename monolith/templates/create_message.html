@@ -1,28 +1,57 @@
 <html>
- <body>
+    <head>
+        <style type="text/css">
+            {% include "css/create_message.css" %}
+        </style>
+        <script>
+            {% include "js/manage_recipients.js" %}
+        </script>
+    </head>
+    <body>
 
- {% if current_user.is_authenticated %}
+    {% if current_user.is_authenticated %}
 
-   <form action="" method="POST">
-     {{ form.hidden_tag() }}
-     <dl>
-      {% for field in form.display %}
-      <dt>{{ form[field].label }}</dt>
-      <dd>{{ form[field]() }}</dd>
-        {% if form[field].errors %}
-           {% for e in form[field].errors %}
-            <p class="help-block">{{ e }}</p>
-           {% endfor %}
-        {% endif %}
-      {% endfor %}
-     </dl>
-     <p>
-     <input type=submit value="Save as Draft">
-   </form>
-
- {% else %}
-   Hi Anonymous, please <a href="/login">Log in</a> to draft a message
- {% endif %}
- </body>
+      <form action="" method="POST">
+        {{ form.hidden_tag() }}
+        <dl>
+         <dt>{{ form.body_message.label }}</dt>
+         <dd>{{ form.body_message() }}</dd>
+           {% if form.date_of_send.errors %}
+              {% for e in form.date_of_send.errors %}
+               <p class="help-block">{{ e }}</p>
+              {% endfor %}
+           {% endif %}
+         <dt>{{ form.date_of_send.label }}</dt>
+         <dd style="font-size: 10pt;">{{ form.date_of_send.format }}</dt>
+         <dd>{{ form.date_of_send() }}</dd>
+           {% if form.date_of_send.errors %}
+              {% for e in form.date_of_send.errors %}
+               <p class="help-block">{{ e }}</p>
+              {% endfor %}
+           {% endif %}
+         <div id="recipient-list">
+             {% for recipient_form in form.recipients %}
+                  <div class="recipient-form" id="recipients-{{ loop.index0 }}-form">
+                      {{ recipient_form.hidden_tag() }}
+                      <dt>{{ recipient_form.recipient.label }}</dt>
+                      <dd>
+                          <div class="recipient-field">
+                              {{ recipient_form.recipient() }}
+                              <!--<div class="recipient-delete"><a href="javascript: ();">x</a></div>-->
+                          </div>
+                      </dd>
+                  </div>
+             {% endfor %}
+         </div>
+         <p><a href="javascript:addRecipient();">Add Recipient</a></p>
+       </dl>
+        <p>
+        <input type=submit value="Save as Draft">
+      </form>
+     
+    {% else %}
+      Hi Anonymous, please <a href="/login">Log in</a> to draft a message
+    {% endif %}
+    </body>
 </html>
 

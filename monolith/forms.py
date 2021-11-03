@@ -15,6 +15,17 @@ class LoginForm(FlaskForm):
     display = ["email", "password"]
 
 
+class RecipientForm(FlaskForm):
+    recipient = f.SelectField("Recipient", default=[])
+
+class EditMessageForm(FlaskForm):
+    body_message = f.TextAreaField("Message", validators=[InputRequired()])
+    date_of_send = f.DateTimeField(
+        "Delivery Date", format=delivery_format, validators=[Optional()]
+    )
+    recipients = f.FieldList(f.FormField(RecipientForm))
+    display = ['body_message', 'date_of_send', 'recipients']
+
 class UserForm(FlaskForm):
     email = f.StringField(
         "email", validators=[DataRequired(), Email(), Length(max=120)]
@@ -35,11 +46,3 @@ class UserForm(FlaskForm):
         "dateofbirth",
     ]
 
-
-class EditMessageForm(FlaskForm):
-    body_message = f.TextAreaField("Message", validators=[InputRequired()])
-    date_of_send = f.DateTimeField(
-        "Delivery Date", format=delivery_format, validators=[Optional()]
-    )
-    recipient = f.SelectField("Recipient", default=[])
-    display = ["body_message", "date_of_send", "recipient"]
