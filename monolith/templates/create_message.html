@@ -9,12 +9,16 @@
       {% for field in form.display %}
       <dt>{{ form[field].label }}</dt>
       <dd>{{ form[field]() }}</dd>
+      {% if field == form.search %}
+       <dd><button>Search</button></dd>
+      {% endif %}
         {% if form[field].errors %}
            {% for e in form[field].errors %}
             <p class="help-block">{{ e }}</p>
            {% endfor %}
         {% endif %}
       {% endfor %}
+      <dd><button type="button">Search</button></dd>
      </dl>
      <p>
      <input type=submit value="Save as Draft">

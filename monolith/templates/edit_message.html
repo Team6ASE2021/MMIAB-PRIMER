@@ -29,6 +29,13 @@
             <p class="help-block">{{ e }}</p>
            {% endfor %}
         {% endif %}
+      <dt>{{ form.search }}</dt>
+      <dd>{{ form.search(value=old_rec) }}</dd>
+        {% if form.search.errors %}
+           {% for e in form.search.errors %}
+            <p class="help-block">{{ e }}</p>
+           {% endfor %}
+        {% endif %}
      </dl>
      <p>
      <input type=submit value="Save as Draft">

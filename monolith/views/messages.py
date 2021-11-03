@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from re import search
 
 from flask import abort
 from flask import Blueprint
@@ -23,7 +24,8 @@ messages = Blueprint('messages', __name__)
 @login_required
 def draft():
     form = EditMessageForm()
-    form.recipient.choices = get_recipients().json['recipients']
+    search_user = form.search.data
+    form.recipient.choices = get_recipients(search_user).json['recipients']
     if request.method == 'POST':
         if form.validate_on_submit():
             new_draft = Message()
@@ -101,9 +103,10 @@ def send_message(id):
 
 @messages.route('/recipients', methods=["GET"])
 @login_required
-def get_recipients():
+def get_recipients(_filter):
     recipients = list(map(lambda u: (u.id, u.nickname if u.nickname else u.email),
-                          filter(lambda u: u.id != current_user.get_id(), UserModel.search_user_by_key_word("davide"))))
+                          filter(lambda u: u.id != current_user.get_id(), \
+                              UserModel.search_user_by_key_word(_filter))))
     return jsonify(
         recipients=recipients
 

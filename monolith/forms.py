@@ -1,3 +1,4 @@
+from re import search
 import wtforms as f
 from flask_wtf import FlaskForm
 from wtforms.validators import DataRequired, InputRequired, Length, Optional,Email
@@ -25,5 +26,6 @@ class EditMessageForm(FlaskForm):
     body_message = f.TextAreaField("Message", validators=[InputRequired()])
     date_of_send = f.DateTimeField("Delivery Date", format=delivery_format, validators=[Optional()])
     recipient = f.SelectField("Recipient", default=[])
-    display = ['body_message', 'date_of_send', 'recipient']
+    search = f.StringField("Search Users", default='')
+    display = ['body_message', 'date_of_send', 'recipient','search']
 
