@@ -1,5 +1,6 @@
 from monolith.database import db
 from monolith.database import Message
+from monolith.database import Recipient
 from monolith.database import User
 
 

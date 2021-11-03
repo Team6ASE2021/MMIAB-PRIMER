@@ -7,6 +7,7 @@ from sqlalchemy import and_
 
 from monolith.database import db
 from monolith.database import Message
+from monolith.database import Recipient
 from monolith.database import User
 
 class ContentFilter:
@@ -80,6 +81,7 @@ class MessageModel:
             {
                 Message.body_message: body_message,
                 Message.date_of_send: date_of_send
+            }
         )
         db.session.commit()
 

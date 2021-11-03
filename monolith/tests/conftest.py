@@ -80,7 +80,6 @@ def messages_setup(test_client):
     db.session.query(Recipient).delete()
     db.session.commit()
 
-<<<<<<< HEAD
     test_client.post('/create_user', data=new_user, follow_redirects=True)
 
     admin_id = (
