@@ -103,7 +103,7 @@ def send_message(id):
 @login_required
 def get_recipients():
     recipients = list(map(lambda u: (u.id, u.nickname if u.nickname else u.email),
-                          filter(lambda u: u.id != current_user.get_id(), UserModel.get_user_list())))
+                          filter(lambda u: u.id != current_user.get_id(), UserModel.search_user_by_key_word("davide"))))
     return jsonify(
         recipients=recipients
 

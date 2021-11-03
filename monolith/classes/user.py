@@ -62,7 +62,21 @@ class UserModel:
         new_val = not db_user.first().content_filter
         db_user.update({User.content_filter: new_val })
         db.session.commit()
-    
 
+    def search_user_by_key_word(key_word):
+        utenti_validi = []
+        user_list = UserModel.get_user_list()
+        #user_list = db.session.query(User)
+        if(key_word == ""):
+            return user_list
+
+        for elem in UserModel.get_user_list():
+            if(elem is not None):
+                if(key_word in elem.firstname or key_word in elem.lastname or \
+                    key_word in elem.location or key_word in elem.nickname or \
+                    key_word in elem.email):
+                    utenti_validi.append(elem)
+        return utenti_validi
+            
 class NotExistingUser(Exception):
     pass
