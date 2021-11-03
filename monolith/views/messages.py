@@ -37,7 +37,7 @@ def draft():
 
             draft_recipients = [int(rf.recipient.data[0]) for rf in form.recipients]
             draft_recipients = UserModel.filter_available_recipients(current_user.id, draft_recipients)
-            RecipientModel.add_recipients(new_draft, draft_recipients)
+            RecipientModel.set_recipients(new_draft, draft_recipients)
 
             return redirect('/read_message/' + str(new_draft.id_message))
         
@@ -66,23 +66,23 @@ def edit_draft(id):
 
     if request.method == 'POST':
         if form.validate_on_submit():
-            new_draft = Message()
-            new_draft.body_message = form.body_message.data
-            new_draft.date_of_send = form.date_of_send.data
-            MessageModel.update_draft(draft.id_message, new_draft)
+            MessageModel.update_draft(draft.id_message,
+                    body_message = form.body_message.data,
+                    date_of_send = form.date_of_send.data
+            )
 
             draft_recipients = [int(rf.recipient.data[0]) for rf in form.recipients]
             draft_recipients = UserModel.filter_available_recipients(current_user.id, draft_recipients)
-            RecipientModel.update_recipients(new_draft, draft_recipients)
+            RecipientModel.set_recipients(draft, draft_recipients)
 
             return redirect('/read_message/' + str(draft.id_message))
 
     return render_template('edit_message.html',
-                           form=form,
-                           old_date=draft.date_of_send,
-                           old_message=draft.body_message,
-                           old_recs=old_recipients,
-                           id_sender=draft.id_sender
+                               form=form,
+                               old_date=draft.date_of_send,
+                               old_message=draft.body_message,
+                               old_recs=old_recipients,
+                               id_sender=draft.id_sender
                            )
 
 
@@ -125,11 +125,10 @@ def send_message(id):
 def delete_message(id: int):
     try:
         mess = MessageModel.id_message_exists(id)
-        print(mess.body_message)
     except NotExistingMessageError:
         abort(404,description='Message not found')
     
-    if current_user.get_id() not in RecipientModel.get_recipients(mess) or not mess.is_arrived:
+    if current_user.get_id() not in RecipientModel.get_recipients(mess) or mess.is_arrived == False:
         abort(HTTPStatus.UNAUTHORIZED,description='You are not allowed to delete this message')
     else:
         MessageModel.delete_message(id)

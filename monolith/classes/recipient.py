@@ -19,20 +19,16 @@ class RecipientModel:
         db.session.commit()
 
     @staticmethod
-    def update_recipients(message: Message, recipients: List[int]) -> None:
-        db.session.query(Recipient).filter(Recipient.id_message == message.id_message).delete()
+    def set_recipients(message: Message, recipients: List[int]) -> None:
+        message.recipients = [Recipient(id_recipient=user_id) for user_id in recipients] 
         db.session.commit()
-        message.recipients = []
-        RecipientModel.add_recipients(message, recipients)
 
+    """
     @staticmethod
     def delete_recipients(message: Message) -> None:
-        db.session.query(Recipient).filter(Recipient.id_message == message.id_message).delete()
-        db.session.commit()
         message.recipients = []
-        db.session.commit()
-
-
+        RecipientModel._clean_orphans()
+    """
 
 
 

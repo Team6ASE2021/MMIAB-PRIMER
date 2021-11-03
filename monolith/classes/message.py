@@ -61,13 +61,12 @@ class MessageModel:
         db.session.commit()
     
     @staticmethod
-    def update_draft(id: int, msg:Message):
+    def update_draft(id: int, body_message: str, date_of_send: datetime):
         db.session.query(Message).filter(Message.id_message == id).update(
             {
-                Message.body_message:msg.body_message,
-                Message.date_of_send:msg.date_of_send
+                Message.body_message: body_message,
+                Message.date_of_send: date_of_send
             }
-            
         )
         db.session.commit()
 
@@ -100,7 +99,7 @@ class MessageModel:
                 'notified' : [(rcp.id_recipient, rcp.is_notified) for rcp in m.recipients]} for m in messages_arrived]
 
     @staticmethod
-    def get_notify(user : User):
+    def get_notify(user : User) -> List[Recipient]:
         notify_list = db.session.query(Recipient).\
                 filter(Recipient.id_recipient == user.id, Recipient.is_notified == False).\
                 filter(Recipient.message.has(and_(Message.is_arrived == True, Message.is_sent == True))).all()
@@ -109,8 +108,6 @@ class MessageModel:
                 filter(Message.is_arrived == True, Message.is_sent == True).\
                 filter(Message.recipients.any(and_(Recipient.id_recipient == user.id, Recipient.is_notified == False))).all()
         """
-
-        print('pippo', [mr.id_message for mr in notify_list])
 
         for notify in notify_list:
             notify.is_notified = True
@@ -141,8 +138,7 @@ class MessageModel:
         db.session.add(message)
         db.session.flush()
 
-        for recipient_id in recipients:
-            message.recipients.append(Recipient(id_recipient=recipient_id))
+        message.recipients = [Recipient(id_recipient=recipient_id) for recipient_id in recipients]
 
         db.session.commit()
 
@@ -151,8 +147,6 @@ class MessageModel:
     @staticmethod
     def delete_message(id_message: int):
         mess = MessageModel.id_message_exists(id_message)
-        db.session.query(Recipient).filter(Recipient.id_message == mess.id_message).delete()
-        db.session.commit()
         db.session.delete(mess)
         db.session.commit()
 

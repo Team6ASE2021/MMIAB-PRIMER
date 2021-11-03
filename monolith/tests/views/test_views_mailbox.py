@@ -7,7 +7,7 @@ from monolith.forms import delivery_format
 
 from datetime import datetime
 
-@pytest.mark.usefixtures("messages_setup", "clean_db_and_logout")
+@pytest.mark.usefixtures('clean_db_and_logout', 'messages_setup')
 class TestViewsMailbox():
     def test_mailbox_not_logged(self, test_client):
         response = test_client.get('/message/list/received')

@@ -49,7 +49,6 @@ class TestMessage:
         assert mess2 is not None
         assert mess2.id_sender == 1
 
-        db.session.query(Recipient).delete()
         db.session.query(Message).filter(Message.id_sender == 0).delete()
         db.session.query(Message).filter(Message.id_sender == 1).delete()
         db.session.commit()
@@ -72,7 +71,6 @@ class TestMessage:
         assert message_out.body_message == "Ciao"
         assert message_out.date_of_send == datetime.datetime.strptime("01/01/2000", "%d/%m/%Y")
 
-        db.session.query(Recipient).delete()
         db.session.query(Message).delete()
         db.session.commit()
 
@@ -94,7 +92,6 @@ class TestMessage:
         MessageModel.send_message(message.id_message)
         assert message.is_sent == 1
 
-        db.session.query(Recipient).delete()
         db.session.query(Message).delete()
         db.session.commit()
 
@@ -112,8 +109,6 @@ class TestMessage:
         MessageModel.arrived_message()
         assert message.is_arrived == True
 
-        db.session.query(Recipient).filter(Recipient.id_message == message.id_message).delete()
-        db.session.commit()
         db.session.delete(message)
         db.session.commit()
 
@@ -131,8 +126,6 @@ class TestMessage:
         MessageModel.get_notify(UserModel.get_user_info_by_id(message.recipients[0].id_recipient))
         assert message.recipients[0].is_notified == True 
 
-        db.session.delete(message.recipients[0])
-        db.session.commit()
         db.session.delete(message)
         db.session.commit()
 
@@ -146,7 +139,6 @@ class TestMessage:
         db.session.commit()
         _len = db.session.query(Message).count()
 
-        db.session.query(Recipient).filter(Recipient.id_message == message.id_message).delete()
         MessageModel.delete_message(message.id_message)
         db.session.commit()
         nlen = db.session.query(Message).count()

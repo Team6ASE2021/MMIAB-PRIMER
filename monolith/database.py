@@ -74,8 +74,11 @@ class Message(db.Model):
        
 class Recipient(db.Model):
     __tablename__ = 'recipient'
-    id_message = db.Column(db.ForeignKey('message.id_message'), primary_key=True)
-    id_recipient = db.Column(db.ForeignKey('user.id'), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_message = db.Column(db.ForeignKey('message.id_message'))
+    id_recipient = db.Column(db.ForeignKey('user.id'))
+    #id_message = db.Column(db.ForeignKey('message.id_message'), primary_key=True)
+    #id_recipient = db.Column(db.ForeignKey('user.id'), primary_key=True)
     is_notified = db.Column(db.Boolean, default = False)
     message = db.relationship("Message", back_populates="recipients")
     user = db.relationship("User")
