@@ -2,6 +2,7 @@
   <body>
     <h1>User info</h1>
     <ul>
+        <li><img src="{{url_for('static', filename='assets/' + user.pfp_path)}}" alt="pfp" width="120" height="90" ></li>
         <li>
             {{user.firstname}} {{user.lastname}}
         </li>

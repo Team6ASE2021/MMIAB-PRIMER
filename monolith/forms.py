@@ -1,5 +1,8 @@
 import wtforms as f
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed
+from flask_wtf.file import FileField
+from flask_wtf.file import FileSize
 from wtforms.validators import DataRequired
 from wtforms.validators import Email
 from wtforms.validators import InputRequired
@@ -25,12 +28,23 @@ class UserForm(FlaskForm):
     dateofbirth = f.DateField("dateofbirth", format="%d/%m/%Y")
     nickname = f.StringField("nickname", validators=[Optional()])
     location = f.StringField("location", validators=[Optional()])
+    profile_picture = FileField(
+        validators=[
+            FileAllowed(
+                ["jpg", "jpeg", "png"],
+                message="You can only upload a jpg,jpeg, or png file",
+            ),
+            Optional(),
+            FileSize(max_size=16 * 1024 * 1024, message="max size allowed=16 MB"),
+        ]
+    )
     display = [
         "email",
         "firstname",
         "lastname",
         "nickname",
         "location",
+        "profile_picture",
         "password",
         "dateofbirth",
     ]
@@ -41,5 +55,15 @@ class EditMessageForm(FlaskForm):
     date_of_send = f.DateTimeField(
         "Delivery Date", format=delivery_format, validators=[Optional()]
     )
+    image = FileField(
+        validators=[
+            FileAllowed(
+                ["jpg", "jpeg", "png"],
+                message="You can only upload a jpg,jpeg, or png file",
+            ),
+            Optional(),
+            FileSize(max_size=16 * 1024 * 1024, message="max size allowed=16 MB"),
+        ]
+    )
     recipient = f.SelectField("Recipient", default=[])
-    display = ["body_message", "date_of_send", "recipient"]
+    display = ["body_message", "image", "date_of_send", "recipient"]

@@ -1,4 +1,6 @@
+import os
 from http import HTTPStatus
+from uuid import uuid4
 
 from flask import abort
 from flask import Blueprint
@@ -7,9 +9,11 @@ from flask import jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
+from flask.globals import current_app
 from flask.helpers import flash
 from flask.helpers import url_for
 from flask_login.utils import login_required
+from werkzeug.utils import secure_filename
 
 from monolith.auth import current_user
 from monolith.classes.message import ContentFilter
@@ -35,6 +39,17 @@ def draft():
             new_draft.to_filter = ContentFilter.filter_content(new_draft.body_message)
             new_draft.id_sender = current_user.get_id()
             new_draft.id_receipent = form.recipient.data[0]
+            if form.image.data:
+                file = form.image.data
+                name = file.filename
+                name = secure_filename(name)
+
+                path = os.path.join(
+                    current_app.config["UPLOAD_FOLDER"], str(uuid4()) + name
+                )
+                new_draft.set_img_path(name)
+                with open(path, "w"):
+                    file.save(path)
             MessageModel.add_draft(new_draft)
             return redirect("/read_message/" + str(new_draft.id_message))
 

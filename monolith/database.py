@@ -14,6 +14,7 @@ class User(db.Model):
     nickname = db.Column(db.Unicode(128), unique=False)
     location = db.Column(db.Unicode(128))
     firstname = db.Column(db.Unicode(128))
+    pfp_path = db.Column(db.Unicode(128), default="default.png")
     lastname = db.Column(db.Unicode(128))
     password = db.Column(db.Unicode(128))
     dateofbirth = db.Column(db.DateTime)
@@ -30,6 +31,9 @@ class User(db.Model):
 
     def set_password(self, password):
         self.password = generate_password_hash(password)
+
+    def set_pfp_path(self, path):
+        self.pfp_path = path
 
     @property
     def is_authenticated(self):
@@ -58,6 +62,7 @@ class Message(db.Model):
 
     # body of message and date of send
     body_message = db.Column(db.Unicode(256))
+    img_path = db.Column(db.Unicode(128))
     date_of_send = db.Column(db.DateTime)
 
     # boolean variables that describe the state of the message
@@ -71,3 +76,6 @@ class Message(db.Model):
     # constructor of the message object
     def __init__(self, *args, **kw):
         super(Message, self).__init__(*args, **kw)
+
+    def set_img_path(self, img_path):
+        self.img_path = img_path

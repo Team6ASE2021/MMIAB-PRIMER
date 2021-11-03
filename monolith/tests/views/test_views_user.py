@@ -143,7 +143,7 @@ class TestViewsUser:
         assert b"Hi Anonymous" in response.data
         assert new_user.id not in [user.id for user in UserModel.get_user_list()]
 
-    def test_user_delete_not_existing(self, test_client):
+    def test_user_delete_other_user(self, test_client):
         response = test_client.post(
             "/login",
             data={"email": "example@example.com", "password": "admin"},
@@ -152,7 +152,7 @@ class TestViewsUser:
         assert response.status_code == 200
 
         response = test_client.get("users/100/delete")
-        assert response.status_code == 404
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
 
         test_client.get("/logout")
 

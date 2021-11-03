@@ -47,5 +47,6 @@ def read_messages(id):
         user_allowed=user_allowed,
         mess_text=mess_text,
         sender=sender_email,
+        img_path=mess.img_path,
         date_receipt=date_receipt,
     )
