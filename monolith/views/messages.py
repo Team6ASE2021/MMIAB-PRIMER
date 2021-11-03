@@ -10,6 +10,7 @@ import http
 from monolith.auth import current_user
 from monolith.classes.message import MessageModel,ContentFilter
 from monolith.classes.message import NotExistingMessageError
+from monolith.classes.recipient import RecipientModel
 from monolith.classes.user import UserModel, UserBlacklist
 from monolith.database import db
 from monolith.database import Message
@@ -27,14 +28,17 @@ def draft():
     if request.method == 'POST':
         if form.validate_on_submit():
             new_draft = Message()
-            # form.populate_obj(new_draft)
-            new_draft.body_message = form.body_message.data
-            new_draft.date_of_send = form.date_of_send.data
-            new_draft.to_filter = ContentFilter.filter_content(new_draft.body_message)
-            new_draft.id_sender = current_user.get_id()
-            # new_draft.id_receipent = form.recipient.data[0]
-            print([int(rf.recipient.data[0]) for rf in form.recipients])
+
+            new_draft.body_message=form.body_message.data
+            new_draft.date_of_send=form.date_of_send.data
+            new_draft.to_filter=ContentFilter.filter_content(form.body_message.data)
+            new_draft.id_sender=current_user.id
             MessageModel.add_draft(new_draft)
+
+            draft_recipients = [int(rf.recipient.data[0]) for rf in form.recipients]
+            draft_recipients = UserModel.filter_available_recipients(current_user.id, draft_recipients)
+            RecipientModel.add_recipients(new_draft, draft_recipients)
+
             return redirect('/read_message/' + str(new_draft.id_message))
         
     return render_template('create_message.html', form=form)
@@ -50,25 +54,34 @@ def edit_draft(id):
     
     if current_user.get_id() != draft.id_sender:
         abort(HTTPStatus.UNAUTHORIZED, description='You are not allowed to see this page!')
-    new_draft = Message()
-    form = EditMessageForm()
-    old_recipient = UserModel.get_user_info_by_id(draft.id_receipent)
-    recipients = get_recipients().json['recipients']
-    form.recipient.choices = recipients
-    if request.method == 'POST':
 
+    old_recipients = [recipient.id_recipient for recipient in draft.recipients]
+    old_recipients = UserModel.filter_available_recipients(current_user.id, old_recipients)
+    form_recipients = []
+    for _ in range(len(old_recipients) if len(old_recipients) > 0 else 1):
+        form_recipients.append({'name': 'Recipient'})
+    form = EditMessageForm(recipients=form_recipients)
+    for recipient_form in form.recipients:
+        recipient_form.recipient.choices = get_recipients().json['recipients']
+
+    if request.method == 'POST':
         if form.validate_on_submit():
+            new_draft = Message()
             new_draft.body_message = form.body_message.data
             new_draft.date_of_send = form.date_of_send.data
-            new_draft.id_receipent = form.recipient.data[0]
             MessageModel.update_draft(draft.id_message, new_draft)
+
+            draft_recipients = [int(rf.recipient.data[0]) for rf in form.recipients]
+            draft_recipients = UserModel.filter_available_recipients(current_user.id, draft_recipients)
+            RecipientModel.update_recipients(new_draft, draft_recipients)
+
             return redirect('/read_message/' + str(draft.id_message))
 
     return render_template('edit_message.html',
                            form=form,
                            old_date=draft.date_of_send,
                            old_message=draft.body_message,
-                           old_rec=old_recipient.id,
+                           old_recs=old_recipients,
                            id_sender=draft.id_sender
                            )
 
@@ -93,7 +106,7 @@ def send_message(id):
             return redirect('draft/edit/' + str(message.id_message))
 
         #check if the receipent is not Null
-        if message.id_receipent is None:
+        if len(message.recipients) == 0:
             flash("You have to set the receipent")
             return redirect('draft/edit/' + str(message.id_message))
 
@@ -116,7 +129,7 @@ def delete_message(id: int):
     except NotExistingMessageError:
         abort(404,description='Message not found')
     
-    if current_user.get_id() != mess.id_receipent or not mess.is_arrived:
+    if current_user.get_id() not in mess.recipients or not mess.is_arrived:
         abort(HTTPStatus.UNAUTHORIZED,description='You are not allowed to delete this message')
     else:
         MessageModel.delete_message(id)

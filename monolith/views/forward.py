@@ -26,7 +26,7 @@ def forward_messages(id):
     #retrieve the previous message to get the id
     mess2 = db.session.query(Message).filter(Message.id_sender == current_user.get_id(),\
         Message.body_message == mess.body_message, \
-        Message.is_sended == False, Message.is_arrived == False)
+        Message.is_sent == False, Message.is_arrived == False)
     mess2 = mess2.first()
     id_forwarded_mess = mess2.id_message
 

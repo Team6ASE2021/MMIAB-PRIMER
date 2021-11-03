@@ -26,7 +26,7 @@ def read_messages(id):
 
     # some controls to check if user is allowed to read the message or not
     if (mess.is_arrived == True):
-        if current_user.id != mess.id_receipent and current_user.id != mess.id_sender:
+        if current_user.id not in mess.recipients and current_user.id != mess.id_sender:
             user_allowed = False
     elif (current_user.get_id() != mess.id_sender):
         user_allowed = False

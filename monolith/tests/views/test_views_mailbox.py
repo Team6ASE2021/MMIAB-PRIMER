@@ -2,7 +2,7 @@ import pytest
 from flask_login import logout_user
 from monolith import app
 from monolith.auth import current_user
-from monolith.database import Message, User, db
+from monolith.database import Message, Recipient, User, db
 from monolith.forms import delivery_format
 
 from datetime import datetime
@@ -28,17 +28,18 @@ class TestViewsMailbox():
         response = test_client.post('/login', data=admin_user, follow_redirects=True)
         assert response.status_code == 200       
 
-        db_count = db.session.query(Message).filter(Message.id_receipent == current_user.id and Message.is_arrived == True).count()
+        db_count = db.session.query(Message).filter(Message.is_arrived == True).\
+                filter(Message.recipients.any(Recipient.id_recipient == current_user.id)).count()
         response = test_client.get('/message/list/received')
         assert response.status_code == 200
         assert response.data.count(b'div class="message-block"') == db_count
 
-        db_count = db.session.query(Message).filter(Message.id_sender == current_user.id and Message.is_sended == True).count()
+        db_count = db.session.query(Message).filter(Message.id_sender == current_user.id, Message.is_sent == True).count()
         response = test_client.get('/message/list/sent')
         assert response.status_code == 200
         assert response.data.count(b'div class="message-block"') == db_count
 
-        db_count = db.session.query(Message).filter(Message.id_sender == current_user.id and Message.is_sended == False).count()
+        db_count = db.session.query(Message).filter(Message.id_sender == current_user.id, Message.is_sent == False).count()
         response = test_client.get('/message/list/draft')
         assert response.status_code == 200
         assert response.data.count(b'div class="message-block"') == db_count

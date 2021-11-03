@@ -1,10 +1,6 @@
 <html>
     <head>
         <style type="text/css">
-            @font-face {
-              font-family: "Happy Lucky";
-              src: url("{{ url_for('static', filename='fonts/happy_lucky.ttf') }}");
-            }
             {% include "css/create_message.css" %}
         </style>
         <script>
@@ -34,16 +30,18 @@
               {% endfor %}
            {% endif %}
          <div id="recipient-list">
-             <div class="recipient-form" id="recipients-0-form">
-                 {{ form.recipients[0].hidden_tag() }}
-                 <dt>{{ form.recipients[0].recipient.label }}</dt>
-                 <dd>
-                     <div class="recipient-field">
-                         {{ form.recipients[0].recipient() }}
-                         <!--<div class="recipient-delete"><a href="javascript: ();">x</a></div>-->
-                     </div>
-                 </dd>
-             </div>
+             {% for recipient_form in form.recipients %}
+                  <div class="recipient-form" id="recipients-{{ loop.index0 }}-form">
+                      {{ recipient_form.hidden_tag() }}
+                      <dt>{{ recipient_form.recipient.label }}</dt>
+                      <dd>
+                          <div class="recipient-field">
+                              {{ recipient_form.recipient() }}
+                              <!--<div class="recipient-delete"><a href="javascript: ();">x</a></div>-->
+                          </div>
+                      </dd>
+                  </div>
+             {% endfor %}
          </div>
          <p><a href="javascript:addRecipient();">Add Recipient</a></p>
        </dl>

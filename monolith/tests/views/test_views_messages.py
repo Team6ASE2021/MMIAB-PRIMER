@@ -7,8 +7,10 @@ from flask import url_for
 
 from monolith.classes.user import UserModel
 from monolith.classes.message import MessageModel
+from monolith.classes.recipient import RecipientModel
 from monolith.database import db
 from monolith.database import Message
+from monolith.database import Recipient
 from monolith.database import User
 
 
@@ -31,19 +33,19 @@ def draft_setup(test_client):
     admin_user = {'email': 'example@example.com', 'password': 'admin'}
     test_client.post('/login', data=admin_user, follow_redirects=True)
 
-    data = {'body_message': 'test message 2', 'date_of_send': '10:05 07/07/2022', 'recipient': 2}
+    data = {'body_message': 'test message 2', 'date_of_send': '10:05 07/07/2022', 'recipients-0-recipient': '2'}
     msg = Message(
         body_message=data['body_message'],
         date_of_send=datetime.strptime(data['date_of_send'], '%H:%M %d/%m/%Y'),
-        id_sender=1,
-        id_receipent=data['recipient']
+        id_sender=1
     )
     MessageModel.add_draft(msg)
+    RecipientModel.add_recipients(msg, [int(data['recipients-0-recipient'])])
 
     test_client.get('/logout', follow_redirects=True)
     yield
     UserModel.delete_user(email=new_user['email'])
-    db.session.delete(msg)
+    MessageModel.delete_message(msg.id_message)
     db.session.commit()
 
 
@@ -73,7 +75,7 @@ class TestViewsMessagesDraft:
 
         old_len = db.session.query(Message).count()
 
-        data = {'body_message': draft_body, 'date_of_send': '10:05 07/07/2022', 'recipient': '2'}
+        data = {'body_message': draft_body, 'date_of_send': '10:05 07/07/2022', 'recipients-0-recipient': '2'}
         response = test_client.post('/draft', data=data, follow_redirects=True)
         assert response.status_code == 200
 
@@ -85,8 +87,9 @@ class TestViewsMessagesDraft:
         draft_db = db.session.query(Message).order_by(Message.id_message.desc()).first()
         assert draft_db.id_message == old_len + 1
         assert draft_db.id_sender == user.id
-        assert draft_db.id_receipent == 2
+        assert draft_db.recipients[0].id_recipient == 2
         assert draft_db.body_message == draft_body
+        RecipientModel.delete_recipients(draft_db)
         db.session.delete(draft_db)
         db.session.commit()
 
@@ -99,7 +102,7 @@ class TestViewsMessagesDraft:
 
         old_len = db.session.query(Message).count()
 
-        data = {'body_message': draft_body, 'date_of_send': 'fail', 'recipient': 'fail'}
+        data = {'body_message': draft_body, 'date_of_send': 'fail', 'recipients-0-recipient': 'fail'}
         response = test_client.post('/draft', data=data, follow_redirects=True)
         assert response.status_code == HTTPStatus.OK
         assert b'Not a valid' in response.data
@@ -119,17 +122,19 @@ class TestViewsMessagesSend:
 
     def test_send_message_not_logged(self, test_client):
 
-        message = Message(id_receipent=1,
-                          id_sender=1,
+        message = Message(id_sender=1,
                           body_message="Ciao",
                           date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"))
 
         db.session.add(message)
+        db.session.flush()
+        message.recipients.append(Recipient(id_recipient=1))
         db.session.commit()
 
         response = test_client.post('/send_message/' + str(message.id_message))
 
         assert response.status_code == 401
+        RecipientModel.delete_recipients(message)
         db.session.delete(message)
         db.session.commit()
 
@@ -137,31 +142,31 @@ class TestViewsMessagesSend:
         admin_user = {'email': 'example@example.com', 'password': 'admin'}
         response = test_client.post('/login', data=admin_user)
 
-        message = Message(id_receipent=1,
-                          id_sender=2,
+        message = Message(id_sender=2,
                           body_message="Ciao",
                           date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"))
-
         MessageModel.add_draft(message)
+        RecipientModel.add_recipients(message, [1])
 
         response = test_client.post('/send_message/' + str(message.id_message))
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
         test_client.post('/logout')
+        RecipientModel.delete_recipients(message)
         db.session.delete(message)
         db.session.commit()
 
     def test_send_message(self, test_client):
 
-        message = Message(id_receipent=1,
-                          id_sender=1,
+        message = Message(id_sender=1,
                           body_message="Ciao",
                           date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"))
-
         MessageModel.add_draft(message)
+        RecipientModel.add_recipients(message, [1])
 
         response = test_client.post('/send_message/' + str(message.id_message))
         assert b'Message has been sent correctly' in response.data
+        RecipientModel.delete_recipients(message)
         db.session.delete(message)
         db.session.commit()
 
@@ -248,7 +253,7 @@ class TestViewsMessagesDraftEdit:
         assert draft != None
         assert draft.body_message == data['body_message']
         assert draft.date_of_send == None
-        assert draft.id_receipent == None
+        assert len(draft.recipients) == 0
 
     def test_draft_edit_single_field(self, test_client):
         data = {'body_message': 'test message 2', 'date_of_send': '', 'recipient': ''}
@@ -262,7 +267,7 @@ class TestViewsMessagesDraftEdit:
         assert draft != None
         assert draft.body_message == update1['body_message']
         assert draft.date_of_send == None
-        assert draft.id_receipent == db.session.query(User).filter(User.email == update1['recipient']).first().id
+        assert draft.recipients == [db.session.query(User).filter(User.email == update1['recipient']).first().id]
 
         response = test_client.post('/draft/edit/1', data=update2, follow_redirects=True)
         assert response.status_code == 200
@@ -270,7 +275,7 @@ class TestViewsMessagesDraftEdit:
         assert draft != None
         assert draft.body_message == update2['body_message']
         assert draft.date_of_send == datetime.strptime(update2['date_of_send'], delivery_format)
-        assert draft.id_receipent == None
+        assert len(draft.recipients) == 0
 
         response = test_client.post('/draft/edit/1', data=data, follow_redirects=True)
         assert response.status_code == 200
@@ -278,7 +283,7 @@ class TestViewsMessagesDraftEdit:
         assert draft != None
         assert draft.body_message == data['body_message']
         assert draft.date_of_send == None
-        assert draft.id_receipent == None
+        assert len(draft.recipients) == 0
 
     def test_draft_edit_full_fields(self, test_client):
         data = {'body_message': 'test message 2 edited', 'date_of_send': datetime.now().strftime(delivery_format),
@@ -290,7 +295,7 @@ class TestViewsMessagesDraftEdit:
         assert draft != None
         assert draft.body_message == data['body_message']
         assert draft.date_of_send == datetime.strptime(data['date_of_send'], delivery_format)
-        assert draft.id_receipent == db.session.query(User).filter(User.email == data['recipient']).first().id
+        assert draft.recipients == [db.session.query(User).filter(User.email == data['recipient']).first().id]
 
     def test_draft_edit_update_fields(self, test_client):
         dt = datetime.now()
@@ -304,7 +309,7 @@ class TestViewsMessagesDraftEdit:
         assert draft != None
         assert draft.body_message == data['body_message']
         assert draft.date_of_send == datetime.strptime(data['date_of_send'], delivery_format)
-        assert draft.id_receipent == db.session.query(User).filter(User.email == data['recipient']).first().id
+        assert draft.recipients == [db.session.query(User).filter(User.email == data['recipient']).first().id]
 
     def test_draft_edit_invalid_recipient(self, test_client):
         data = {'body_message': 'test message 2 edited', 'date_of_send': datetime.now().strftime(delivery_format),
@@ -322,9 +327,9 @@ class TestViewsMessagesDraftEdit:
         assert draft != None
         assert draft.body_message == update['body_message']
         assert draft.date_of_send == datetime.strptime(update['date_of_send'], delivery_format)
-        assert draft.id_receipent == db.session.query(User).filter(User.email == data['recipient']).first().id
+        assert draft.recipients == [db.session.query(User).filter(User.email == data['recipient']).first().id]
 
-        draft.id_receipent = 100
+        draft.recipients = [100]
         db.session.commit()
 
         response = test_client.post('/draft/edit/1', data=update, follow_redirects=True)
@@ -333,7 +338,7 @@ class TestViewsMessagesDraftEdit:
         assert draft != None
         assert draft.body_message == update['body_message']
         assert draft.date_of_send == datetime.strptime(update['date_of_send'], delivery_format)
-        assert draft.id_receipent == None
+        assert len(draft.recipients) == 0
 
     def test_draft_edit_invalid_input(self, test_client):
 
@@ -393,7 +398,7 @@ class TestViewsMessagesDraftEdit:
     def test_post_edit_draft_ok(self, test_client):
         admin_user = {'email': 'example@example.com', 'password': 'admin'}
         test_client.post(url_for('auth.login'), data=admin_user)
-        draft = {'body_message': 'test_edit', 'date_of_send': '09:15 10/01/2022', 'recipient': 2}
+        draft = {'body_message': 'test_edit', 'date_of_send': '09:15 10/01/2022', 'recipients-0-recipient': '2'}
         response = test_client.post(url_for('messages.edit_draft', id=1), data=draft, follow_redirects=True)
         assert response.status_code == HTTPStatus.OK
         msg = MessageModel.id_message_exists(id_message=1)
@@ -403,7 +408,7 @@ class TestViewsMessagesDraftEdit:
     def test_post_edit_draft_incorrect_fields(self, test_client):
         admin_user = {'email': 'example@example.com', 'password': 'admin'}
         test_client.post(url_for('auth.login'), data=admin_user)
-        draft = {'body_message': 'test_edit', 'date_of_send': 'fail', 'recipient': 'fail2'}
+        draft = {'body_message': 'test_edit', 'date_of_send': 'fail', 'recipients-0-recipient': 'fail2'}
         response = test_client.post(url_for('messages.edit_draft', id=1), data=draft, follow_redirects=True)
         assert response.status_code == HTTPStatus.OK
         assert b'Not a valid choice' in response.data
@@ -435,12 +440,11 @@ class TestViewsMessagesDeleteReadMessage:
 
     def test_delete_mess_not_arrived_yet(self, test_client):
         user = {'email': 'example1@example1.com', 'password': 'admin1'}
-        message = Message(id_receipent=2,
-                          id_sender=1,
+        message = Message(id_sender=1,
                           body_message="Ciao",
                           date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"))
-
         MessageModel.add_draft(message)
+        RecipientModel.add_recipients(message, [2])
 
         test_client.post('/login', data=user, follow_redirects=True)
         response = test_client.get(url_for('messages.delete_message', id=2), follow_redirects=True)
@@ -450,12 +454,13 @@ class TestViewsMessagesDeleteReadMessage:
 
     def test_delete_mess_ok(self, test_client):
         user = {'email': 'example1@example1.com', 'password': 'admin1'}
-        message = Message(id_receipent=2,
+        message = Message(recipients=[2],
                           id_sender=1,
                           body_message="Ciao",
                           date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"))
-
         MessageModel.add_draft(message)
+        RecipientModel.add_recipients(message, [2])
+
         test_client.post('/login', data=user, follow_redirects=True)
         id = db.session.query(Message).order_by(Message.id_message.desc()).first().id_message
         message.is_arrived = True

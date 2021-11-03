@@ -20,6 +20,10 @@ class UserModel:
         return user
 
     @staticmethod
+    def get_users_by_ids(ids: List[int]) -> List[User]:
+        return db.session.query(User).filter(User.id.in_(ids)).all()
+
+    @staticmethod
     def get_user_info_by_email(email: str) -> Optional[User]:
         user = db.session.query(User).filter(email == User.email).first()
         if user is None:
@@ -48,9 +52,11 @@ class UserModel:
             raise NotExistingUserError("No user found!")
         return rows
 
+    @staticmethod
     def get_user_list():
         return db.session.query(User).all()
 
+    @staticmethod
     def toggle_content_filter(id: int):
         db_user = db.session.query(User).filter(User.id == id)
         if db_user.count() == 0:
@@ -59,6 +65,12 @@ class UserModel:
         new_val = not db_user.first().content_filter
         db_user.update({User.content_filter: new_val })
         db.session.commit()
+
+    @staticmethod
+    def filter_available_recipients(current_id: int, recipients: List[int]) -> List[int]:
+        valid_users = [user for user in UserModel.get_users_by_ids(recipients)]
+        return [ user.id for user in UserBlacklist.filter_blacklist(current_id, valid_users)]
+
     
 class UserBlacklist():
 
@@ -105,7 +117,7 @@ class UserBlacklist():
     def get_blocked_users(current_id: int) -> List[User]:
         current_user = UserModel.get_user_info_by_id(current_id)
         blocked_users = UserBlacklist._get_blacklist(current_user)
-        return [user for user in UserModel.get_user_list() if user.id in blocked_users]
+        return UserModel.get_users_by_ids(list(blocked_users))
 
 
 class NotExistingUserError(Exception):
