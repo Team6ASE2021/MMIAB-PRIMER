@@ -1,5 +1,5 @@
 [run]
-omit = 
+omit =
     monolith/templates/*
     monolith/classes/views/__init__.py
     monolith/views/filters.py

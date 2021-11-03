@@ -1,11 +1,13 @@
-import re
-from typing import Optional
-from monolith.database import db, Message, User, Recipient
 from datetime import datetime
 import string
 from os import path
+from typing import Optional
 from typing import List
 from sqlalchemy import and_
+
+from monolith.database import db
+from monolith.database import Message
+from monolith.database import User
 
 class ContentFilter:
     __UNSAFE_WORDS = []
@@ -19,7 +21,7 @@ class ContentFilter:
         """
         if len(ContentFilter.__UNSAFE_WORDS) == 0:
             _dir = path.dirname(path.abspath(__file__))
-            with open(path.join(_dir, '../static/txt/unsafe_words.txt'), 'r') as f:
+            with open(path.join(_dir, "../static/txt/unsafe_words.txt"), "r") as f:
                 lines = f.readlines()
                 for l in lines:
                     ContentFilter.__UNSAFE_WORDS.append(l.strip())
@@ -30,102 +32,122 @@ class ContentFilter:
         _body = message_body.lower()
         for uw in ContentFilter.unsafe_words():
             index = _body.find(uw)
-            while index >=0:
-                if ((index > 0 and _body[index - 1] not in ContentFilter.__alphanumeric) or index == 0) and\
-                        ((index + len(uw) < len(_body) and _body[index + len(uw)] not in ContentFilter.__alphanumeric) or index + len(uw) == len(_body)):
+            while index >= 0:
+                if (
+                    (index > 0 and _body[index - 1] not in ContentFilter.__alphanumeric)
+                    or index == 0
+                ) and (
+                    (
+                        index + len(uw) < len(_body)
+                        and _body[index + len(uw)] not in ContentFilter.__alphanumeric
+                    )
+                    or index + len(uw) == len(_body)
+                ):
                     return True
 
                 index = _body.find(uw, index + 1)
 
         return False
-    
+
+
 
 
 class MessageModel:
     """
-        Wrapper class  for all db operations involving message
+    Wrapper class  for all db operations involving message
     """
 
     @staticmethod
     def id_message_exists(id_message) -> Optional[Message]:
-        #get the message from database
-        message = db.session.query(Message).filter(Message.id_message == id_message).first()
-        
+        # get the message from database
+        message = (
+            db.session.query(Message).filter(Message.id_message == id_message).first()
+        )
+
         if message is None:
             raise NotExistingMessageError(str(id_message) + " message not found")
         else:
             return message
+
     @staticmethod
     def add_draft(msg: Message) -> None:
         db.session.add(msg)
         db.session.commit()
-    
+
     @staticmethod
     def update_draft(id: int, body_message: str, date_of_send: datetime):
         db.session.query(Message).filter(Message.id_message == id).update(
             {
                 Message.body_message: body_message,
                 Message.date_of_send: date_of_send
-            }
         )
         db.session.commit()
 
-    @staticmethod 
+    @staticmethod
     def send_message(id_message):
-        db.session.query(Message).filter(Message.id_message == id_message)\
-                                 .update({Message.is_sent : 1})
+        db.session.query(Message).filter(Message.id_message == id_message).update(
+            {Message.is_sent : 1}
+        )
         db.session.commit()
 
     @staticmethod
     def arrived_message():
-        
-        messages = db.session.query(Message).filter(Message.is_sent == True,\
-                Message.is_arrived == False,\
-                Message.date_of_send is not None)
+        messages = db.session.query(Message).filter(
+            Message.is_sent == True,
+            Message.is_arrived == False,
+            Message.date_of_send is not None,
+        )
 
         messages_arrived = []
         for m in messages:
             if (m.date_of_send - datetime.now()).total_seconds() <= 0:
                 m.is_arrived = True
                 messages_arrived.append(m)
-        
+
         db.session.commit()
 
         #return messages_arrived
-        return [{'id' : m.id_message,\
-                'date' : m.date_of_send.strftime("%H:%M %d/%m/%Y"),\
-                'sent': m.is_sent,\
-                'received' : m.is_arrived,\
-                'notified' : [(rcp.id_recipient, rcp.is_notified) for rcp in m.recipients]} for m in messages_arrived]
+        return [
+            {
+                'id' : m.id_message,
+                'date' : m.date_of_send.strftime("%H:%M %d/%m/%Y"),
+                'sent': m.is_sent,
+                'received' : m.is_arrived,
+                'notified' : [(rcp.id_recipient, rcp.is_notified) for rcp in m.recipients]
+            }
+            for m in messages_arrived
+        ]
 
     @staticmethod
     def get_notify(user : User) -> List[Recipient]:
-        notify_list = db.session.query(Recipient).\
-                filter(Recipient.id_recipient == user.id, Recipient.is_notified == False).\
-                filter(Recipient.message.has(and_(Message.is_arrived == True, Message.is_sent == True))).all()
-        """
-        notify_list = db.session.query(Message).\
-                filter(Message.is_arrived == True, Message.is_sent == True).\
-                filter(Message.recipients.any(and_(Recipient.id_recipient == user.id, Recipient.is_notified == False))).all()
-        """
+        notify_list = db.session.query(Recipient).filter(
+            Recipient.id_recipient == user.id,
+            Recipient.is_notified == False
+        ).filter(
+            Recipient.message.has(and_(
+                Message.is_arrived == True,
+                Message.is_sent == True
+            ))
+        ).all()
 
         for notify in notify_list:
             notify.is_notified = True
 
         db.session.commit()
-        
+
         return notify_list
  
     @staticmethod
-    def create_message(id_sender: int,
-            body_message: str,
-            recipients: List[int] = [],
-            date_of_send: datetime = datetime.now(),
-            is_sent = False,
-            is_arrived = False,
-            is_notified = False,
-            to_filter = False):
-
+    def create_message(
+        id_sender: int,
+        body_message: str,
+        recipients: List[int] = [],
+        date_of_send: datetime = datetime.now(),
+        is_sent = False,
+        is_arrived = False,
+        is_notified = False,
+        to_filter = False
+    ):
         message = Message()
         message.id_sender = id_sender
         message.body_message = body_message
@@ -153,6 +175,7 @@ class MessageModel:
 
         db.session.delete(mess)
         db.session.commit()
+
 
 class NotExistingMessageError(Exception):
     def __init__(self, value):

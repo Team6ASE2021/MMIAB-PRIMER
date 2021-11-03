@@ -1,15 +1,19 @@
-from flask import Blueprint, redirect, render_template, request, abort
+from flask import abort
+from flask import Blueprint
+from flask import render_template
 from flask_login.utils import login_required
-from monolith.database import Message, User, db
+
 from monolith.auth import current_user
-from monolith.classes.message import MessageModel, NotExistingMessageError
-from monolith.classes.user import UserModel, NotExistingUserError
 from monolith.classes.recipient import RecipientModel
+from monolith.classes.message import MessageModel
+from monolith.classes.message import NotExistingMessageError
+from monolith.classes.user import NotExistingUserError
+from monolith.classes.user import UserModel
 
-read_message = Blueprint('read_message', __name__)
+read_message = Blueprint("read_message", __name__)
 
 
-@read_message.route('/read_message/<int:id>', methods=['GET'])
+@read_message.route("/read_message/<int:id>", methods=["GET"])
 @login_required
 def read_messages(id):
     # check if the user is authenticated
@@ -26,10 +30,10 @@ def read_messages(id):
     date_receipt = mess.date_of_send
 
     # some controls to check if user is allowed to read the message or not
-    if (mess.is_arrived == True):
+    if mess.is_arrived == True:
         if current_user.id not in RecipientModel.get_recipients(mess) and current_user.id != mess.id_sender:
             user_allowed = False
-    elif (current_user.get_id() != mess.id_sender):
+    elif current_user.get_id() != mess.id_sender:
         user_allowed = False
 
     sender_email = ""
@@ -39,4 +43,10 @@ def read_messages(id):
     except NotExistingUserError:
         sender_email = "Anonymous"
 
-    return render_template("read_select_message.html", user_allowed=user_allowed, mess_text=mess_text, sender=sender_email, date_receipt=date_receipt)
+    return render_template(
+        "read_select_message.html",
+        user_allowed=user_allowed,
+        mess_text=mess_text,
+        sender=sender_email,
+        date_receipt=date_receipt,
+    )
