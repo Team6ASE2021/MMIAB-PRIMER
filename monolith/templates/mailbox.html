@@ -43,9 +43,6 @@
               {% for m in message_list: %}
                 {% if list_type != 'received' %}
                     {% set message_url = url_for('read_message.read_messages', id=m.id_message) %}
-                    {% set user_url = url_for('users.user_info', id=m.recipients[0].id_recipient) %}
-                    {% set firstname = m.recipients[0].user.firstname %}
-                    {% set lastname = m.recipients[0].user.lastname %}
                     {% set body_message = m.body_message %}
                     {% set datetime_list = (m.date_of_send|delivery_datetime_format).split(' ') %}
                     {% set id_message = m.id_message %}
@@ -60,8 +57,17 @@
                 {% endif %}
                 <div class="message-block">
                     <div class="main">
-                        <div class="user" onclick="location.href='{{ user_url }}'">
-                            <div> {{ firstname }} {{ lastname }} </div>
+                        <div class="user">
+                            {% if list_type != 'received' %}
+                                {% for recipient in m.recipients %}
+                                    {% set firstname = recipient.user.firstname %}
+                                    {% set lastname = recipient.user.lastname %}
+                                    {% set user_url = url_for('users.user_info', id=recipient.id_recipient) %}
+                                    <div onclick="location.href='{{ user_url }}'"> {{ firstname }} {{ lastname }} </div>
+                                {% endfor %}
+                            {% else %}
+                                <div onclick="location.href='{{ user_url }}'"> {{ firstname }} {{ lastname }} </div>
+                            {% endif %}
                         </div>
                         <div class="body" onclick="location.href='{{ message_url }}'"> 
                             <div> {{ body_message }} </div>

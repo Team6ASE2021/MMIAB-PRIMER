@@ -55,7 +55,7 @@ class Message(db.Model):
     #id of sender
     id_sender = db.Column(db.Integer)
     #recipients
-    recipients = db.relationship('Recipient', back_populates='message')
+    recipients = db.relationship('Recipient', back_populates='message', cascade='all, delete-orphan')
 
     #body of message and date of send
     body_message = db.Column(db.Unicode(256))
@@ -80,5 +80,5 @@ class Recipient(db.Model):
     #id_message = db.Column(db.ForeignKey('message.id_message'), primary_key=True)
     #id_recipient = db.Column(db.ForeignKey('user.id'), primary_key=True)
     is_notified = db.Column(db.Boolean, default = False)
-    message = db.relationship("Message", back_populates="recipients")
+    message = db.relationship("Message")
     user = db.relationship("User")

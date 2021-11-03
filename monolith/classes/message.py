@@ -147,6 +147,10 @@ class MessageModel:
     @staticmethod
     def delete_message(id_message: int):
         mess = MessageModel.id_message_exists(id_message)
+
+        # needed to clean up the Recipient table in the db
+        mess.recipients = []
+
         db.session.delete(mess)
         db.session.commit()
 
