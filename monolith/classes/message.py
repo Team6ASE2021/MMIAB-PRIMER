@@ -62,11 +62,10 @@ class MessageModel:
     
     @staticmethod
     def update_draft(id: int, msg:Message):
-        db.session.query(Message).filter_by(id_message=id).update(
+        db.session.query(Message).filter(Message.id_message == id).update(
             {
-                Message.recipients:msg.recipients,
                 Message.body_message:msg.body_message,
-                Message.date_of_send:msg.date_of_send,
+                Message.date_of_send:msg.date_of_send
             }
             
         )

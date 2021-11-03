@@ -4,6 +4,7 @@ from monolith.database import Message, User, db
 from monolith.auth import current_user
 from monolith.classes.message import MessageModel, NotExistingMessageError
 from monolith.classes.user import UserModel, NotExistingUserError
+from monolith.classes.recipient import RecipientModel
 
 read_message = Blueprint('read_message', __name__)
 
@@ -26,7 +27,7 @@ def read_messages(id):
 
     # some controls to check if user is allowed to read the message or not
     if (mess.is_arrived == True):
-        if current_user.id not in mess.recipients and current_user.id != mess.id_sender:
+        if current_user.id not in RecipientModel.get_recipients(mess) and current_user.id != mess.id_sender:
             user_allowed = False
     elif (current_user.get_id() != mess.id_sender):
         user_allowed = False

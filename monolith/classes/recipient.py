@@ -8,9 +8,8 @@ class RecipientModel:
     """
 
     @staticmethod
-    def get_recipients_ids(id_message: int) -> List[int]:
-        all_recipients = db.session.query(Message).filter(Recipient.id_message == id_message).all()
-        return [recipient.id_recipient for recipient in all_recipients]
+    def get_recipients(message: Message) -> List[int]:
+        return [recipient.id_recipient for recipient in message.recipients]
 
     @staticmethod
     def add_recipients(message: Message, recipients: List[int]) -> None:
@@ -21,10 +20,10 @@ class RecipientModel:
 
     @staticmethod
     def update_recipients(message: Message, recipients: List[int]) -> None:
-        db.session.query(Recipient).filter(Recipient.id_message == id_message).delete()
+        db.session.query(Recipient).filter(Recipient.id_message == message.id_message).delete()
         db.session.commit()
         message.recipients = []
-        RecipientModel.add_recipients(id_message, recipients)
+        RecipientModel.add_recipients(message, recipients)
 
     @staticmethod
     def delete_recipients(message: Message) -> None:

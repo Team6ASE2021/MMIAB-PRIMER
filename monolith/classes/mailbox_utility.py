@@ -23,5 +23,5 @@ class MailboxUtility():
     @staticmethod
     def get_draft_message_by_id_user(id):
         #TODO fix join and/or template
-        mess = db.session.query(Message,User).filter(Message.id_sender == id, Message.is_sent == False, Message.is_arrived == False).all()
+        mess = db.session.query(Message).filter(Message.id_sender == id, Message.is_sent == False, Message.is_arrived == False).all()
         return mess

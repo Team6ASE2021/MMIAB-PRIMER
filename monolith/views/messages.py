@@ -129,7 +129,7 @@ def delete_message(id: int):
     except NotExistingMessageError:
         abort(404,description='Message not found')
     
-    if current_user.get_id() not in mess.recipients or not mess.is_arrived:
+    if current_user.get_id() not in RecipientModel.get_recipients(mess) or not mess.is_arrived:
         abort(HTTPStatus.UNAUTHORIZED,description='You are not allowed to delete this message')
     else:
         MessageModel.delete_message(id)

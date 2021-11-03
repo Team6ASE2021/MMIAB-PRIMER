@@ -454,17 +454,15 @@ class TestViewsMessagesDeleteReadMessage:
 
     def test_delete_mess_ok(self, test_client):
         user = {'email': 'example1@example1.com', 'password': 'admin1'}
-        message = Message(recipients=[2],
-                          id_sender=1,
+        message = Message(id_sender=1,
                           body_message="Ciao",
                           date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"))
         MessageModel.add_draft(message)
         RecipientModel.add_recipients(message, [2])
 
         test_client.post('/login', data=user, follow_redirects=True)
-        id = db.session.query(Message).order_by(Message.id_message.desc()).first().id_message
         message.is_arrived = True
         db.session.commit()
-        response = test_client.get(url_for('messages.delete_message', id=id), follow_redirects=True)
+        response = test_client.get(url_for('messages.delete_message', id=message.id_message), follow_redirects=True)
         assert response.status_code == HTTPStatus.OK
         assert b'Message succesfully deleted' in response.data
