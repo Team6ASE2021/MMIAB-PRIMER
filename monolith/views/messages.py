@@ -52,7 +52,7 @@ def edit_draft(id):
     new_draft = Message()
     form = EditMessageForm()
     old_recipient = UserModel.get_user_info_by_id(draft.id_receipent)
-    recipients = get_recipients().json['recipients']
+    recipients = get_recipients('').json['recipients']
     form.recipient.choices = recipients
     if request.method == 'POST':
 
