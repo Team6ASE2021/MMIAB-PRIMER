@@ -76,7 +76,6 @@ def edit_draft(id):
             new_draft.body_message = form.body_message.data
 
             if form.image.data:
-                print("hello")
                 file = form.image.data
                 new_draft.img_path = str(uuid4()) + secure_filename(
                     form.image.data.filename

@@ -16,10 +16,10 @@
         <img src="{{url_for('static',filename='assets/' + old_img)}}" alt="mess" heigth="300" width="300">
       </h3>
         {% endif %}
-        <dt> <b>Choose a different image:</b></dt>
+        <dt> <b>Choose an image:</b></dt>
           <dd>{{form.image()}}</dd>
-        {% if form.date_of_send.errors %}
-           {% for e in form.date_of_send.errors %}
+        {% if form.image.errors %}
+           {% for e in form.image.errors %}
             <p class="help-block">{{ e }}</p>
            {% endfor %}
         {% endif %}
