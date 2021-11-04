@@ -5,12 +5,19 @@
 
  {% if current_user.is_authenticated and current_user.id == id_sender %}
 
-   <form action="" method="POST">
+   <form action="" method="POST" enctype="multipart/form-data">
      {{ form.hidden_tag() }}
      <dl>
       <dt>{{ form.body_message.label }}</dt>
       <dd>{% set f = form.body_message.process_data(old_message) %}
           {{ form.body_message() }}</dd>
+        {% if old_img %}
+        <h3>Uploaded image: <br>
+        <img src="{{url_for('static',filename='assets/' + old_img)}}" alt="mess" heigth="300" width="300">
+      </h3>
+        {% endif %}
+        <dt> <b>Choose a different image:</b></dt>
+          <dd>{{form.image()}}</dd>
         {% if form.date_of_send.errors %}
            {% for e in form.date_of_send.errors %}
             <p class="help-block">{{ e }}</p>

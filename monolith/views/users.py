@@ -51,14 +51,11 @@ def create_user():
             if form.profile_picture.data:
                 file = form.profile_picture.data
                 name = file.filename
-                name = secure_filename(name)
+                name = str(uuid4()) + secure_filename(name)
 
-                path = os.path.join(
-                    current_app.config["UPLOAD_FOLDER"], str(uuid4()) + name
-                )
+                path = os.path.join(current_app.config["UPLOAD_FOLDER"], name)
                 new_user.set_pfp_path(name)
-                with open(path, "w"):
-                    file.save(path)
+                file.save(path)
 
             UserModel.create_user(new_user, form.password.data)
             return redirect("/login")

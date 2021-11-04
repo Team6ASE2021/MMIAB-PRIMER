@@ -42,14 +42,11 @@ def draft():
             if form.image.data:
                 file = form.image.data
                 name = file.filename
-                name = secure_filename(name)
+                name = str(uuid4()) + secure_filename(name)
 
-                path = os.path.join(
-                    current_app.config["UPLOAD_FOLDER"], str(uuid4()) + name
-                )
-                new_draft.set_img_path(name)
-                with open(path, "w"):
-                    file.save(path)
+                path = os.path.join(current_app.config["UPLOAD_FOLDER"], name)
+                new_draft.img_path = name
+                file.save(path)
             MessageModel.add_draft(new_draft)
             return redirect("/read_message/" + str(new_draft.id_message))
 
@@ -77,7 +74,28 @@ def edit_draft(id):
 
         if form.validate_on_submit():
             new_draft.body_message = form.body_message.data
+
+            if form.image.data:
+                print("hello")
+                file = form.image.data
+                new_draft.img_path = str(uuid4()) + secure_filename(
+                    form.image.data.filename
+                )
+                path = os.path.join(
+                    current_app.config["UPLOAD_FOLDER"], new_draft.img_path
+                )
+                if draft.img_path:
+                    os.remove(
+                        os.path.join(
+                            current_app.config["UPLOAD_FOLDER"], draft.img_path
+                        )
+                    )
+                file.save(path)
+
+            else:
+                new_draft.img_path = draft.img_path
             new_draft.date_of_send = form.date_of_send.data
+
             new_draft.id_receipent = form.recipient.data[0]
             MessageModel.update_draft(draft.id_message, new_draft)
             return redirect("/read_message/" + str(draft.id_message))
@@ -87,6 +105,7 @@ def edit_draft(id):
         form=form,
         old_date=draft.date_of_send,
         old_message=draft.body_message,
+        old_img=draft.img_path,
         old_rec=old_recipient.id,
         id_sender=draft.id_sender,
     )
@@ -134,7 +153,6 @@ def send_message(id):
 def delete_message(id: int):
     try:
         mess = MessageModel.id_message_exists(id)
-        print(mess.body_message)
     except NotExistingMessageError:
         abort(404, description="Message not found")
 

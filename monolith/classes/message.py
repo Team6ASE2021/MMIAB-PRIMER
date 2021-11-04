@@ -80,6 +80,7 @@ class MessageModel:
             {
                 Message.id_receipent: msg.id_receipent,
                 Message.body_message: msg.body_message,
+                Message.img_path: msg.img_path,
                 Message.date_of_send: msg.date_of_send,
             }
         )
