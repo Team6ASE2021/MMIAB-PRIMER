@@ -18,6 +18,25 @@ class LoginForm(FlaskForm):
     display = ["email", "password"]
 
 
+class EditMessageForm(FlaskForm):
+    body_message = f.TextAreaField("Message", validators=[InputRequired()])
+    date_of_send = f.DateTimeField(
+        "Delivery Date", format=delivery_format, validators=[Optional()]
+    )
+    image = FileField(
+        validators=[
+            FileAllowed(
+                ["jpg", "jpeg", "png"],
+                message="You can only upload a jpg,jpeg, or png file",
+            ),
+            Optional(),
+            FileSize(max_size=16 * 1024 * 1024, message="max size allowed=16 MB"),
+        ]
+    )
+    recipient = f.SelectField("Recipient", default=[])
+    display = ["body_message", "image", "date_of_send", "recipient"]
+
+
 class UserForm(FlaskForm):
     email = f.StringField(
         "email", validators=[DataRequired(), Email(), Length(max=120)]
@@ -48,22 +67,3 @@ class UserForm(FlaskForm):
         "password",
         "dateofbirth",
     ]
-
-
-class EditMessageForm(FlaskForm):
-    body_message = f.TextAreaField("Message", validators=[InputRequired()])
-    date_of_send = f.DateTimeField(
-        "Delivery Date", format=delivery_format, validators=[Optional()]
-    )
-    image = FileField(
-        validators=[
-            FileAllowed(
-                ["jpg", "jpeg", "png"],
-                message="You can only upload a jpg,jpeg, or png file",
-            ),
-            Optional(),
-            FileSize(max_size=16 * 1024 * 1024, message="max size allowed=16 MB"),
-        ]
-    )
-    recipient = f.SelectField("Recipient", default=[])
-    display = ["body_message", "image", "date_of_send", "recipient"]
