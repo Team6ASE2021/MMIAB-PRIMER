@@ -1,4 +1,8 @@
+import io
 from http import HTTPStatus
+
+import mock
+from werkzeug.datastructures import FileStorage
 
 from monolith.app import db
 from monolith.auth import current_user
@@ -30,6 +34,18 @@ class TestViewsUser:
         assert response.status_code == 200
         assert b"submit" in response.data
 
+    def test_create_user_bad_field(self, test_client):
+        data = {
+            "firstname": "Niccolò",
+            "lastname": "Piazzesi",
+            "email": "abc@abc.com",
+            "password": "abc",
+            "dateofbirth": "fail",
+        }
+        response = test_client.post("/create_user", data=data, follow_redirects=True)
+        assert response.status_code == HTTPStatus.OK
+        assert b"Not a valid" in response.data
+
     def test_create_user_ok(self, test_client):
         data = {
             "firstname": "Niccolò",
@@ -42,6 +58,44 @@ class TestViewsUser:
         assert response.status_code == HTTPStatus.OK
         assert b"Login" in response.data
         UserModel.delete_user(email=data["email"])
+
+    def test_create_user_with_img_bad_file_extension(self, test_client):
+        image_name = "fake-image-stream.txt"
+        file = FileStorage(filename=image_name, stream=io.BytesIO(b"data data"))
+        data = {
+            "firstname": "Niccolò",
+            "lastname": "Piazzesi",
+            "email": "abc@abc.com",
+            "profile_picture": file,
+            "password": "abc",
+            "dateofbirth": "01/01/2000",
+        }
+        response = test_client.post("/create_user", data=data, follow_redirects=True)
+        assert response.status_code == HTTPStatus.OK
+        assert b"You can only upload a jpg,jpeg, or png file" in response.data
+
+    def test_create_user_with_img_ok_file_extension(self, test_client):
+        with mock.patch.object(FileStorage, "save", autospec=True, return_value=None):
+            image_name = "fake-image-stream.jpg"
+            file = FileStorage(filename=image_name, stream=io.BytesIO(b"data data"))
+            data = {
+                "firstname": "Niccolò",
+                "lastname": "Piazzesi",
+                "email": "abc@abc.com",
+                "profile_picture": file,
+                "password": "abc",
+                "dateofbirth": "01/01/2000",
+            }
+            response = test_client.post(
+                "/create_user", data=data, follow_redirects=True
+            )
+            assert response.status_code == HTTPStatus.OK
+            assert b"Login" in response.data
+            assert (
+                file.filename
+                in UserModel.get_user_info_by_email(data["email"]).pfp_path
+            )
+            UserModel.delete_user(email=data["email"])
 
     def test_show_user_info_not_logged(self, test_client):
         test_client.get("/logout")
@@ -143,7 +197,7 @@ class TestViewsUser:
         assert b"Hi Anonymous" in response.data
         assert new_user.id not in [user.id for user in UserModel.get_user_list()]
 
-    def test_user_delete_not_existing(self, test_client):
+    def test_user_delete_other_user(self, test_client):
         response = test_client.post(
             "/login",
             data={"email": "example@example.com", "password": "admin"},
@@ -152,7 +206,7 @@ class TestViewsUser:
         assert response.status_code == 200
 
         response = test_client.get("users/100/delete")
-        assert response.status_code == 404
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
 
         test_client.get("/logout")
 

@@ -1,14 +1,16 @@
-from datetime import datetime
 import string
+from datetime import datetime
 from os import path
-from typing import Optional
 from typing import List
+from typing import Optional
+
 from sqlalchemy import and_
 
 from monolith.database import db
 from monolith.database import Message
 from monolith.database import Recipient
 from monolith.database import User
+
 
 class ContentFilter:
     __UNSAFE_WORDS = []
@@ -51,8 +53,6 @@ class ContentFilter:
         return False
 
 
-
-
 class MessageModel:
     """
     Wrapper class  for all db operations involving message
@@ -78,17 +78,14 @@ class MessageModel:
     @staticmethod
     def update_draft(id: int, body_message: str, date_of_send: datetime):
         db.session.query(Message).filter(Message.id_message == id).update(
-            {
-                Message.body_message: body_message,
-                Message.date_of_send: date_of_send
-            }
+            {Message.body_message: body_message, Message.date_of_send: date_of_send}
         )
         db.session.commit()
 
     @staticmethod
     def send_message(id_message):
         db.session.query(Message).filter(Message.id_message == id_message).update(
-            {Message.is_sent : 1}
+            {Message.is_sent: 1}
         )
         db.session.commit()
 
@@ -108,29 +105,32 @@ class MessageModel:
 
         db.session.commit()
 
-        #return messages_arrived
+        # return messages_arrived
         return [
             {
-                'id' : m.id_message,
-                'date' : m.date_of_send.strftime("%H:%M %d/%m/%Y"),
-                'sent': m.is_sent,
-                'received' : m.is_arrived,
-                'notified' : [(rcp.id_recipient, rcp.is_notified) for rcp in m.recipients]
+                "id": m.id_message,
+                "date": m.date_of_send.strftime("%H:%M %d/%m/%Y"),
+                "sent": m.is_sent,
+                "received": m.is_arrived,
+                "notified": [
+                    (rcp.id_recipient, rcp.is_notified) for rcp in m.recipients
+                ],
             }
             for m in messages_arrived
         ]
 
     @staticmethod
-    def get_notify(user : User) -> List[Recipient]:
-        notify_list = db.session.query(Recipient).filter(
-            Recipient.id_recipient == user.id,
-            Recipient.is_notified == False
-        ).filter(
-            Recipient.message.has(and_(
-                Message.is_arrived == True,
-                Message.is_sent == True
-            ))
-        ).all()
+    def get_notify(user: User) -> List[Recipient]:
+        notify_list = (
+            db.session.query(Recipient)
+            .filter(Recipient.id_recipient == user.id, Recipient.is_notified == False)
+            .filter(
+                Recipient.message.has(
+                    and_(Message.is_arrived == True, Message.is_sent == True)
+                )
+            )
+            .all()
+        )
 
         for notify in notify_list:
             notify.is_notified = True
@@ -138,17 +138,17 @@ class MessageModel:
         db.session.commit()
 
         return notify_list
- 
+
     @staticmethod
     def create_message(
         id_sender: int,
         body_message: str,
         recipients: List[int] = [],
         date_of_send: datetime = datetime.now(),
-        is_sent = False,
-        is_arrived = False,
-        is_notified = False,
-        to_filter = False
+        is_sent=False,
+        is_arrived=False,
+        is_notified=False,
+        to_filter=False,
     ):
         message = Message()
         message.id_sender = id_sender
@@ -162,12 +162,14 @@ class MessageModel:
         db.session.add(message)
         db.session.flush()
 
-        message.recipients = [Recipient(id_recipient=recipient_id) for recipient_id in recipients]
+        message.recipients = [
+            Recipient(id_recipient=recipient_id) for recipient_id in recipients
+        ]
 
         db.session.commit()
 
         return message
-   
+
     @staticmethod
     def delete_message(id_message: int):
         mess = MessageModel.id_message_exists(id_message)

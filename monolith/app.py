@@ -1,8 +1,12 @@
 import datetime
+import os
 
 from flask import Flask
 
 from monolith.auth import login_manager
+from monolith.constants import _ALLOWED_EXTENSIONS
+from monolith.constants import _MAX_CONTENT_LENGTH
+from monolith.constants import _UPLOAD_FOLDER
 from monolith.database import db
 from monolith.database import User
 from monolith.views import blueprints
@@ -12,6 +16,9 @@ def create_app(testing: bool = False) -> Flask:
     app = Flask(__name__)
     app.config["WTF_CSRF_SECRET_KEY"] = "A SECRET KEY"
     app.config["SECRET_KEY"] = "ANOTHER ONE"
+    app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, _UPLOAD_FOLDER)
+    app.config["MAX_CONTENT_LENGTH"] = _MAX_CONTENT_LENGTH
+    app.config["UPLOAD_EXTENSIONS"] = _ALLOWED_EXTENSIONS
     if testing:
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///tests/mmiab.db"
     else:
