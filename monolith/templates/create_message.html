@@ -1,6 +1,8 @@
 <html>
  <body>
 
+   <script> {% include "js/update_recipients.js" %} </script>
+
  {% if current_user.is_authenticated %}
 
    <form action="" method="POST">
@@ -9,16 +11,13 @@
       {% for field in form.display %}
       <dt>{{ form[field].label }}</dt>
       <dd>{{ form[field]() }}</dd>
-      {% if field == form.search %}
-       <dd><button>Search</button></dd>
-      {% endif %}
         {% if form[field].errors %}
            {% for e in form[field].errors %}
             <p class="help-block">{{ e }}</p>
            {% endfor %}
         {% endif %}
       {% endfor %}
-      <dd><button type="button">Search</button></dd>
+      <dd><button id="search_button" type="button" onclick="_test();">Search</button></dd>
      </dl>
      <p>
      <input type=submit value="Save as Draft">
@@ -27,6 +26,8 @@
  {% else %}
    Hi Anonymous, please <a href="/login">Log in</a> to draft a message
  {% endif %}
+
+
  </body>
 </html>
 

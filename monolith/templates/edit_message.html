@@ -1,6 +1,8 @@
 <html>
  <body>
 
+  <script> {% include "js/update_recipients.js" %} </script>
+
  {% if current_user.is_authenticated and current_user.id == id_sender %}
 
    <form action="" method="POST">

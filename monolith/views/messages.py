@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from re import search
 
-from flask import abort
+from flask import abort, app
 from flask import Blueprint
 from flask import jsonify
 from flask import redirect
@@ -37,8 +37,6 @@ def draft():
             return redirect('/read_message/' + str(new_draft.id_message))
         
     return render_template('create_message.html', form=form)
-
-
 
 
 @messages.route('/draft/edit/<int:id>', methods=['POST', 'GET'])
@@ -101,7 +99,7 @@ def send_message(id):
 # RESTful API
 
 
-@messages.route('/recipients', methods=["GET"])
+@messages.route('/recipients/<_filter>', methods=["GET"])
 @login_required
 def get_recipients(_filter):
     recipients = list(map(lambda u: (u.id, u.nickname if u.nickname else u.email),
