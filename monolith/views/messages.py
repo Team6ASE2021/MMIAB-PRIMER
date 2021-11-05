@@ -1,8 +1,9 @@
 import os
 from http import HTTPStatus
+from re import search
 from uuid import uuid4
 
-from flask import abort
+from flask import abort, app
 from flask import Blueprint
 from flask import flash
 from flask import jsonify
@@ -220,17 +221,20 @@ def reply_to_message(id):
 
 # RESTful API
 
-
-@messages.route("/recipients", methods=["GET"])
+@messages.route('/recipients', methods=["GET"])
 @login_required
 def get_recipients():
-    user_list = UserBlacklist.filter_blacklist(
-        current_user.id, UserModel.get_user_list()
-    )
+    _filter = request.args.get('q', None)
     recipients = list(
         map(
             lambda u: (u.id, u.nickname if u.nickname else u.email),
-            filter(lambda u: u.id != current_user.get_id(), user_list),
+            filter(
+                lambda u: u.id != current_user.get_id(),
+                UserModel.search_user_by_key_word(current_user.id, _filter)
+            )
         )
     )
-    return jsonify(recipients=recipients)
+
+    return jsonify(
+        recipients=recipients
+    )

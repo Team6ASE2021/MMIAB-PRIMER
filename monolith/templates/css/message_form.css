@@ -14,6 +14,10 @@ body {
     background-color: var(--secondary);
 }
 
+.fields-container{
+    display: flex;
+    flex-flow: row nowrap;
+}
 .recipient-field {
     display: flex;
     flex-flow: row nowrap;

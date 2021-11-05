@@ -125,7 +125,7 @@ class TestViewsMessagesDraft:
         }
         response = test_client.post("/draft", data=data, follow_redirects=True)
         assert response.status_code == HTTPStatus.OK
-        assert b"You can only upload a jpg,jpeg, or png file" in response.data
+        assert b"You can only upload .jpg, .jpeg or .png files" in response.data
 
     def test_draft_with_img_ok_file_extension(self, test_client):
         with mock.patch.object(FileStorage, "save", autospec=True, return_value=None):
@@ -428,7 +428,7 @@ class TestViewsMessagesDraftEdit:
             url_for("messages.edit_draft", id=1), data=draft, follow_redirects=True
         )
         assert response.status_code == HTTPStatus.OK
-        assert b"You can only upload a jpg,jpeg, or png file" in response.data
+        assert b"You can only upload .jpg, .jpeg or .png files" in response.data
         test_client.get('/logout')
 
     def test_draft_with_img_ok_file_extension(self, test_client):

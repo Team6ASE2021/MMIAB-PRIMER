@@ -4,6 +4,7 @@
             {% include "css/message_form.css" %}
         </style>
         <script>
+            {% include "js/update_recipients.js" %}
             {% include "js/manage_recipients.js" %}
         </script>
     </head>
@@ -18,7 +19,7 @@
           </div>
         {% endif %}
 
-        <form action="" method="POST">
+        <form action="" method="POST" enctype="multipart/form-data">
             {{ form.hidden_tag() }}
             <dl>
                 <dt>{{ form.body_message.label }}</dt>
@@ -49,37 +50,47 @@
                              {{ recipient_form.hidden_tag() }}
                              <dt>{{ recipient_form.recipient.label }}</dt>
                              <dd>
-                                 <div class="recipient-field">
-                                     <!--
-                                     {{ recipient_form.recipient() }}
-                                     -->
-                                     <select 
-                                         id="recipients-{{ loop.index0 }}-recipient" 
-                                         name="recipients-{{ loop.index0 }}-recipient"
-                                         {{'disabled' if replying_info is not none}}
-                                     >
-                                         {% for rcp in available_recipients %}
-                                         <option 
-                                             value="{{ rcp[0] }}" 
-                                             {{'selected' if replying_info is not none and replying_info['message'].id_sender == rcp[0]}}
-                                             {#'disabled' if replying_info is not none and replying_info['message'].id_sender != rcp[0]#}
-                                         >
-                                             {{ rcp[1] }}
-                                         </option>
-                                         {% endfor %}
-                                     </select>
-                                     {%if replying_info is not none %}
-                                         <input 
-                                             type="hidden"
+                                 <div class="fields-container">
+                                     <div class="search-field">
+                                         {{ recipient_form.search() }}
+                                     </div>
+                                     <div class="recipient-field">
+                                         <!--
+                                         {{ recipient_form.recipient() }}
+                                         -->
+                                         <select 
+                                             id="recipients-{{ loop.index0 }}-recipient" 
                                              name="recipients-{{ loop.index0 }}-recipient"
-                                             value="{{replying_info['message'].id_sender}}"
-                                         />
-                                     {%endif%}
-                                     <!--<div class="recipient-delete"><a href="javascript: ();">x</a></div>-->
+                                             {{'disabled' if replying_info is not none}}
+                                         >
+                                             {% for rcp in available_recipients %}
+                                             <option 
+                                                 value="{{ rcp[0] }}" 
+                                                 {{'selected' if replying_info is not none and replying_info['message'].id_sender == rcp[0]}}
+                                             >
+                                                 {{ rcp[1] }}
+                                             </option>
+                                             {% endfor %}
+                                         </select>
+                                         {%if replying_info is not none %}
+                                             <input 
+                                                 type="hidden"
+                                                 name="recipients-{{ loop.index0 }}-recipient"
+                                                 value="{{replying_info['message'].id_sender}}"
+                                             />
+                                         {%endif%}
+                                         <!--<div class="recipient-delete"><a href="javascript: ();">x</a></div>-->
+                                     </div>
+                                     <button class="search-button" type="button" onclick="trigger_update({{ loop.index0 }});">Search</button></dd>
                                  </div>
                              </dd>
                                 {% if recipient_form.recipient.errors %}
                                     {% for e in recipient_form.recipient.errors %}
+                                        <p class="help-block">{{ e }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                                {% if recipient_form.search.errors %}
+                                    {% for e in recipient_form.search.errors %}
                                         <p class="help-block">{{ e }}</p>
                                     {% endfor %}
                                 {% endif %}

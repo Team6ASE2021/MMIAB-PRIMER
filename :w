@@ -34,7 +34,7 @@ class EditMessageForm(FlaskForm):
         validators=[
             FileAllowed(
                 ["jpg", "jpeg", "png"],
-                message="You can only upload .jpg, .jpeg or .png files",
+                message="You can only upload \.jpg, \.jpeg or \.png files",
             ),
             Optional(),
             FileSize(max_size=16 * 1024 * 1024, message="max size allowed=16 MB"),

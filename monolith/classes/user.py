@@ -67,6 +67,25 @@ class UserModel:
         db_user.update({User.content_filter: new_val})
         db.session.commit()
 
+    def search_user_by_key_word(user_id: int, key_word: Optional[str]) -> List[User]:
+        valid_users = UserBlacklist.filter_blacklist(
+            user_id, UserModel.get_user_list()
+        )
+
+        filter_users = lambda elem: (
+                key_word in elem.firstname or
+                key_word in elem.lastname or
+                key_word in elem.email or
+                (elem.nickname and key_word in elem.nickname) or
+                (elem.location and key_word in elem.location)
+            )
+        
+        if(not key_word or key_word == ""):
+            return valid_users
+
+        filtered_users = list(filter(filter_users, valid_users))
+        return filtered_users if len(filtered_users) > 0 else valid_users
+            
     @staticmethod
     def filter_available_recipients(current_id: int, recipients: List[int]) -> List[int]:
         valid_users = [user.id for user in ( UserBlacklist.filter_blacklist( current_id, UserModel.get_users_by_ids(recipients)))]
