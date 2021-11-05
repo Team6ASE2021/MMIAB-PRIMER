@@ -92,7 +92,7 @@ def edit_draft(id):
     old_recipients = UserModel.filter_available_recipients(
         current_user.id, old_recipients
     )
-    form_recipients = [{'name': 'Recipient'} for _ in (range(len(old_recipients)) if len(old_recipients) > 0 else 1)]
+    form_recipients = [{'name': 'Recipient'} for _ in (range(len(old_recipients)) if len(old_recipients) > 0 else range(1))]
     form = EditMessageForm(recipients=form_recipients)
     available_recipients = get_recipients().json['recipients']
     for _, recipient_form in enumerate(form.recipients):

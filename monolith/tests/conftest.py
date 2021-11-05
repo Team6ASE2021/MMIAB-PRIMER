@@ -49,16 +49,16 @@ def _clean_testing_db():
 def clean_db_and_logout(request, test_client):
     admin_user = {"email": "example@example.com", "password": "admin"}
     db.session.query(User).filter(User.email != admin_user["email"]).delete()
-    db.session.query(Message).delete()
     db.session.query(Recipient).delete()
+    db.session.query(Message).delete()
     db.session.commit()
 
     def _finalizer():
         test_client.get("/logout")
 
         db.session.query(User).filter(User.email != admin_user["email"]).delete()
-        db.session.query(Message).delete()
         db.session.query(Recipient).delete()
+        db.session.query(Message).delete()
         db.session.commit()
 
     request.addfinalizer(_finalizer)

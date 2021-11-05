@@ -103,6 +103,7 @@ class TestViewsMessagesDraft:
         assert draft_db.id_sender == user.id
         assert draft_db.recipients[0].id_recipient == 2
         assert draft_db.body_message == draft_body
+        RecipientModel.set_recipients(draft_db, [])
         db.session.delete(draft_db)
         db.session.commit()
 
@@ -150,7 +151,7 @@ class TestViewsMessagesDraft:
                 db.session.query(Message).order_by(Message.id_message.desc()).first()
             )
             assert file.filename in draft_db.img_path
-            draft_db.recipients = []
+            RecipientModel.set_recipients(draft_db, [])
             db.session.delete(draft_db)
             db.session.commit()
 
@@ -388,7 +389,25 @@ class TestViewsMessagesDraftEdit:
         response = test_client.post(url_for("messages.edit_draft", id=draft.id_message), data=data, follow_redirects=True)
         assert response.status_code == HTTPStatus.OK
         assert RecipientModel.get_recipients(draft) == [1, 3]
+        RecipientModel.set_recipients(draft, [])
+        db.session.delete(draft)
+        db.session.commit()
         test_client.get('/logout')
+
+    def test_draft_edit_empty_recipient(self, test_client):
+        admin_user = {"email": "example@example.com", "password": "admin"}
+
+        response = test_client.post("/login", data=admin_user, follow_redirects=True)
+        assert response.status_code == 200
+
+        draft = {
+            "body_message": "test_edit",
+            "date_of_send": "09:15 10/01/2022",
+        }
+        response = test_client.post(
+            url_for("messages.edit_draft", id=1), data=draft, follow_redirects=True
+        )
+        assert response.status_code == HTTPStatus.OK
 
     def test_draft_edit_with_img_bad_file_extension(self, test_client):
         image_name = "fake-image-stream.txt"
@@ -403,13 +422,14 @@ class TestViewsMessagesDraftEdit:
             "body_message": "test_edit",
             "date_of_send": "09:15 10/01/2022",
             "image": file,
-            "recipient": 2,
+            "recipients-0-recipient": 2,
         }
         response = test_client.post(
             url_for("messages.edit_draft", id=1), data=draft, follow_redirects=True
         )
         assert response.status_code == HTTPStatus.OK
         assert b"You can only upload a jpg,jpeg, or png file" in response.data
+        test_client.get('/logout')
 
     def test_draft_with_img_ok_file_extension(self, test_client):
         with mock.patch.object(FileStorage, "save", autospec=True, return_value=None):
@@ -425,7 +445,7 @@ class TestViewsMessagesDraftEdit:
                 "body_message": "test_edit",
                 "date_of_send": "09:15 10/01/2022",
                 "image": file,
-                "recipient": 2,
+                "recipients-0-recipient": 2,
             }
             response = test_client.post(
                 url_for("messages.edit_draft", id=1), data=draft, follow_redirects=True
@@ -433,6 +453,8 @@ class TestViewsMessagesDraftEdit:
             assert response.status_code == HTTPStatus.OK
             draft_db = db.session.query(Message).filter(Message.id_message == 1).first()
             assert file.filename in draft_db.img_path
+
+            test_client.get('/logout')
 
 
 @pytest.mark.usefixtures("clean_db_and_logout", "draft_setup")

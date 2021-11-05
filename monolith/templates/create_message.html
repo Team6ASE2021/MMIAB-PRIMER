@@ -28,6 +28,13 @@
                             <p class="help-block">{{ e }}</p>
                         {% endfor %}
                     {% endif %}
+                <dt>{{ form.image.label }}</dt>
+                <dd>{{ form.image() }}</dd>
+                    {% if form.image.errors %}
+                        {% for e in form.image.errors %}
+                            <p class="help-block">{{ e }}</p>
+                        {% endfor %}
+                    {% endif %}
                 <dt>{{ form.date_of_send.label }}</dt>
                 <dd style="font-size: 10pt;">{{ form.date_of_send.format }}</dt>
                 <dd>{{ form.date_of_send() }}</dd>
