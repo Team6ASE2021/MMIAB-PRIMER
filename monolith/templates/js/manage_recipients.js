@@ -20,7 +20,25 @@ function renameRecipientContent(recipient, new_id){
             nr_childs[i].id = "recipients-" + new_id + "-recipient";
             nr_childs[i].name = "recipients-" + new_id + "-recipient";
         }
+        if(nr_childs[i].id.includes("recipients-") &&
+                nr_childs[i].id.includes("-search")) 
+        {
+            nr_childs[i].id = "recipients-" + new_id + "-search";
+            nr_childs[i].name = "recipients-" + new_id + "-search";
+        }
+        if(nr_childs[i].classList.contains("search-button")) {
+            nr_childs[i].onclick = function() { trigger_update(new_id); }
+        }
         if(nr_childs[i].classList.contains("recipient-field")) {
+            if(new_id > 0) {
+                var select_tags = nr_childs[i].getElementsByTagName("select");
+                select_tags[0].disabled = false;
+                var input_tags = nr_childs[i].getElementsByTagName("input");
+                if(input_tags.length > 0)
+                    nr_childs[i].removeChild(input_tags[0]);
+            }
+        }
+        if(nr_childs[i].classList.contains("fields-container")) {
             var a_tags = nr_childs[i].getElementsByTagName("a");
             if (a_tags.length == 0) {
                 if(new_id > 0) {
@@ -35,14 +53,6 @@ function renameRecipientContent(recipient, new_id){
             } else {
                 a_tags[0].href = "javascript: removeRecipient(" + new_id + ");";
             }
-
-            if(new_id > 0) {
-                var select_tags = nr_childs[i].getElementsByTagName("select");
-                select_tags[0].disabled = false;
-                var input_tags = nr_childs[i].getElementsByTagName("input");
-                nr_childs[i].removeChild(input_tags[0]);
-            }
-            
         }
     }
 }
@@ -53,7 +63,6 @@ function removeRecipient(id){
 
     var recipients = document.getElementById("recipient-list").getElementsByClassName("recipient-form");
     for(let i = 0; i < recipients.length; i++){
-        console.log(recipients.length);
         renameRecipientContent(recipients[i], i);
     }
 }
@@ -65,5 +74,8 @@ function addRecipient(){
     var new_recipient = childs[0].cloneNode(true);
     renameRecipientContent(new_recipient, new_id);
     recipients.appendChild(new_recipient);
+
+    document.getElementById("recipients-" + new_id + "-search").value = ""
+    trigger_update(new_id)
 }
 

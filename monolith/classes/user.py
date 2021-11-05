@@ -69,42 +69,22 @@ class UserModel:
 
     def search_user_by_key_word(user_id: int, key_word: Optional[str]) -> List[User]:
         valid_users = UserBlacklist.filter_blacklist(
-            current_user.id, UserModel.get_user_list()
+            user_id, UserModel.get_user_list()
         )
 
         filter_users = lambda elem: (
                 key_word in elem.firstname or
                 key_word in elem.lastname or
                 key_word in elem.email or
-                key_word in elem.nickname or
-                key_word in elem.location
+                (elem.nickname and key_word in elem.nickname) or
+                (elem.location and key_word in elem.location)
             )
         
-        if(key_word == ""):
-            return UserModel.get_user_list()
+        if(not key_word or key_word == ""):
+            return valid_users
 
-        return filter(filter_users, valid_users)
-
-        """
-        for elem in UserModel.get_user_list():
-            if(elem is not None):
-                if(elem.firstname is not None and key_word in elem.firstname):
-                    utenti_validi.append(elem)
-                    continue
-                elif(elem.lastname is not None and key_word in elem.lastname):
-                    utenti_validi.append(elem)
-                    continue
-                elif(elem.email is not None and key_word in elem.email):
-                    utenti_validi.append(elem)
-                    continue
-                elif(elem.nickname is not None and key_word in elem.nickname):
-                    utenti_validi.append(elem)
-                    continue
-                elif(elem.location is not None and  key_word in elem.location):
-                    utenti_validi.append(elem)
-                    continue
-        return utenti_validi
-        """
+        filtered_users = list(filter(filter_users, valid_users))
+        return filtered_users if len(filtered_users) > 0 else valid_users
             
     @staticmethod
     def filter_available_recipients(current_id: int, recipients: List[int]) -> List[int]:

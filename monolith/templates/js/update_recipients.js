@@ -15,14 +15,13 @@
 
 function trigger_update(id){
   var filter = document.getElementById("recipients-" + id + "-search").value;
-  fetch('/recipients/' + filter).
+  fetch('/recipients?q=' + filter).
       then(
           function(response) {
               return response.json();
           }
       ).then(
           function(result) {
-              console.log(result.recipients);
               _update_recipients(result.recipients, id)
           }
       );

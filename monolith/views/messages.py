@@ -36,7 +36,7 @@ def draft():
     replying_info = MessageModel.get_replying_info(reply_to)
 
     form = EditMessageForm(recipients=[{"name": "Recipient"}])
-    available_recipients = get_recipients('').json['recipients']
+    available_recipients = get_recipients().json['recipients']
     for recipient_form in form.recipients:
         recipient_form.recipient.choices = available_recipients
     if request.method == "POST":
@@ -95,7 +95,7 @@ def edit_draft(id):
     )
     form_recipients = [{'name': 'Recipient'} for _ in (range(len(old_recipients)) if len(old_recipients) > 0 else range(1))]
     form = EditMessageForm(recipients=form_recipients)
-    available_recipients = get_recipients('').json['recipients']
+    available_recipients = get_recipients().json['recipients']
     for _, recipient_form in enumerate(form.recipients):
         recipient_form.recipient.choices = available_recipients
 
@@ -221,9 +221,10 @@ def reply_to_message(id):
 
 # RESTful API
 
-@messages.route('/recipients/<_filter>', methods=["GET"])
+@messages.route('/recipients', methods=["GET"])
 @login_required
-def get_recipients(_filter):
+def get_recipients():
+    _filter = request.args.get('q', None)
     recipients = list(
         map(
             lambda u: (u.id, u.nickname if u.nickname else u.email),
