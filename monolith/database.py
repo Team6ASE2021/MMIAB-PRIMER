@@ -20,7 +20,7 @@ class User(db.Model):
     dateofbirth = db.Column(db.DateTime)
     content_filter = db.Column(db.Boolean, default=False)
     blacklist = db.Column(db.Unicode(128))
-
+    lottery_points = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
     is_anonymous = False
