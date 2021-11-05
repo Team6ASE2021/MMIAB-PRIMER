@@ -4,9 +4,9 @@ from flask import render_template
 from flask_login.utils import login_required
 
 from monolith.auth import current_user
-from monolith.classes.recipient import RecipientModel
 from monolith.classes.message import MessageModel
 from monolith.classes.message import NotExistingMessageError
+from monolith.classes.recipient import RecipientModel
 from monolith.classes.user import NotExistingUserError
 from monolith.classes.user import UserModel
 
@@ -31,11 +31,6 @@ def read_messages(id):
 
     # some controls to check if user is allowed to read the message or not
     user_allowed = MessageModel.user_can_read(current_user.id, mess)
-    # if mess.is_arrived == True:
-    #     if current_user.id not in RecipientModel.get_recipients(mess) and current_user.id != mess.id_sender:
-    #         user_allowed = False
-    # elif current_user.get_id() != mess.id_sender:
-    #     user_allowed = False
 
     sender_email = ""
     try:
@@ -49,6 +44,7 @@ def read_messages(id):
         user_allowed=user_allowed,
         mess_text=mess_text,
         sender=sender_email,
+        img_path=mess.img_path,
         date_receipt=date_receipt,
         replying_info=replying_info,
     )

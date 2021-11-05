@@ -1,9 +1,12 @@
+import io
 from datetime import datetime
 from http import HTTPStatus
 
+import mock
 import pytest
 from flask import request
 from flask import url_for
+from werkzeug.datastructures import FileStorage
 
 from monolith.classes.message import MessageModel
 from monolith.classes.recipient import RecipientModel
@@ -17,40 +20,42 @@ from monolith.database import User
 @pytest.fixture(scope="class")
 def draft_setup(test_client):
     new_user = {
-        'email': 'example1@example1.com',
-        'firstname': 'jack',
-        'lastname': 'black',
-        'password': 'admin1',
-        'dateofbirth': '01/01/1990'
+        "email": "example1@example1.com",
+        "firstname": "jack",
+        "lastname": "black",
+        "password": "admin1",
+        "dateofbirth": "01/01/1990",
     }
 
     UserModel.create_user(
         User(
-            email=new_user['email'],
-            firstname=new_user['firstname'],
-            lastname=new_user['lastname'],
-            dateofbirth=datetime.strptime(new_user['dateofbirth'], "%d/%m/%Y")
-        ), 
-        password=new_user['password'],
+            email=new_user["email"],
+            firstname=new_user["firstname"],
+            lastname=new_user["lastname"],
+            dateofbirth=datetime.strptime(new_user["dateofbirth"], "%d/%m/%Y"),
+        ),
+        password=new_user["password"],
     )
 
-    admin_user = {'email': 'example@example.com', 'password': 'admin'}
-    test_client.post('/login', data=admin_user, follow_redirects=True)
+    admin_user = {"email": "example@example.com", "password": "admin"}
+    test_client.post("/login", data=admin_user, follow_redirects=True)
 
     data = {
-        'body_message': 'test message 2',
-        'date_of_send': '10:05 07/07/2022',
-        'recipients-0-recipient': '2'
+        "body_message": "test message 2",
+        "date_of_send": "10:05 07/07/2022",
+        "recipients-0-recipient": "2",
+        "image": FileStorage(filename="some_img.jpg", stream=io.BytesIO(b"data data")),
+        "recipient": 2,
     }
     msg = Message(
-        body_message=data['body_message'],
-        date_of_send=datetime.strptime(data['date_of_send'], '%H:%M %d/%m/%Y'),
-        id_sender=1
+        body_message=data["body_message"],
+        date_of_send=datetime.strptime(data["date_of_send"], "%H:%M %d/%m/%Y"),
+        id_sender=1,
     )
     MessageModel.add_draft(msg)
     RecipientModel.set_recipients(msg, [2])
 
-    test_client.get('/logout', follow_redirects=True)
+    test_client.get("/logout", follow_redirects=True)
 
 
 @pytest.mark.usefixtures("clean_db_and_logout", "draft_setup")
@@ -79,11 +84,11 @@ class TestViewsMessagesDraft:
         old_len = db.session.query(Message).count()
 
         data = {
-            'body_message': draft_body,
-            'date_of_send': '10:05 07/07/2022',
-            'recipients-0-recipient': '2'
+            "body_message": draft_body,
+            "date_of_send": "10:05 07/07/2022",
+            "recipients-0-recipient": "2",
         }
-        response = test_client.post('/draft', data=data, follow_redirects=True)
+        response = test_client.post("/draft", data=data, follow_redirects=True)
         assert response.status_code == 200
 
         # Check that the message was added to the table
@@ -101,6 +106,54 @@ class TestViewsMessagesDraft:
         db.session.delete(draft_db)
         db.session.commit()
 
+    def test_draft_with_img_bad_file_extension(self, test_client):
+        image_name = "fake-image-stream.txt"
+        file = FileStorage(filename=image_name, stream=io.BytesIO(b"data data"))
+
+        admin_user = {"email": "example@example.com", "password": "admin"}
+        draft_body = "test_draft"
+
+        response = test_client.post("/login", data=admin_user, follow_redirects=True)
+        assert response.status_code == 200
+
+        data = {
+            "body_message": draft_body,
+            "date_of_send": "10:05 07/07/2022",
+            "image": file,
+            "recipients-0-recipient": "2",
+        }
+        response = test_client.post("/draft", data=data, follow_redirects=True)
+        assert response.status_code == HTTPStatus.OK
+        assert b"You can only upload a jpg,jpeg, or png file" in response.data
+
+    def test_draft_with_img_ok_file_extension(self, test_client):
+        with mock.patch.object(FileStorage, "save", autospec=True, return_value=None):
+            image_name = "fake-image-stream.jpg"
+            file = FileStorage(filename=image_name, stream=io.BytesIO(b"data data"))
+            admin_user = {"email": "example@example.com", "password": "admin"}
+            draft_body = "test_draft"
+
+            response = test_client.post(
+                "/login", data=admin_user, follow_redirects=True
+            )
+            assert response.status_code == 200
+
+            data = {
+                "body_message": draft_body,
+                "date_of_send": "10:05 07/07/2022",
+                "image": file,
+                "recipients-0-recipient": "2",
+            }
+            response = test_client.post("/draft", data=data, follow_redirects=True)
+            assert response.status_code == HTTPStatus.OK
+            draft_db = (
+                db.session.query(Message).order_by(Message.id_message.desc()).first()
+            )
+            assert file.filename in draft_db.img_path
+            draft_db.recipients = []
+            db.session.delete(draft_db)
+            db.session.commit()
+
     def test_draft_added_wrong_fields(self, test_client):
         admin_user = {"email": "example@example.com", "password": "admin"}
         draft_body = "test_draft"
@@ -110,8 +163,12 @@ class TestViewsMessagesDraft:
 
         db.session.query(Message).count()
 
-        data = {'body_message': draft_body, 'date_of_send': 'fail', 'recipients-0-recipient': 'fail'}
-        response = test_client.post('/draft', data=data, follow_redirects=True)
+        data = {
+            "body_message": draft_body,
+            "date_of_send": "fail",
+            "recipients-0-recipient": "fail",
+        }
+        response = test_client.post("/draft", data=data, follow_redirects=True)
         assert response.status_code == HTTPStatus.OK
         assert b"Not a valid" in response.data
 
@@ -162,7 +219,7 @@ class TestViewsMessagesSend:
         message = Message(
             id_sender=1,
             body_message="Ciao",
-            date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y")
+            date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"),
         )
         db.session.add(message)
         db.session.flush()
@@ -191,7 +248,7 @@ class TestViewsMessagesSend:
         response = test_client.post("/send_message/" + str(message.id_message))
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
-        test_client.post('/logout')
+        test_client.post("/logout")
         RecipientModel.set_recipients(message, [])
         db.session.delete(message)
         db.session.commit()
@@ -206,28 +263,30 @@ class TestViewsMessagesSend:
         MessageModel.add_draft(message)
         RecipientModel.set_recipients(message, [1])
 
-        response = test_client.post('/send_message/' + str(message.id_message))
-        assert b'Message has been sent correctly' in response.data
+        response = test_client.post("/send_message/" + str(message.id_message))
+        assert b"Message has been sent correctly" in response.data
         RecipientModel.set_recipients(message, [])
         db.session.delete(message)
         db.session.commit()
 
     def test_send_message_multiple_recipients(self, test_client):
-        message = Message(id_sender=1,
-                          body_message="Ciao",
-                          date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"))
+        message = Message(
+            id_sender=1,
+            body_message="Ciao",
+            date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"),
+        )
         MessageModel.add_draft(message)
         RecipientModel.set_recipients(message, [1, 2])
 
-        response = test_client.post('/send_message/' + str(message.id_message))
-        assert b'Message has been sent correctly' in response.data
+        response = test_client.post("/send_message/" + str(message.id_message))
+        assert b"Message has been sent correctly" in response.data
         RecipientModel.set_recipients(message, [])
         db.session.delete(message)
         db.session.commit()
 
     def test_send_message_not_exists(wself, test_client):
-        response = test_client.post('/send_message/1000')
-        assert b'1000 message not found' in response.data
+        response = test_client.post("/send_message/1000")
+        assert b"1000 message not found" in response.data
         assert response.status_code == HTTPStatus.NOT_FOUND
 
 
@@ -268,7 +327,7 @@ class TestViewsMessagesDraftEdit:
         draft = {
             "body_message": "test_edit",
             "date_of_send": "09:15 10/01/2022",
-            "recipients-0-recipient": '2',
+            "recipients-0-recipient": "2",
         }
         response = test_client.post(
             url_for("messages.edit_draft", id=1), data=draft, follow_redirects=True
@@ -330,6 +389,51 @@ class TestViewsMessagesDraftEdit:
         assert response.status_code == HTTPStatus.OK
         assert RecipientModel.get_recipients(draft) == [1, 3]
         test_client.get('/logout')
+
+    def test_draft_edit_with_img_bad_file_extension(self, test_client):
+        image_name = "fake-image-stream.txt"
+        file = FileStorage(filename=image_name, stream=io.BytesIO(b"data data"))
+
+        admin_user = {"email": "example@example.com", "password": "admin"}
+
+        response = test_client.post("/login", data=admin_user, follow_redirects=True)
+        assert response.status_code == 200
+
+        draft = {
+            "body_message": "test_edit",
+            "date_of_send": "09:15 10/01/2022",
+            "image": file,
+            "recipient": 2,
+        }
+        response = test_client.post(
+            url_for("messages.edit_draft", id=1), data=draft, follow_redirects=True
+        )
+        assert response.status_code == HTTPStatus.OK
+        assert b"You can only upload a jpg,jpeg, or png file" in response.data
+
+    def test_draft_with_img_ok_file_extension(self, test_client):
+        with mock.patch.object(FileStorage, "save", autospec=True, return_value=None):
+            image_name = "fake-image-stream.jpg"
+            file = FileStorage(filename=image_name, stream=io.BytesIO(b"data data"))
+            admin_user = {"email": "example@example.com", "password": "admin"}
+
+            response = test_client.post(
+                "/login", data=admin_user, follow_redirects=True
+            )
+            assert response.status_code == 200
+            draft = {
+                "body_message": "test_edit",
+                "date_of_send": "09:15 10/01/2022",
+                "image": file,
+                "recipient": 2,
+            }
+            response = test_client.post(
+                url_for("messages.edit_draft", id=1), data=draft, follow_redirects=True
+            )
+            assert response.status_code == HTTPStatus.OK
+            draft_db = db.session.query(Message).filter(Message.id_message == 1).first()
+            assert file.filename in draft_db.img_path
+
 
 @pytest.mark.usefixtures("clean_db_and_logout", "draft_setup")
 class TestViewsMessagesDeleteReadMessage:

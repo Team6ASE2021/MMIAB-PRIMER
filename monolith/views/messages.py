@@ -1,4 +1,6 @@
+import os
 from http import HTTPStatus
+from uuid import uuid4
 
 from flask import abort
 from flask import Blueprint
@@ -7,9 +9,11 @@ from flask import jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
+from flask.globals import current_app
 from flask.helpers import flash
 from flask.helpers import url_for
 from flask_login.utils import login_required
+from werkzeug.utils import secure_filename
 
 from monolith.auth import current_user
 from monolith.classes.message import ContentFilter
@@ -30,23 +34,34 @@ def draft():
     reply_to = request.args.get('reply_to', None)
     replying_info = MessageModel.get_replying_info(reply_to)
 
-    form = EditMessageForm(recipients=[{'name': 'Recipient'}])
+    form = EditMessageForm(recipients=[{"name": "Recipient"}])
     available_recipients = get_recipients().json['recipients']
     for recipient_form in form.recipients:
         recipient_form.recipient.choices = available_recipients
-    if request.method == 'POST':
+    if request.method == "POST":
         if form.validate_on_submit():
             new_draft = Message()
 
-            new_draft.body_message=form.body_message.data
-            new_draft.date_of_send=form.date_of_send.data
-            new_draft.to_filter=ContentFilter.filter_content(form.body_message.data)
-            new_draft.id_sender=current_user.id
+            new_draft.body_message = form.body_message.data
+            new_draft.date_of_send = form.date_of_send.data
+            new_draft.id_sender = current_user.id
             new_draft.reply_to = reply_to
-            MessageModel.add_draft(new_draft)
+            new_draft.to_filter = ContentFilter.filter_content(new_draft.body_message)
 
+            if form.image.data:
+                file = form.image.data
+                name = file.filename
+                name = str(uuid4()) + secure_filename(name)
+
+                path = os.path.join(current_app.config["UPLOAD_FOLDER"], name)
+                new_draft.img_path = name
+                file.save(path)
+            MessageModel.add_draft(new_draft)
             draft_recipients = [int(rf.recipient.data[0]) for rf in form.recipients]
-            draft_recipients = UserModel.filter_available_recipients(current_user.id, draft_recipients)
+            draft_recipients = UserModel.filter_available_recipients(
+                current_user.id, draft_recipients
+            )
+
             RecipientModel.set_recipients(new_draft, draft_recipients, replying=replying_info is not None)
 
             return redirect('/read_message/' + str(new_draft.id_message))
@@ -68,36 +83,57 @@ def edit_draft(id):
 
     if current_user.get_id() != draft.id_sender:
         abort(
-            HTTPStatus.UNAUTHORIZED, description='You are not allowed to see this page!'
+            HTTPStatus.UNAUTHORIZED, description="You are not allowed to see this page!"
         )
 
     replying_info = MessageModel.get_replying_info(draft.reply_to)
     
     old_recipients = [recipient.id_recipient for recipient in draft.recipients]
-    old_recipients = UserModel.filter_available_recipients(current_user.id, old_recipients)
+    old_recipients = UserModel.filter_available_recipients(
+        current_user.id, old_recipients
+    )
     form_recipients = [{'name': 'Recipient'} for _ in (range(len(old_recipients)) if len(old_recipients) > 0 else 1)]
     form = EditMessageForm(recipients=form_recipients)
     available_recipients = get_recipients().json['recipients']
     for _, recipient_form in enumerate(form.recipients):
         recipient_form.recipient.choices = available_recipients
 
-    if request.method == 'POST':
+    if request.method == "POST":
         if form.validate_on_submit():
+            draft_recipients = [int(rf.recipient.data[0]) for rf in form.recipients]
+            draft_recipients = UserModel.filter_available_recipients(
+                current_user.id, draft_recipients
+            )
+            RecipientModel.set_recipients(draft, draft_recipients, replying=replying_info is not None)
+            if form.image.data:
+                file = form.image.data
+                new_path = str(uuid4()) + secure_filename(form.image.data.filename)
+                path = os.path.join(current_app.config["UPLOAD_FOLDER"], new_path)
+                if draft.img_path:
+                    os.remove(
+                        os.path.join(
+                            current_app.config["UPLOAD_FOLDER"], draft.img_path
+                        )
+                    )
+                file.save(path)
 
+            else:
+                new_path = draft.img_path
+
+            draft.img_path = new_path
             MessageModel.update_draft(
                 draft.id_message,
-                body_message = form.body_message.data,
-                date_of_send = form.date_of_send.data,
+                body_message=form.body_message.data,
+                date_of_send=form.date_of_send.data,
             )
 
             draft_recipients = [int(rf.recipient.data[0]) for rf in form.recipients]
             draft_recipients = UserModel.filter_available_recipients(current_user.id, draft_recipients)
-            RecipientModel.set_recipients(draft, draft_recipients, replying=replying_info is not None)
 
             return redirect('/read_message/' + str(draft.id_message))
 
     return render_template(
-        'edit_message.html',
+        "edit_message.html",
         form=form,
         old_date=draft.date_of_send,
         old_message=draft.body_message,
@@ -105,6 +141,7 @@ def edit_draft(id):
         id_sender=draft.id_sender,
         replying_info=replying_info,
         available_recipients=available_recipients,
+        old_img=draft.img_path,
     )
 
 
@@ -129,7 +166,7 @@ def send_message(id):
             flash("You have to set the date of send")
             return redirect("draft/edit/" + str(message.id_message))
 
-        #check if the receipent is not Null
+        # check if the receipent is not Null
         if len(message.recipients) == 0:
             flash("You have to set the receipent")
             return redirect("draft/edit/" + str(message.id_message))
@@ -151,12 +188,15 @@ def delete_message(id: int):
     try:
         mess = MessageModel.id_message_exists(id)
     except NotExistingMessageError:
-        abort(404,description='Message not found')
-    
-    if current_user.get_id() not in RecipientModel.get_recipients(mess) or mess.is_arrived == False:
+        abort(404, description="Message not found")
+
+    if (
+        current_user.get_id() not in RecipientModel.get_recipients(mess)
+        or mess.is_arrived == False
+    ):
         abort(
             HTTPStatus.UNAUTHORIZED,
-            description='You are not allowed to delete this message'
+            description="You are not allowed to delete this message",
         )
     else:
         MessageModel.delete_message(id)

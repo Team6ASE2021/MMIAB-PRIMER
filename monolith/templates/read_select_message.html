@@ -23,6 +23,11 @@
 
             <h3>Sender: </h3>  {{ sender }}
 
+            {% if img_path %}
+            <h3>Image:<br>
+              <img src="{{url_for('static', filename='assets/' + img_path)}}" alt="mess" width="300" height="300" ></h3>
+            {% endif %}
+
             <h3>Date of receipt: </h3>  {{ date_receipt|delivery_datetime_format }}
 
             <h3>Return to the <a href="/">Home Page</a></h3>

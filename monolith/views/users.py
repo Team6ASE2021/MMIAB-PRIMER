@@ -1,15 +1,19 @@
+import os
 from http import HTTPStatus
 from typing import Optional
 from typing import Text
+from uuid import uuid4
 
 from flask import abort
 from flask import Blueprint
 from flask import redirect
 from flask import render_template
 from flask import request
+from flask.globals import current_app
 from flask.wrappers import Response
 from flask_login import current_user
 from flask_login.utils import login_required
+from werkzeug.utils import secure_filename
 
 from monolith.classes.user import BlockingCurrentUserError
 from monolith.classes.user import NotExistingUserError
@@ -39,10 +43,20 @@ def create_user():
             new_user = User()
             form.populate_obj(new_user)
             """
+
             Password should be hashed with some salt. For example if you choose a hash function x,
             where x is in [md5, sha1, bcrypt], the hashed_password should be = x(password + s) where
             s is a secret key.
             """
+            if form.profile_picture.data:
+                file = form.profile_picture.data
+                name = file.filename
+                name = str(uuid4()) + secure_filename(name)
+
+                path = os.path.join(current_app.config["UPLOAD_FOLDER"], name)
+                new_user.set_pfp_path(name)
+                file.save(path)
+
             UserModel.create_user(new_user, form.password.data)
             return redirect("/login")
 
@@ -58,6 +72,7 @@ def user_info(id: int) -> Text:
             "user_info.html" if current_user.id == id else "user_info_other.html",
             user=user,
         )
+
     except NotExistingUserError:
         abort(HTTPStatus.NOT_FOUND)
 
@@ -74,8 +89,11 @@ def user_list() -> Optional[Text]:
 @login_required
 def delete_user(id: int) -> Response:
     try:
-        UserModel.delete_user(id)
-        return redirect("/")
+        if id != current_user.get_id():
+            abort(HTTPStatus.UNAUTHORIZED)
+        else:
+            UserModel.delete_user(id)
+            return redirect("/")
     except NotExistingUserError:
         abort(HTTPStatus.NOT_FOUND)
 
