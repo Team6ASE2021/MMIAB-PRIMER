@@ -148,6 +148,7 @@ class MessageModel:
         is_sent = False,
         is_arrived = False,
         is_notified = False,
+        reply_to = None,
         to_filter = False
     ):
         message = Message()
@@ -157,12 +158,17 @@ class MessageModel:
         message.is_sent = is_sent
         message.is_arrived = is_arrived
         message.is_notified = is_notified
+        message.reply_to = reply_to
         message.to_filter = to_filter
 
         db.session.add(message)
         db.session.flush()
 
-        message.recipients = [Recipient(id_recipient=recipient_id) for recipient_id in recipients]
+        _recipients = []
+        for rcp in recipients:
+            if rcp not in _recipients:
+                _recipients.append(rcp)
+        message.recipients = [Recipient(id_recipient=recipient_id) for recipient_id in _recipients]
 
         db.session.commit()
 
@@ -178,6 +184,37 @@ class MessageModel:
         db.session.delete(mess)
         db.session.commit()
 
+    @staticmethod
+    def user_can_read(user_id: int, message: Message) -> bool:
+        recipients = [rcp.id_recipient for rcp in message.recipients]
+        if message.is_arrived == True:
+            if user_id not in recipients and user_id != message.id_sender:
+                return False
+        elif user_id != message.id_sender:
+            return False
+
+        return True
+
+    @staticmethod
+    def user_can_reply(user_id: int, message: Message) -> bool:
+        recipients = [rcp.id_recipient for rcp in message.recipients]
+        return message.is_arrived == True and user_id in recipients
+
+    @staticmethod
+    def get_replying_info(reply_to: Optional[int]) -> Optional[dict]:
+        try:
+            if reply_to is None:
+                raise NotExistingMessageError('Trying to reply to a non existing message')
+
+            r_message = MessageModel.id_message_exists(reply_to) if reply_to else None
+            r_user = db.session.query(User).filter(User.id == r_message.id_sender).first() 
+            return {
+                'message': r_message,
+                'user': r_user,
+            } if r_user else None
+        except NotExistingMessageError:
+            return None
+
 
 class NotExistingMessageError(Exception):
     def __init__(self, value):
@@ -185,3 +222,4 @@ class NotExistingMessageError(Exception):
 
     def __str__(self):
         return repr(self.value)
+

@@ -66,6 +66,9 @@ class Message(db.Model):
     # boolean flag that tells if the message must be filtered for users who resquest it
     to_filter = db.Column(db.Boolean, default=False)
 
+    # id of the message this one is a reply for
+    reply_to = db.Column(db.Integer)
+
     # constructor of the message object
     def __init__(self, *args, **kw):
         super(Message, self).__init__(*args, **kw)

@@ -1,7 +1,7 @@
 <html>
     <head>
         <style type="text/css">
-            {% include "css/create_message.css" %}
+            {% include "css/message_form.css" %}
         </style>
         <script>
             {% include "js/manage_recipients.js" %}
@@ -13,6 +13,14 @@
         {% include 'pop-up.html' %}
 
         {% if current_user.is_authenticated and current_user.id == id_sender %}
+
+            {% if replying_info is not none %}
+                <div class="replied-box-above">Replying to:</div>
+                <div class="replied-box">
+                    <div class="replied-sender">{{ replying_info['user'].firstname }} {{ replying_info['user'].lastname }}</div>
+                    <div class="replied-body">{{ replying_info['message'].body_message }}</div>
+                </div>
+            {% endif %}
 
             <form action="" method="POST">
                 {{ form.hidden_tag() }}
@@ -42,8 +50,29 @@
                                 <dt>{{ recipient_form.recipient.label }}</dt>
                                 <dd>
                                     <div class="recipient-field">
-                                        {{ recipient_form.recipient() }}
-                                        <!--<div class="recipient-delete"><a href="javascript: ();">x</a></div>-->
+                                        <select 
+                                            id="recipients-{{ loop.index0 }}-recipient" 
+                                            name="recipients-{{ loop.index0 }}-recipient"
+                                            {{'disabled' if replying_info is not none and loop.index0 == 0}}
+                                        >
+                                             {% set outer_loop = loop %}
+                                             {% for rcp in available_recipients %}
+                                             <option 
+                                                 value="{{rcp[0]}}"
+                                                 {{'selected' if old_recs|length > 0 and old_recs[outer_loop.index0] == rcp[0]}}
+                                             >
+                                                 {{ rcp[1] }}
+                                             </option>
+                                             {% endfor %}
+                                         </select>
+                                         {% if replying_info is not none and loop.index0 == 0 %}
+                                             <input 
+                                                 type="hidden"
+                                                 name="recipients-{{ loop.index0 }}-recipient"
+                                                 value="{{replying_info['message'].id_sender}}"
+                                             />
+                                         {%endif%}
+                                         <!--<div class="recipient-delete"><a href="javascript: ();">x</a></div>-->
                                     </div>
                                 </dd>
                                     {% if recipient_form.recipient.errors %}

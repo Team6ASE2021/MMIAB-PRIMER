@@ -27,9 +27,13 @@ messages = Blueprint("messages", __name__)
 @messages.route("/draft", methods=["POST", "GET"])
 @login_required
 def draft():
+    reply_to = request.args.get('reply_to', None)
+    replying_info = MessageModel.get_replying_info(reply_to)
+
     form = EditMessageForm(recipients=[{'name': 'Recipient'}])
+    available_recipients = get_recipients().json['recipients']
     for recipient_form in form.recipients:
-        recipient_form.recipient.choices = get_recipients().json['recipients']
+        recipient_form.recipient.choices = available_recipients
     if request.method == 'POST':
         if form.validate_on_submit():
             new_draft = Message()
@@ -38,15 +42,21 @@ def draft():
             new_draft.date_of_send=form.date_of_send.data
             new_draft.to_filter=ContentFilter.filter_content(form.body_message.data)
             new_draft.id_sender=current_user.id
+            new_draft.reply_to = reply_to
             MessageModel.add_draft(new_draft)
 
             draft_recipients = [int(rf.recipient.data[0]) for rf in form.recipients]
             draft_recipients = UserModel.filter_available_recipients(current_user.id, draft_recipients)
-            RecipientModel.set_recipients(new_draft, draft_recipients)
+            RecipientModel.set_recipients(new_draft, draft_recipients, replying=replying_info is not None)
 
             return redirect('/read_message/' + str(new_draft.id_message))
         
-    return render_template('create_message.html', form=form)
+    return render_template(
+        'create_message.html',
+        form=form,
+        replying_info=replying_info,
+        available_recipients=available_recipients,
+    )
 
 @messages.route("/draft/edit/<int:id>", methods=["POST", "GET"])
 @login_required
@@ -61,17 +71,19 @@ def edit_draft(id):
             HTTPStatus.UNAUTHORIZED, description='You are not allowed to see this page!'
         )
 
+    replying_info = MessageModel.get_replying_info(draft.reply_to)
+    
     old_recipients = [recipient.id_recipient for recipient in draft.recipients]
     old_recipients = UserModel.filter_available_recipients(current_user.id, old_recipients)
-    form_recipients = []
-    for _ in range(len(old_recipients) if len(old_recipients) > 0 else 1):
-        form_recipients.append({'name': 'Recipient'})
+    form_recipients = [{'name': 'Recipient'} for _ in (range(len(old_recipients)) if len(old_recipients) > 0 else 1)]
     form = EditMessageForm(recipients=form_recipients)
-    for recipient_form in form.recipients:
-        recipient_form.recipient.choices = get_recipients().json['recipients']
+    available_recipients = get_recipients().json['recipients']
+    for _, recipient_form in enumerate(form.recipients):
+        recipient_form.recipient.choices = available_recipients
 
     if request.method == 'POST':
         if form.validate_on_submit():
+
             MessageModel.update_draft(
                 draft.id_message,
                 body_message = form.body_message.data,
@@ -80,7 +92,7 @@ def edit_draft(id):
 
             draft_recipients = [int(rf.recipient.data[0]) for rf in form.recipients]
             draft_recipients = UserModel.filter_available_recipients(current_user.id, draft_recipients)
-            RecipientModel.set_recipients(draft, draft_recipients)
+            RecipientModel.set_recipients(draft, draft_recipients, replying=replying_info is not None)
 
             return redirect('/read_message/' + str(draft.id_message))
 
@@ -90,7 +102,9 @@ def edit_draft(id):
         old_date=draft.date_of_send,
         old_message=draft.body_message,
         old_recs=old_recipients,
-        id_sender=draft.id_sender
+        id_sender=draft.id_sender,
+        replying_info=replying_info,
+        available_recipients=available_recipients,
     )
 
 
@@ -148,6 +162,20 @@ def delete_message(id: int):
         MessageModel.delete_message(id)
         flash("Message succesfully deleted")
         return redirect(url_for("mailbox.mailbox_list_received"))
+
+
+@messages.route('/message/<int:id>/reply', methods=['GET'])
+@login_required
+def reply_to_message(id):
+    try:
+        message = MessageModel.id_message_exists(id)
+    except NotExistingMessageError:
+        abort(HTTPStatus.NOT_FOUND, description='Message not found')
+
+    if not MessageModel.user_can_reply(current_user.id, message):
+        abort(HTTPStatus.UNAUTHORIZED, description='You cannot reply to this message')
+    
+    return redirect(url_for("messages.draft", reply_to=id))
 
 
 # RESTful API

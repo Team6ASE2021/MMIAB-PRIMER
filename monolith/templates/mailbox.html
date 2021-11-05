@@ -63,7 +63,11 @@
                                     {% set firstname = recipient.user.firstname %}
                                     {% set lastname = recipient.user.lastname %}
                                     {% set user_url = url_for('users.user_info', id=recipient.id_recipient) %}
-                                    <div onclick="location.href='{{ user_url }}'"> {{ firstname }} {{ lastname }} </div>
+                                    <div onclick="location.href='{{ user_url }}'"> 
+                                        {{ 'RE: ' if m.reply_to is not none and loop.index0 == 0 }}
+                                        {{ firstname }} 
+                                        {{ lastname }} 
+                                    </div>
                                 {% endfor %}
                             {% else %}
                                 <div onclick="location.href='{{ user_url }}'"> {{ firstname }} {{ lastname }} </div>

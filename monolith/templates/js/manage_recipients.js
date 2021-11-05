@@ -35,6 +35,14 @@ function renameRecipientContent(recipient, new_id){
             } else {
                 a_tags[0].href = "javascript: removeRecipient(" + new_id + ");";
             }
+
+            if(new_id > 0) {
+                var select_tags = nr_childs[i].getElementsByTagName("select");
+                select_tags[0].disabled = false;
+                var input_tags = nr_childs[i].getElementsByTagName("input");
+                nr_childs[i].removeChild(input_tags[0]);
+            }
+            
         }
     }
 }

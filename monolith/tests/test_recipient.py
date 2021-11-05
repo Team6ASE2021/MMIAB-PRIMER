@@ -71,6 +71,12 @@ class TestRecipientModel:
         assert db.session.query(Message).first().recipients[0].id_recipient == db.session.query(Recipient).first().id_recipient
         assert db.session.query(Message).first().recipients[1].id_recipient == db.session.query(Recipient).all()[1].id_recipient
 
+        RecipientModel.set_recipients(message, [2, 2])
+
+        assert db.session.query(Message).count() == 1
+        assert db.session.query(Recipient).count() == 1
+        assert db.session.query(Message).first().recipients[0].id_recipient == db.session.query(Recipient).first().id_recipient
+
         RecipientModel.set_recipients(message, [2])
 
         assert db.session.query(Message).count() == 1
@@ -85,6 +91,36 @@ class TestRecipientModel:
         db.session.query(Message).delete()
         db.session.commit()
         assert db.session.query(Message).count() == 0
+
+    def test_recipient_set_replying(self):
+        message = Message(id_sender=2,
+                          body_message="Ciao",
+                          date_of_send=datetime.strptime("01/01/2000", "%d/%m/%Y"),
+                          is_sent=True,
+                          is_arrived=True)
+        db.session.add(message)
+        db.session.flush()
+        message2 = Message(id_sender=1,
+                          body_message="Ciao",
+                          date_of_send=datetime.strptime("01/01/2000", "%d/%m/%Y"),
+                          reply_to=1)
+        db.session.add(message2)
+        db.session.flush()
+        RecipientModel.set_recipients(message, [1])
+        RecipientModel.set_recipients(message2, [2], replying=True)
+
+        assert message.recipients[0].id_recipient == 1
+        assert message2.recipients[0].id_recipient == 2
+
+        RecipientModel.set_recipients(message2, [1], replying=True)
+
+        assert message2.recipients[0].id_recipient == 2
+        assert message2.recipients[1].id_recipient == 1
+
+        RecipientModel.set_recipients(message, [])
+        RecipientModel.set_recipients(message2, [])
+        db.session.query(Message).delete()
+        db.session.commit()
 
     def test_recipient_get(self):
         message = Message(id_sender=2,

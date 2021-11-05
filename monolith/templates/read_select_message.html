@@ -1,21 +1,38 @@
-<h1>My Message in a Bottle -- Primer</h1>
+<html>
+    <head>
+        <style type="text/css">
+            {% include "css/message_form.css" %}
+        </style>
+    </head>
+    <body>
+        <h1>My Message in a Bottle -- Primer</h1>
 
-{% if current_user.is_authenticated %}
-  {% if user_allowed %}
-    Hey {{ current_user.firstname }}, this is the message you selected !
-    <h3>Message Text:</h3>
-    {{ mess_text }}
+        {% if current_user.is_authenticated %}
+          {% if user_allowed %}
+            Hey {{ current_user.firstname }}, this is the message you selected !
+            <p>
+            {% if replying_info is not none %}
+              <div class="replied-box-above">Replying to:</div>
+              <div class="replied-box">
+                  <div class="replied-sender">{{ replying_info['user']['firstname'] }} {{ replying_info['user']['lastname'] }}</div>
+                  <div class="replied-body">{{ replying_info['message'].body_message }}</div>
+              </div>
+            {% endif %}
+            <h3>Message Text:</h3>
+            {{ mess_text }}
 
-    <h3>Sender: </h3>  {{ sender }}
+            <h3>Sender: </h3>  {{ sender }}
 
-    <h3>Date of receipt: </h3>  {{ date_receipt }}
+            <h3>Date of receipt: </h3>  {{ date_receipt|delivery_datetime_format }}
 
-    <h3>Return to the <a href="/">Home Page</a></h3>
-  {% else %}
-    Hey {{current_user.firstname}}, you are not allowed to read this message.<br>
-    Please <a href="/logout">Logout</a> and log back in with the right account.
-  {% endif %}
+            <h3>Return to the <a href="/">Home Page</a></h3>
+          {% else %}
+            Hey {{current_user.firstname}}, you are not allowed to read this message.<br>
+            Please <a href="/logout">Logout</a> and log back in with the right account.
+          {% endif %}
 
-{% else %}
-   Hey Anonymous, please <a href="/login">Log in</a> to read this message
-{% endif %}
+        {% else %}
+           Hey Anonymous, please <a href="/login">Log in</a> to read this message
+        {% endif %}
+    </body>
+</html>
