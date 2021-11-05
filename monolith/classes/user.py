@@ -69,8 +69,8 @@ class UserModel:
 
     @staticmethod
     def filter_available_recipients(current_id: int, recipients: List[int]) -> List[int]:
-        valid_users = [user for user in UserModel.get_users_by_ids(recipients)]
-        return [ user.id for user in UserBlacklist.filter_blacklist(current_id, valid_users)]
+        valid_users = [user.id for user in ( UserBlacklist.filter_blacklist( current_id, UserModel.get_users_by_ids(recipients)))]
+        return [rcp_id for rcp_id in recipients if rcp_id in valid_users]
     
 class UserBlacklist:
 

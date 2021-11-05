@@ -142,6 +142,7 @@ class TestMessage:
         MessageModel.get_notify(UserModel.get_user_info_by_id(message.recipients[0].id_recipient))
         assert message.recipients[0].is_notified == True 
 
+        message.recipients = []
         db.session.delete(message)
         db.session.commit()
 
@@ -166,6 +167,157 @@ class TestMessage:
         with pytest.raises(NotExistingMessageError):
             MessageModel.delete_message(1000)
 
+    def test_user_cannot_read_arrived(self):
+        message = Message(
+            id_sender=2,
+            body_message="Ciao",
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+            is_sent=True,
+            is_arrived=True,
+        )
+        db.session.add(message)
+        db.session.commit()
+        message.recipients = [Recipient(id_recipient=1)]
+        db.session.commit()
+
+        assert MessageModel.user_can_read(8, message) == False
+
+        message.recipients = []
+        db.session.delete(message)
+        db.session.commit()
+
+    def test_user_cannot_read_not_arrived(self):
+        message = Message(
+            id_sender=2,
+            body_message="Ciao",
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+            is_sent=True,
+            is_arrived=False,
+        )
+        db.session.add(message)
+        db.session.commit()
+        message.recipients = [Recipient(id_recipient=1)]
+        db.session.commit()
+
+        assert MessageModel.user_can_read(1, message) == False
+
+        message.recipients = []
+        db.session.delete(message)
+        db.session.commit()
+        
+    def test_user_can_read(self):
+        message = Message(
+            id_sender=2,
+            body_message="Ciao",
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+            is_sent=True,
+            is_arrived=True,
+        )
+        db.session.add(message)
+        db.session.commit()
+        message.recipients = [Recipient(id_recipient=1)]
+        db.session.commit()
+
+        assert MessageModel.user_can_read(1, message) == True
+        assert MessageModel.user_can_read(2, message) == True
+        message.is_arrived = False
+        db.session.commit()
+        assert MessageModel.user_can_read(2, message) == True
+
+        message.recipients = []
+        db.session.delete(message)
+        db.session.commit()
+
+    def test_user_cannot_reply(self):
+        message = Message(
+            id_sender=2,
+            body_message="Ciao",
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+            is_sent=True,
+            is_arrived=False,
+        )
+        db.session.add(message)
+        db.session.commit()
+        message.recipients = [Recipient(id_recipient=1)]
+        db.session.commit()
+
+        assert MessageModel.user_can_reply(1, message) == False
+        message.is_arrived = True
+        db.session.commit()
+        assert MessageModel.user_can_reply(2, message) == False
+        message.is_arrived = False
+        db.session.commit()
+        assert MessageModel.user_can_reply(2, message) == False
+
+        message.recipients = []
+        db.session.delete(message)
+        db.session.commit()
+
+    def test_user_can_reply(self):
+        message = Message(
+            id_sender=2,
+            body_message="Ciao",
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+            is_sent=True,
+            is_arrived=True,
+        )
+        db.session.add(message)
+        db.session.commit()
+        message.recipients = [Recipient(id_recipient=1)]
+        db.session.commit()
+
+        assert MessageModel.user_can_reply(1, message) == True
+
+        message.recipients = []
+        db.session.delete(message)
+        db.session.commit()
+
+    def test_replying_info_no_reply(self):
+
+        assert MessageModel.get_replying_info(None) == None
+        assert MessageModel.get_replying_info(8) == None
+
+        message = Message(
+            id_sender=8,
+            body_message="Ciao",
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+            is_sent=True,
+            is_arrived=True,
+        )
+        db.session.add(message)
+        db.session.commit()
+        message.recipients = [Recipient(id_recipient=1)]
+        db.session.commit()
+
+        assert MessageModel.get_replying_info(message.id_message) == None
+
+        message.recipients = []
+        db.session.delete(message)
+        db.session.commit()
+
+    def test_replying_info_ok(self):
+
+        message = Message(
+            id_sender=1,
+            body_message="Ciao",
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+            is_sent=True,
+            is_arrived=True,
+        )
+        db.session.add(message)
+        db.session.commit()
+        message.recipients = [Recipient(id_recipient=1)]
+        db.session.commit()
+
+        info = MessageModel.get_replying_info(message.id_message)
+        assert 'message' in info
+        assert info['message'].id_message == message.id_message
+        assert 'user' in info
+        assert info['user'].id == 1
+
+        message.recipients = []
+        db.session.delete(message)
+        db.session.commit()
 
 class TestMessageContentFilter:
     def test_content_filter_unsafe(self):

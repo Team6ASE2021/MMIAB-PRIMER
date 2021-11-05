@@ -18,7 +18,6 @@ read_message = Blueprint("read_message", __name__)
 def read_messages(id):
     # check if the user is authenticated
     mess_text = sender_email = date_receipt = None
-    user_allowed = True
 
     try:
         mess = MessageModel.id_message_exists(id)
@@ -28,16 +27,10 @@ def read_messages(id):
     sender_id = mess.id_sender
     mess_text = mess.body_message
     date_receipt = mess.date_of_send
+    replying_info = MessageModel.get_replying_info(mess.reply_to)
 
     # some controls to check if user is allowed to read the message or not
-    if mess.is_arrived == True:
-        if (
-            current_user.id not in RecipientModel.get_recipients(mess)
-            and current_user.id != mess.id_sender
-        ):
-            user_allowed = False
-    elif current_user.get_id() != mess.id_sender:
-        user_allowed = False
+    user_allowed = MessageModel.user_can_read(current_user.id, mess)
 
     sender_email = ""
     try:
@@ -53,4 +46,5 @@ def read_messages(id):
         sender=sender_email,
         img_path=mess.img_path,
         date_receipt=date_receipt,
+        replying_info=replying_info,
     )
