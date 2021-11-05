@@ -1,33 +1,111 @@
 <html>
- <body>
+    <head>
+        <style type="text/css">
+            {% include "css/message_form.css" %}
+        </style>
+        <script>
+            {% include "js/manage_recipients.js" %}
+            {% include "js/update_recipients.js" %}
+        </script>
+    </head>
+    <body>
 
-   <script> {% include "js/update_recipients.js" %} </script>
-
- {% if current_user.is_authenticated %}
-
-   <form action="" method="POST">
-     {{ form.hidden_tag() }}
-     <dl>
-      {% for field in form.display %}
-      <dt>{{ form[field].label }}</dt>
-      <dd>{{ form[field]() }}</dd>
-        {% if form[field].errors %}
-           {% for e in form[field].errors %}
-            <p class="help-block">{{ e }}</p>
-           {% endfor %}
+    {% if current_user.is_authenticated %}
+        {% if replying_info is not none %}
+          <div class="replied-box-above">Replying to:</div>
+          <div class="replied-box">
+              <div class="replied-sender">{{ replying_info['user'].firstname}} {{ replying_info['user'].lastname}}</div>
+              <div class="replied-body">{{ replying_info['message'].body_message }}</div>
+          </div>
         {% endif %}
-      {% endfor %}
-      <dd><button id="search_button" type="button" onclick="_test();">Search</button></dd>
-     </dl>
-     <p>
-     <input type=submit value="Save as Draft">
-   </form>
-  
- {% else %}
-   Hi Anonymous, please <a href="/login">Log in</a> to draft a message
- {% endif %}
 
-
- </body>
+        <form action="" method="POST">
+            {{ form.hidden_tag() }}
+            <dl>
+                <dt>{{ form.body_message.label }}</dt>
+                <dd>{{ form.body_message() }}</dd>
+                    {% if form.date_of_send.errors %}
+                        {% for e in form.date_of_send.errors %}
+                            <p class="help-block">{{ e }}</p>
+                        {% endfor %}
+                    {% endif %}
+                <dt>{{ form.image.label }}</dt>
+                <dd>{{ form.image() }}</dd>
+                    {% if form.image.errors %}
+                        {% for e in form.image.errors %}
+                            <p class="help-block">{{ e }}</p>
+                        {% endfor %}
+                    {% endif %}
+                <dt>{{ form.date_of_send.label }}</dt>
+                <dd style="font-size: 10pt;">{{ form.date_of_send.format }}</dt>
+                <dd>{{ form.date_of_send() }}</dd>
+                    {% if form.date_of_send.errors %}
+                        {% for e in form.date_of_send.errors %}
+                            <p class="help-block">{{ e }}</p>
+                        {% endfor %}
+                    {% endif %}
+                <div id="recipient-list">
+                    {% for recipient_form in form.recipients %}
+                         <div class="recipient-form" id="recipients-{{ loop.index0 }}-form">
+                             {{ recipient_form.hidden_tag() }}
+                             <dt>{{ recipient_form.recipient.label }}</dt>
+                             <dd>
+                                 <div class="fields-container">
+                                     <div class="search-field">
+                                         {{ recipient_form.search() }
+                                     </div>
+                                     <div class="recipient-field">
+                                         <!--
+                                         {{ recipient_form.recipient() }}
+                                         -->
+                                         <select 
+                                             id="recipients-{{ loop.index0 }}-recipient" 
+                                             name="recipients-{{ loop.index0 }}-recipient"
+                                             {{'disabled' if replying_info is not none}}
+                                         >
+                                             {% for rcp in available_recipients %}
+                                             <option 
+                                                 value="{{ rcp[0] }}" 
+                                                 {{'selected' if replying_info is not none and replying_info['message'].id_sender == rcp[0]}}
+                                             >
+                                                 {{ rcp[1] }}
+                                             </option>
+                                             {% endfor %}
+                                         </select>
+                                         {%if replying_info is not none %}
+                                             <input 
+                                                 type="hidden"
+                                                 name="recipients-{{ loop.index0 }}-recipient"
+                                                 value="{{replying_info['message'].id_sender}}"
+                                             />
+                                         {%endif%}
+                                         <!--<div class="recipient-delete"><a href="javascript: ();">x</a></div>-->
+                                     </div>
+                                     <button class="search-button" type="button" onclick="trigger_update({{ loop.index0 }});">Search</button></dd>
+                                 </div>
+                             </dd>
+                                {% if recipient_form.recipient.errors %}
+                                    {% for e in recipient_form.recipient.errors %}
+                                        <p class="help-block">{{ e }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                                {% if recipient_form.search.errors %}
+                                    {% for e in recipient_form.search.errors %}
+                                        <p class="help-block">{{ e }}</p>
+                                    {% endfor %}
+                                {% endif %}
+                         </div>
+                    {% endfor %}
+                </div>
+                <p><a href="javascript:addRecipient();">Add Recipient</a></p>
+            </dl>
+            <p>
+            <input type=submit value="Save as Draft">
+        </form>
+     
+    {% else %}
+      Hi Anonymous, please <a href="/login">Log in</a> to draft a message
+    {% endif %}
+    </body>
 </html>
 

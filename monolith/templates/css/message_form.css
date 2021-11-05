@@ -1,0 +1,56 @@
+/*
+@font-face{
+    font-family: "Happy Lucky";
+    src: url("/monolith/templates/fonts/happy_lucky.ttf");
+}
+*/
+:root{
+    --primary: rgba(3,109,248,1);
+    --primary-faded: rgba(3,109,248,0.3);
+    --primary-extra-faded: rgba(3,109,248,0.1);
+    --secondary: rgba(188,228,248,1);
+}
+body {
+    background-color: var(--secondary);
+}
+
+.fields-container{
+    display: flex;
+    flex-flow: row nowrap;
+}
+.recipient-field {
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.recipient-delete {
+    padding-left: 10px;
+    text-decoration: none;
+}
+
+.replied-box-above{
+    padding-bottom: 2px;
+    padding-left: 5px;
+    font-size: 10pt;
+}
+.replied-box {
+    position: relative;
+    left: 1%;
+    width: 97%;
+    border-top: 1px solid var(--primary);
+    border-bottom: 1px solid var(--primary);
+    padding-left: 12px;
+}
+
+.replied-sender {
+    font-size: 14pt;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.replied-body {
+    font-size: 12pt;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+}

@@ -1,7 +1,7 @@
 
-  function _update_recipients(options){
+  function _update_recipients(options, id){
 
-   var select = document.getElementById("recipient");
+   var select = document.getElementById("recipients-" + id + "-recipient");
    select.textContent = ""
 
    for(var i = 0; i < options.length; i++) {
@@ -13,8 +13,8 @@
     }
   }
 
-function _test(){
-  var filter = document.getElementById("search").value;
+function trigger_update(id){
+  var filter = document.getElementById("recipients-" + id + "-search").value;
   fetch('/recipients/' + filter).
       then(
           function(response) {
@@ -23,7 +23,7 @@ function _test(){
       ).then(
           function(result) {
               console.log(result.recipients);
-              _update_recipients(result.recipients)
+              _update_recipients(result.recipients, id)
           }
       );
 }
