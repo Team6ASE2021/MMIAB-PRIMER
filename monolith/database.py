@@ -1,6 +1,7 @@
 from enum import unique
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
+import datetime
 
 db = SQLAlchemy()
 
@@ -20,6 +21,7 @@ class User(db.Model):
     content_filter = db.Column(db.Boolean, default=False)
 
     is_active = db.Column(db.Boolean, default=True)
+    is_banned = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
     is_anonymous = False
     
@@ -49,10 +51,13 @@ class Message(db.Model):
     #id_message is the primary key that identify a message
     id_message = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    #id of sender and receipent
-
+    #id of sender
     id_sender = db.Column(db.Integer)
-    id_receipent = db.Column(db.Integer)
+    
+    # recipients
+    recipients = db.relationship(
+        "Recipient", back_populates="message", cascade="all, delete-orphan"
+    )
 
     #body of message and date of send
     body_message = db.Column(db.Unicode(256))
@@ -61,7 +66,8 @@ class Message(db.Model):
     #boolean variables that describe the state of the message
     is_sended = db.Column(db.Boolean, default = False)
     is_arrived = db.Column(db.Boolean, default = False)
-    is_notified = db.Column(db.Boolean, default = False)
+    is_notified_sender = db.Column(db.Boolean, default = False)
+    is_notified_receipent = db.Column(db.Boolean, default = False)
 
     # boolean flag that tells if the message must be filtered for users who resquest it
     to_filter = db.Column(db.Boolean, default = False)
@@ -69,4 +75,49 @@ class Message(db.Model):
     #constructor of the message object
     def __init__(self, *args, **kw):
         super(Message, self).__init__(*args, **kw)
-        
+
+class Report(db.Model):
+    
+    __tablename__ = 'report'
+
+    #id_message is the primary key that identify a report
+    id_report = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    #id of reported and signaller
+    id_reported = db.Column(db.Integer)
+    id_signaller = db.Column(db.Integer)
+
+    date_of_report = db.Column(db.DateTime, default=datetime.datetime.now())
+
+    #constructor of the report object
+    def __init__(self, *args, **kw):
+        super(Report, self).__init__(*args, **kw)
+
+class Notify(db.Model):
+    
+    __tablename__ = 'report'
+
+    id_notify = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_sender = db.Column(db.Integer)
+    id_receipent = db.Column(db.Integer)
+
+    sender_notified = db.Column(db.Boolean, default = False)
+    receipent_notified = db.Column(db.Boolean, default = False)
+
+    #constructor of the notify object
+    def __init__(self, *args, **kw):
+        super(Report, self).__init__(*args, **kw)
+
+class Recipient(db.Model):
+    
+    __tablename__ = "recipient"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    id_message = db.Column(db.ForeignKey("message.id_message"))
+    id_recipient = db.Column(db.ForeignKey("user.id"))
+
+    is_notified = db.Column(db.Boolean, default=False)
+
+    message = db.relationship("Message")
+    user = db.relationship("User")

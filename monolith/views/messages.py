@@ -17,7 +17,6 @@ from monolith.forms import EditMessageForm
 
 messages = Blueprint('messages', __name__)
 
-
 @messages.route('/draft', methods=['POST', 'GET'])
 @login_required
 def draft():
@@ -34,8 +33,6 @@ def draft():
             return redirect('/read_message/' + str(new_draft.id_message))
         
     return render_template('create_message.html', form=form)
-
-
 
 
 @messages.route('/draft/edit/<int:id>', methods=['POST', 'GET'])

@@ -1,4 +1,5 @@
 import datetime
+from typing import List
 import pytest
 import string
 from monolith.classes.message import MessageModel, ContentFilter, NotExistingMessageError
@@ -98,23 +99,6 @@ class TestMessage:
 
         MessageModel.arrived_message()
         assert message.is_arrived == True
-
-        db.session.delete(message)
-        db.session.commit()
-
-    def test_get_notify(self):
-        message = Message(id_receipent = 1, \
-                          id_sender = 1, \
-                          body_message = "Ciao", \
-                          date_of_send = datetime.datetime.now(), \
-                          is_sended = True, \
-                          is_arrived = True, \
-                          is_notified = False)
-        
-        db.session.add(message)
-
-        MessageModel.get_notify(UserModel.get_user_info_by_id(message.id_receipent))
-        assert message.is_notified == True
 
         db.session.delete(message)
         db.session.commit()

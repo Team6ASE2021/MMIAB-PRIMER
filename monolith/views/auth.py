@@ -17,9 +17,12 @@ def login():
         email, password = form.data['email'], form.data['password']
         try:
             user = UserModel.get_user_info_by_email(email=email)
-            if user.authenticate(password):
+            if user.is_banned == True:
+                flash("You are banned!")
+                return redirect(url_for('auth.login'))
+            elif user.authenticate(password):
                 login_user(user)
-                flash("Logged in!")
+                #flash("Logged in!")
                 next_page = request.args.get('next')
                 if not next_page or url_parse(next_page).netloc != '':
                     next_page = url_for('home.index')

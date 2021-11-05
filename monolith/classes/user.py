@@ -62,7 +62,7 @@ class UserModel:
         new_val = not db_user.first().content_filter
         db_user.update({User.content_filter: new_val })
         db.session.commit()
-    
+
 
 class NotExistingUser(Exception):
     pass

@@ -15,8 +15,8 @@ from flask_login.utils import login_required
 
 from monolith.classes.user import NotExistingUser
 from monolith.classes.user import UserModel
-from monolith.database import db
-from monolith.database import User
+from monolith.classes.report import ReportModel
+from monolith.database import User, Report, db
 from monolith.forms import UserForm
 
 users = Blueprint('users', __name__)
@@ -80,10 +80,15 @@ def set_content_filter():
     except NotExistingUser:
         abort(HTTPStatus.NOT_FOUND, description="You are not a registered user")
 
+@users.route('/user/report/<id>',methods=['GET', 'POST'])
+@login_required
+def report(id):
 
+    res = ReportModel.add_report(id, current_user.id)
 
-
-
-
-
-        
+    if res == True:
+        flash("You have report the user: " + id)
+    else:
+        flash("You have already report this user")
+    
+    return redirect('/')

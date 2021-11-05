@@ -1,6 +1,7 @@
 import datetime
 
 from flask import Flask
+from flask_mail import Mail
 
 from monolith.auth import login_manager
 from monolith.database import User, db
@@ -46,6 +47,7 @@ def create_app(testing: bool =False) -> Flask:
 
 
 app = create_app()
+mail = Mail(app)
 
 if __name__ == '__main__':
     app.run()
