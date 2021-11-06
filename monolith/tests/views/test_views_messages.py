@@ -650,6 +650,7 @@ class TestWithDrawMessage:
         test_client.post("/login", data=user)
         mess = MessageModel.id_message_exists(1)
         mess.is_sent = True
+        print(UserModel.get_user_info_by_email(user["email"]).lottery_points)
         resp = test_client.get(
             url_for("messages.withdraw_message", id=1), follow_redirects=True
         )

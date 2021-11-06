@@ -93,9 +93,10 @@ class TestUserModel:
         assert rows == 1
 
     def test_add_points_to_user(self):
+        usr = UserModel.get_user_info_by_id(1)
         UserModel.update_points_to_user(1, 1)
-        assert UserModel.get_user_info_by_id(1).lottery_points == 1
-        UserModel.update_points_to_user(1, -1)
+        assert usr.lottery_points == 1
+        usr.lottery_points = 0
 
     def test_remove_points_to_user_negative_becomes_zero(self):
         UserModel.update_points_to_user(1, -1)
@@ -106,6 +107,7 @@ class TestUserModel:
         usr.lottery_points = 2
         UserModel.update_points_to_user(1, -1)
         assert usr.lottery_points == 1
+        usr.lottery_points = 0
 
     def test_delete_user_by_id_not_exists(self):
         with pytest.raises(NotExistingUserError) as ex:
