@@ -10,6 +10,7 @@ from flask import redirect
 from flask import render_template
 from flask import request
 from flask.globals import current_app
+from flask.helpers import flash
 from flask.wrappers import Response
 from flask_login import current_user
 from flask_login.utils import login_required
@@ -93,6 +94,7 @@ def delete_user(id: int) -> Response:
             abort(HTTPStatus.UNAUTHORIZED)
         else:
             UserModel.delete_user(id)
+            flash("We're sad to see you go!")
             return redirect("/")
     except NotExistingUserError:
         abort(HTTPStatus.NOT_FOUND)
