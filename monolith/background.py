@@ -41,17 +41,24 @@ celery.conf.beat_schedule = {
 
 
 @celery.task
-def test():
+def test():  # pragma: nocover
     message_list = MessageModel.arrived_message()
     return message_list
 
 
 @celery.task
 def lottery_draw():
+    _lottery_draw()  # pragma: no cover
+
+
+def _lottery_draw():
     winner = random.randint(1, 50)
     participants = LotteryModel.get_participants_with_choices()
-    winners = map(
-        lambda u: u["id"], filter(lambda u: u["choice"] == winner, participants)
+    winners = list(
+        map(
+            lambda u: u.participant.id,
+            filter(lambda u: u.choice == winner, participants),
+        )
     )
     for winner in winners:
         UserModel.update_points_to_user(winner, 1)

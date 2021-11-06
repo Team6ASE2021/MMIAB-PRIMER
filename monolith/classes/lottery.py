@@ -1,14 +1,21 @@
 from monolith.database import db
-from monolith.database import Lottery
+from monolith.database import LotteryParticipant
 from monolith.database import User
 
 
 class LotteryModel:
     @staticmethod
-    def get_participants_with_choices(self):
-        list = db.session.query(Lottery).join(User)
-        return [{"id": u.id, "choice": u.choice} for u in list]
+    def get_participants_with_choices():
+        list = db.session.query(LotteryParticipant).join(User).all()
+        return list
 
-    def reset_lottery(self) -> None:
-        db.session.query(Lottery).delete()
+    @staticmethod
+    def add_participant(id: int, choice: int):
+        participant = LotteryParticipant(id_participant=id, choice=choice)
+        db.session.add(participant)
+        db.session.commit()
+
+    @staticmethod
+    def reset_lottery() -> None:
+        db.session.query(LotteryParticipant).delete()
         db.session.commit()

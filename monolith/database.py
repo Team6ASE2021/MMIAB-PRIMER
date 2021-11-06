@@ -97,11 +97,11 @@ class Recipient(db.Model):
     user = db.relationship("User")
 
 
-class Lottery(db.Model):
+class LotteryParticipant(db.Model):
 
     __tablename__ = "lottery"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_participant = db.Column(db.ForeignKey("user.id"))
     choice = db.Column(db.Integer, nullable=False)
-    participant = db.relationship("User")
+    participant = db.relationship("User", lazy="joined")
