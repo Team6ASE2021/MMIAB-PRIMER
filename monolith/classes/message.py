@@ -156,10 +156,7 @@ class MessageModel:
 
         db.session.commit()
 
-        return [{'id_message' : notify.id_message,\
-                'date' : notify.date_of_send.strftime("%H:%M %d/%m/%Y"),\
-                'id_sender' : notify.id_sender,\
-                'id_receipent' : notify.id_receipent} for notify in notify_list]
+        return notify_list
 
 
 
