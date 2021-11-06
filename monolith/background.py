@@ -1,6 +1,11 @@
-from celery import Celery
+import random
 
+from celery import Celery
+from celery.schedules import crontab
+
+from monolith.classes.lottery import LotteryModel
 from monolith.classes.message import MessageModel
+from monolith.classes.user import UserModel
 
 _APP = None
 
@@ -26,10 +31,29 @@ class ContextTask(TaskBase):
 
 celery.Task = ContextTask
 
-celery.conf.beat_schedule = {"test": {"task": __name__ + ".test", "schedule": 20.0}}
+celery.conf.beat_schedule = {
+    "test": {"task": __name__ + ".test", "schedule": 20.0},
+    "lottery_draw": {
+        "task": __name__ + ".lottery_draw",
+        "schedule": crontab(0, 0, day_of_month=1),
+    },
+}
 
 
 @celery.task
 def test():
     message_list = MessageModel.arrived_message()
     return message_list
+
+
+@celery.task
+def lottery_draw():
+    winner = random.randint(1, 50)
+    participants = LotteryModel.get_participants_with_choices()
+    winners = map(
+        lambda u: u["id"], filter(lambda u: u["choice"] == winner, participants)
+    )
+    for winner in winners:
+        UserModel.update_points_to_user(winner, 1)
+
+    LotteryModel.reset_lottery()
