@@ -100,7 +100,7 @@ class Report(db.Model):
     id_reported = db.Column(db.Integer)
     id_signaller = db.Column(db.Integer)
 
-    date_of_report = db.Column(db.DateTime, default=datetime.datetime.now())
+    date_of_report = db.Column(db.DateTime)
 
     #constructor of the report object
     def __init__(self, *args, **kw):
@@ -108,7 +108,7 @@ class Report(db.Model):
 
 class Notify(db.Model):
     
-    __tablename__ = 'report'
+    __tablename__ = 'notify'
 
     id_notify = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_sender = db.Column(db.Integer)
