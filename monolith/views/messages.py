@@ -1,7 +1,9 @@
+from datetime import datetime
 import os
 from http import HTTPStatus
 from re import search
 from uuid import uuid4
+import calendar
 
 from flask import abort, app
 from flask import Blueprint
@@ -238,3 +240,56 @@ def get_recipients():
     return jsonify(
         recipients=recipients
     )
+
+@messages.route('/timeline/day/<int:year>/<int:month>/<int:day>',methods=['GET'])
+@login_required
+def get_timeline_day(year,month,day):
+    day = datetime.datetime(year,month,day)
+    day = day.strftime("%d/%m/%Y")
+
+    message_list_send = MessageModel.get_timeline_day_mess_send(current_user.id,day)
+    number_of_mess_send = message_list_send.count()
+
+    message_list_received = MessageModel.get_timeline_day_mess_received(current_user.id,day)
+    number_of_mess_received = message_list_received.count()
+
+    return render_template("timeline.html",message_list_send=message_list_send,number_of_mess_send=number_of_mess_send, \
+        message_list_received = message_list_received, number_of_mess_received= number_of_mess_received)
+
+    
+@messages.route('/timeline/send/<int:year>/<int:month>',methods=['GET'])
+@login_required
+def get_timeline_month(_year,_month):
+
+    year = _year
+    month = _month-1
+    first_day = calendar.monthrange(_year,_month)[0]
+    number_of_days = calendar.monthrange(_year,_month)[1]
+    sent = []
+    received = []
+    message_list = MessageModel.get_timeline_month_mess_send(current_user.id)
+    
+    for elem in message_list:
+        if(elem.date_of_send.year == _year):
+            if(elem.date_of_send.month == _month):
+                sent[elem.date_of_send.day - 1] += 1
+    
+    message_list = MessageModel.get_timeline_month_mess_received(current_user.id)
+    
+    for elem in message_list:
+        if(elem.date_of_send.year == _year):
+            if(elem.date_of_send.month == _month):
+                received[elem.date_of_send.day - 1] += 1
+
+    calendar_view = {
+        'year': year,
+        'month': month,
+        'month_name': calendar.month_name[_month],
+        'days_in_month': number_of_days,
+        'starts_with': first_day,
+        'sent': sent,
+        'received': received
+    }
+
+    return jsonify(calendar_view)
+
