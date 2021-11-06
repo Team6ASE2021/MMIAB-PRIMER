@@ -1,4 +1,8 @@
 import datetime
+
+from typing import List
+import pytest
+
 import string
 
 import pytest
@@ -145,6 +149,7 @@ class TestMessage:
         message.recipients = []
         db.session.delete(message)
         db.session.commit()
+
 
     def test_delete_message_ok(self):
         message = Message(

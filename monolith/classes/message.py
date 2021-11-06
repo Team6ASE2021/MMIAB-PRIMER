@@ -98,14 +98,15 @@ class MessageModel:
         )
 
         messages_arrived = []
-        for m in messages:
-            if (m.date_of_send - datetime.now()).total_seconds() <= 0:
+        
+        for m in messages.all():
+            if (m.date_of_send - datetime.datetime.now()).total_seconds() <= 0:
+
                 m.is_arrived = True
                 messages_arrived.append(m)
 
         db.session.commit()
-
-        # return messages_arrived
+        
         return [
             {
                 "id": m.id_message,
@@ -118,26 +119,48 @@ class MessageModel:
             }
             for m in messages_arrived
         ]
-
+      
     @staticmethod
-    def get_notify(user: User) -> List[Recipient]:
-        notify_list = (
-            db.session.query(Recipient)
-            .filter(Recipient.id_recipient == user.id, Recipient.is_notified == False)
-            .filter(
-                Recipient.message.has(
-                    and_(Message.is_arrived == True, Message.is_sent == True)
-                )
-            )
-            .all()
-        )
+    def get_notify_receipent(id):
+        notifies = db.session.query(Message).filter(Message.id_receipent == id,\
+                                                    Message.is_notified_receipent == False,\
+                                                    Message.is_arrived == True, \
+                                                    Message.is_sended == True)
 
-        for notify in notify_list:
-            notify.is_notified = True
+        notify_list = []
+        for notify in notifies.all():
+            notify.is_notified_receipent = True
+            notify_list.append(notify)
 
         db.session.commit()
 
-        return notify_list
+        return [{'id_message' : notify.id_message,\
+                'date' : notify.date_of_send.strftime("%H:%M %d/%m/%Y"),\
+                'id_sender' : notify.id_sender,\
+                'id_receipent' : notify.id_receipent} for notify in notify_list]
+
+    @staticmethod
+    def get_notify_sender(id):
+
+        notifies = db.session.query(Message)\
+                                     .filter(id == Message.id_sender,\
+                                             Message.is_notified_sender == False,\
+                                             Message.is_arrived == True, \
+                                             Message.is_sended == True)
+
+        notify_list = []
+        for notify in notifies.all():
+            notify.is_notified_sender = True
+            notify_list.append(notify)
+
+        db.session.commit()
+
+        return [{'id_message' : notify.id_message,\
+                'date' : notify.date_of_send.strftime("%H:%M %d/%m/%Y"),\
+                'id_sender' : notify.id_sender,\
+                'id_receipent' : notify.id_receipent} for notify in notify_list]
+
+
 
     @staticmethod
     def create_message(

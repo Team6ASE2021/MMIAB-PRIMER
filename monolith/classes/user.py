@@ -151,5 +151,6 @@ class NotExistingUserError(Exception):
     pass
 
 
+
 class BlockingCurrentUserError(Exception):
     pass

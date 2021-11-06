@@ -20,7 +20,10 @@ from monolith.classes.user import BlockingCurrentUserError
 from monolith.classes.user import NotExistingUserError
 from monolith.classes.user import UserBlacklist
 from monolith.classes.user import UserModel
-from monolith.database import User
+
+from monolith.classes.report import ReportModel
+from monolith.database import User, Report, db
+
 from monolith.forms import UserForm
 
 users = Blueprint("users", __name__)
@@ -106,6 +109,18 @@ def set_content_filter():
     UserModel.toggle_content_filter(current_user.id)
     return redirect("/users/" + str(current_user.id))
 
+@users.route('/user/report/<id>',methods=['GET', 'POST'])
+@login_required
+def report(id):
+
+    res = ReportModel.add_report(id, current_user.id)
+
+    if res == True:
+        flash("You have report the user: " + id)
+    else:
+        flash("You have already report this user")
+    
+    return redirect('/')
 
 @users.route("/user/blacklist", methods=["GET"])
 @login_required
@@ -136,3 +151,4 @@ def blacklist_remove(id: int):
         abort(HTTPStatus.NOT_FOUND, description=str(e))
 
     return redirect("/user/blacklist")
+

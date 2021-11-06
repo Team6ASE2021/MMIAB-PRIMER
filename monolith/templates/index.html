@@ -3,6 +3,8 @@
 {% include 'pop-up.html' %}
 
 {% if current_user.is_authenticated %}
+
+
   Hi {{ current_user.firstname }}! <a href="/logout">Logout</a>
     <h2>{{ welcome }}</h2>
     <a href="{{url_for('users.user_info',id=current_user.id)}}">Account info</a>
