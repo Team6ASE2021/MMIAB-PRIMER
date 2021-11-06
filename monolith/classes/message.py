@@ -99,14 +99,15 @@ class MessageModel:
         )
 
         messages_arrived = []
-        for m in messages:
+
+        for m in messages.all():
             if (m.date_of_send - datetime.now()).total_seconds() <= 0:
+
                 m.is_arrived = True
                 messages_arrived.append(m)
 
         db.session.commit()
 
-        # return messages_arrived
         return [
             {
                 "id": m.id_message,
@@ -121,10 +122,10 @@ class MessageModel:
         ]
 
     @staticmethod
-    def get_notify(user: User) -> List[Recipient]:
+    def get_notify_recipient(id):
         notify_list = (
             db.session.query(Recipient)
-            .filter(Recipient.id_recipient == user.id, Recipient.is_notified == False)
+            .filter(Recipient.is_notified == False, Recipient.id_recipient == id)
             .filter(
                 Recipient.message.has(
                     and_(Message.is_arrived == True, Message.is_sent == True)
@@ -135,6 +136,25 @@ class MessageModel:
 
         for notify in notify_list:
             notify.is_notified = True
+
+        db.session.commit()
+
+        return notify_list
+
+    @staticmethod
+    def get_notify_sender(id):
+
+        notifies = db.session.query(Message).filter(
+            id == Message.id_sender,
+            Message.is_notified_sender == False,
+            Message.is_arrived == True,
+            Message.is_sent == True,
+        )
+
+        notify_list = []
+        for notify in notifies.all():
+            notify.is_notified_sender = True
+            notify_list.append(notify)
 
         db.session.commit()
 
