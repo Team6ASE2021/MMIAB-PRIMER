@@ -1,47 +1,114 @@
 <html>
- <body>
+    <head>
+        <style type="text/css">
+            {% include "css/message_form.css" %}
+        </style>
+        <script>
+            {% include "js/update_recipients.js" %}
+            {% include "js/manage_recipients.js" %}
+        </script>
+    </head>
 
-  {% include 'pop-up.html' %}
+    <body>
 
- {% if current_user.is_authenticated and current_user.id == id_sender %}
+        {% include 'pop-up.html' %}
+        {% if current_user.is_authenticated and current_user.id == id_sender %}
 
-   <form action="" method="POST">
-     {{ form.hidden_tag() }}
-     <dl>
-      <dt>{{ form.body_message.label }}</dt>
-      <dd>{% set f = form.body_message.process_data(old_message) %}
-          {{ form.body_message() }}</dd>
-        {% if form.date_of_send.errors %}
-           {% for e in form.date_of_send.errors %}
-            <p class="help-block">{{ e }}</p>
-           {% endfor %}
+            {% if replying_info is not none %}
+                <div class="replied-box-above">Replying to:</div>
+                <div class="replied-box">
+                    <div class="replied-sender">{{ replying_info['user'].firstname }} {{ replying_info['user'].lastname }}</div>
+                    <div class="replied-body">{{ replying_info['message'].body_message }}</div>
+                </div>
+            {% endif %}
+
+            <form action="" method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <dl>
+                    <dt>{{ form.body_message.label }}</dt>
+                    <dd>
+                        {% set f = form.body_message.process_data(old_message) %}
+                        {{ form.body_message() }}
+                    </dd>
+                    {% if old_img %}
+                    <h3>Uploaded image: <br>
+                    <img src="{{url_for('static',filename='assets/' + old_img)}}" alt="mess" heigth="300" width="300">
+                  </h3>
+                    {% endif %}
+                    <dt> <b>Choose a different image:</b></dt>
+
+                      <dd>{{form.image()}}</dd>
+                        {% if form.image.errors %}
+                           {% for e in form.image.errors %}
+                            <p class="help-block">{{ e }}</p>
+                           {% endfor %}
+                        {% endif %}
+                    <dt>{{ form.date_of_send.label }}</dt>
+                    <dd style="font-size: 10pt;">{{ form.date_of_send.format }}</dt>
+                    <dd>{{ form.date_of_send(value=old_date|delivery_datetime_format) }}</dd>
+                        {% if form.date_of_send.errors %}
+                            {% for e in form.date_of_send.errors %}
+                                <p class="help-block">{{ e }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    <div id="recipient-list">
+                        {% for recipient_form in form.recipients %}
+                            <div class="recipient-form" id="recipients-{{ loop.index0 }}-form">
+                                {{ recipient_form.hidden_tag() }}
+                                <dt>{{ recipient_form.recipient.label }}</dt>
+                                <dd>
+                                    <div class="fields-container">
+                                        <div class="search-field">
+                                            {{ recipient_form.search() }}
+                                        </div>
+                                        <div class="recipient-field">
+                                            <select 
+                                                id="recipients-{{ loop.index0 }}-recipient" 
+                                                name="recipients-{{ loop.index0 }}-recipient"
+                                                {{'disabled' if replying_info is not none and loop.index0 == 0}}
+                                            >
+                                                 {% set outer_loop = loop %}
+                                                 {% for rcp in available_recipients %}
+                                                 <option 
+                                                     value="{{rcp[0]}}"
+                                                     {{'selected' if old_recs|length > 0 and old_recs[outer_loop.index0] == rcp[0]}}
+                                                 >
+                                                     {{ rcp[1] }}
+                                                 </option>
+                                                 {% endfor %}
+                                             </select>
+                                             {% if replying_info is not none and loop.index0 == 0 %}
+                                                 <input 
+                                                     type="hidden"
+                                                     name="recipients-{{ loop.index0 }}-recipient"
+                                                     value="{{replying_info['message'].id_sender}}"
+                                                 />
+                                             {%endif%}
+                                             <!--<div class="recipient-delete"><a href="javascript: ();">x</a></div>-->
+                                        </div>
+                                        <button class="search-button" type="button" onclick="trigger_update({{ loop.index0 }});">Search</button></dd>
+                                    </div>
+                                </dd>
+                                    {% if recipient_form.recipient.errors %}
+                                        {% for e in recipient_form.recipient.errors %}
+                                            <p class="help-block">{{ e }}</p>
+                                        {% endfor %}
+                                    {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <p><a href="javascript:addRecipient();">Add Recipient</a></p>
+                </dl>
+                <p>
+                <input type=submit value="Save as Draft">
+            </form>
+     
+        {% elif current_user.is_authenticated and current_user.id != id_sender  %}
+            <p>Hi {{ current_user.firstname }}, it looks like this message was not drafted by you.</p>
+            <p>Please <a href="/logout">Logout</a> and log back in with the right account.</p>
+        {% else %}
+            Hi Anonymous, please <a href="/login">Log in</a> to edit this message
         {% endif %}
-      <dt>{{ form.date_of_send.label }}</dt>
-      <dd style="font-size: 10pt;">{{ form.date_of_send.format }}</dt>
-      <dd>{{ form.date_of_send(value=old_date|delivery_datetime_format) }}</dd>
-        {% if form.date_of_send.errors %}
-           {% for e in form.date_of_send.errors %}
-            <p class="help-block">{{ e }}</p>
-           {% endfor %}
-        {% endif %}
-      <dt>{{ form.recipient.label }}</dt>
-      <dd>{{ form.recipient(value=old_rec) }}</dd>
-        {% if form.recipient.errors %}
-           {% for e in form.recipient.errors %}
-            <p class="help-block">{{ e }}</p>
-           {% endfor %}
-        {% endif %}
-     </dl>
-     <p>
-     <input type=submit value="Save as Draft">
-   </form>
-  
- {% elif current_user.is_authenticated and current_user.id != id_sender  %}
-   <p>Hi {{ current_user.firstname }}, it looks like this message was not drafted by you.</p>
-   <p>Please <a href="/logout">Logout</a> and log back in with the right account.</p>
- {% else %}
-   Hi Anonymous, please <a href="/login">Log in</a> to edit this message
- {% endif %}
- </body>
+    </body>
 </html>
 

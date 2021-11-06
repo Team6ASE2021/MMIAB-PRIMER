@@ -1,11 +1,12 @@
 <html>
   <body>
-    <h1>User list</h1>
+    <h1>Blocked Users</h1>
     <ul>
         {% for user in list: %}
         <li>
             {{user.firstname}} {{user.lastname}} <br>
-            email: {{user.email}}
+            email: {{user.email}} <br>
+            <a href="{{ url_for('users.blacklist_remove', id=user.id) }}">Unblock</a>
         </li>
         {% endfor %}
     </ul>

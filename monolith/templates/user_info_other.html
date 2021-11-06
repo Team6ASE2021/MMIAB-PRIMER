@@ -1,0 +1,17 @@
+<html>
+  <body>
+    <h1>User info</h1>
+    <ul>
+        <li>
+            {{user.firstname}} {{user.lastname}}
+        </li>
+        <li>
+            {{user.email}}
+        </li>
+        <li>{{user.dateofbirth|datetime_format}}</li>
+        <li>{{user.nickname}}</li>
+        <li>{{user.location}}</li>
+    </ul>
+    <p><a href="{{url_for('users.blacklist_add', id=user.id)}}">Block user</a></p>
+  </body>
+</html>

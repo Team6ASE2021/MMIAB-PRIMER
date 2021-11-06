@@ -3,7 +3,7 @@
         .pop-up_box {
             color : black;
             border: 1px outset lightblue;
-            background-color: lightblue; 
+            background-color: lightblue;
             text-align: center;
             font-size: 20pt;
             display: inline-block;
@@ -23,7 +23,7 @@
     <ul class=flashes>
     {% for message in messages %}
       <div class="pop-up_box" id=pop-up>
-          <div class="button">          
+          <div class="button">
             <div>
               {{message}}
               <button class="close" onclick="document.getElementById('pop-up').style.display='none';">Close</button>
