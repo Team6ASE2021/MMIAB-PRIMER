@@ -143,7 +143,8 @@ class TestMessage:
         db.session.commit()
         message.recipients = [Recipient(id_recipient=1)]
 
-        MessageModel.get_notify(UserModel.get_user_info_by_id(message.recipients[0].id_recipient))
+        user = UserModel.get_user_info_by_id(message.recipients[0].id_recipient)
+        MessageModel.get_notify_recipient(user.id)
         assert message.recipients[0].is_notified == True 
 
         message.recipients = []

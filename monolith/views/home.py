@@ -1,6 +1,6 @@
 from monolith.classes.user import UserModel
 from flask import Blueprint, render_template, flash, redirect, url_for, request, current_app
-from flask_mail import Mail, Message
+# from flask_mail import Mail, Message
 
 
 from monolith.auth import current_user
@@ -12,7 +12,7 @@ home = Blueprint("home", __name__)
 @home.route("/")
 def index():
     #pop-up notification
-    notify_rec = MessageModel.get_notify_receipent(current_user.get_id())
+    notify_rec = MessageModel.get_notify_recipient(current_user.get_id())
     notify_send = MessageModel.get_notify_sender(current_user.get_id())
 
     for notify in notify_send:
