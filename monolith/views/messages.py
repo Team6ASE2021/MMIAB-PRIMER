@@ -173,18 +173,18 @@ def send_message(id):
         # check if the date_of_send is not Null
         if message.date_of_send is None:
             flash("You have to set the date of send")
-            return redirect("draft/edit/" + str(message.id_message))
+            return redirect(url_for("messages.edit_draft", id=message.id_message))
 
         # check if the receipent is not Null
         if len(message.recipients) == 0:
             flash("You have to set the receipent")
-            return redirect("draft/edit/" + str(message.id_message))
+            return redirect(url_for("messages.edit_draft", id=message.id_message))
 
         # send the message
         MessageModel.send_message(message.id_message)
-        result = "Message has been sent correctly"
+        flash("Message has been sent correctly")
 
-        return render_template("send_message.html", result=result)
+        return redirect(url_for("mailbox.mailbox_list_sent"))
 
     except NotExistingMessageError as e:
         # return status code 401 with the message of error

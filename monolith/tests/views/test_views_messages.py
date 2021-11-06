@@ -6,6 +6,7 @@ import mock
 import pytest
 from flask import request
 from flask import url_for
+from flask.helpers import get_flashed_messages
 from werkzeug.datastructures import FileStorage
 
 from monolith.classes.message import MessageModel
@@ -273,8 +274,10 @@ class TestViewsMessagesSend:
         MessageModel.add_draft(message)
         RecipientModel.set_recipients(message, [1])
 
-        response = test_client.post("/send_message/" + str(message.id_message))
-        assert b"Message has been sent correctly" in response.data
+        response = test_client.post(
+            "/send_message/" + str(message.id_message), follow_redirects=True
+        )
+        assert "Message has been sent correctly" in get_flashed_messages()
         RecipientModel.set_recipients(message, [])
         db.session.delete(message)
         db.session.commit()
@@ -288,8 +291,10 @@ class TestViewsMessagesSend:
         MessageModel.add_draft(message)
         RecipientModel.set_recipients(message, [1, 2])
 
-        response = test_client.post("/send_message/" + str(message.id_message))
-        assert b"Message has been sent correctly" in response.data
+        response = test_client.post(
+            "/send_message/" + str(message.id_message), follow_redirects=True
+        )
+        assert "Message has been sent correctly" in get_flashed_messages()
         RecipientModel.set_recipients(message, [])
         db.session.delete(message)
         db.session.commit()
