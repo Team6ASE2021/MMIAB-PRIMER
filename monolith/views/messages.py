@@ -238,3 +238,18 @@ def get_recipients():
     return jsonify(
         recipients=recipients
     )
+
+@messages.route('/calendar', methods=['GET'])
+@login_required
+def calendar():
+    return render_template('calendar.html', calendar_view={
+            'year': 2021,
+            'month': 11,
+            'days_in_month': 31,
+            'starts_with': 2,
+            'messages': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        })
+
+
+
+
