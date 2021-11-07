@@ -1,0 +1,51 @@
+:root{
+    --primary: rgba(3,109,248,1);
+    --primary-faded: rgba(3,109,248,0.3);
+    --primary-extra-faded: rgba(3,109,248,0.1);
+    --secondary: rgba(188,228,248,1);
+}
+body {
+    background-color: var(--secondary);
+}
+
+.title {
+    position: absolute;
+    width: 100%;
+    height: 60px;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+    background-color: var(--primary);
+    font-family: "Happy Lucky";
+    font-size: 30pt;
+    color: white;
+}
+
+.title>div {
+    margin-left: 2%;
+}
+
+.bg-eggplant{
+    background-color: #a163b4;
+}
+
+.bg-grey{
+    background-color: #c0c5bf;
+}
+
+.bg-navy{
+    background-color: #181d75;
+}
+
+.text-navy{
+    color: #181d75;
+}
+
+.text-eggplant{
+   color: #a163b4;
+}
+

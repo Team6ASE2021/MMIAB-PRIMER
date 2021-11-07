@@ -1,0 +1,36 @@
+/*
+@font-face{
+    font-family: "Happy Lucky";
+    src: url("/monolith/templates/fonts/happy_lucky.ttf");
+}
+*/
+
+.message-container:hover{
+    opacity: 0.8;
+}
+
+.message-row{
+    min-height: 100px;
+}
+
+.body-row {
+    min-height: 50px;
+}
+
+.message-body{
+    margin-right: 15%;
+}
+
+.user-row {
+    min-height: 50px;
+}
+
+.user-stack{
+    flex-flow: row wrap-reverse;
+}
+
+a{
+    cursor: pointer;
+}
+
+

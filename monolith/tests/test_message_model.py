@@ -1,8 +1,4 @@
 import datetime
-
-from typing import List
-import pytest
-
 import string
 
 import pytest
@@ -37,9 +33,8 @@ class TestMessage:
 
         message.recipients = [Recipient(id_recipient=1)]
         message1.recipients = [Recipient(id_recipient=1)]
-        
-        db.session.commit()
 
+        db.session.commit()
 
         conto = db.session.query(Message).count()
         assert conto == 2
@@ -70,7 +65,7 @@ class TestMessage:
             id_message=1,
             id_sender=2,
             body_message="Ciao",
-            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y")
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
         )
         db.session.add(message)
         db.session.commit()
@@ -99,7 +94,7 @@ class TestMessage:
         message = Message(
             id_sender=2,
             body_message="Ciao",
-            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y")
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
         )
         db.session.add(message)
         db.session.commit()
@@ -115,11 +110,11 @@ class TestMessage:
 
     def test_arrived_message(self):
         message = Message(
-            id_sender = 1,
-            body_message = "Ciao",
-            date_of_send = datetime.datetime.now(),
-            is_sent = True,
-            is_arrived = False
+            id_sender=1,
+            body_message="Ciao",
+            date_of_send=datetime.datetime.now(),
+            is_sent=True,
+            is_arrived=False,
         )
         db.session.add(message)
         db.session.commit()
@@ -133,11 +128,11 @@ class TestMessage:
 
     def test_get_notify(self):
         message = Message(
-            id_sender = 1,
-            body_message = "Ciao",
-            date_of_send = datetime.datetime.now(),
-            is_sent = True,
-            is_arrived = True
+            id_sender=1,
+            body_message="Ciao",
+            date_of_send=datetime.datetime.now(),
+            is_sent=True,
+            is_arrived=True,
         )
         db.session.add(message)
         db.session.commit()
@@ -145,18 +140,17 @@ class TestMessage:
 
         user = UserModel.get_user_info_by_id(message.recipients[0].id_recipient)
         MessageModel.get_notify_recipient(user.id)
-        assert message.recipients[0].is_notified == True 
+        assert message.recipients[0].is_notified == True
 
         message.recipients = []
         db.session.delete(message)
         db.session.commit()
 
-
     def test_delete_message_ok(self):
         message = Message(
             id_sender=2,
             body_message="Ciao",
-            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y")
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
         )
         db.session.add(message)
         db.session.commit()
@@ -168,6 +162,29 @@ class TestMessage:
         db.session.commit()
         nlen = db.session.query(Message).count()
         assert _len - nlen == 1
+
+    def test_withdraw_message_not_exists(self):
+        with pytest.raises(NotExistingMessageError):
+            MessageModel.withdraw_message(1000)
+
+    def test_withdraw_message_ok(self):
+        message = Message(
+            id_sender=1,
+            body_message="Ciao",
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+        )
+        db.session.add(message)
+        db.session.commit()
+        id = db.session.query(Message).count()
+        MessageModel.send_message(id)
+        UserModel.update_points_to_user(1, 1)
+        assert MessageModel.id_message_exists(id).is_sent
+        assert UserModel.get_user_info_by_id(1).lottery_points == 1
+        MessageModel.withdraw_message(id)
+        assert not MessageModel.id_message_exists(id).is_sent
+        assert UserModel.get_user_info_by_id(1).lottery_points == 0
+
+        db.session.delete(message)
 
     def test_delete_message_not_exists(self):
         with pytest.raises(NotExistingMessageError):
@@ -210,7 +227,7 @@ class TestMessage:
         message.recipients = []
         db.session.delete(message)
         db.session.commit()
-        
+
     def test_user_can_read(self):
         message = Message(
             id_sender=2,
@@ -316,14 +333,15 @@ class TestMessage:
         db.session.commit()
 
         info = MessageModel.get_replying_info(message.id_message)
-        assert 'message' in info
-        assert info['message'].id_message == message.id_message
-        assert 'user' in info
-        assert info['user'].id == 1
+        assert "message" in info
+        assert info["message"].id_message == message.id_message
+        assert "user" in info
+        assert info["user"].id == 1
 
         message.recipients = []
         db.session.delete(message)
         db.session.commit()
+
 
 class TestMessageContentFilter:
     def test_content_filter_unsafe(self):
