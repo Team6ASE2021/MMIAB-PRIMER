@@ -15,7 +15,7 @@
 
         <script>
             {% include "js/calendar.js" %}
-            window.onload = function() { populate_calendar({{calendar_view|tojson}}); }
+            window.addEventListener('load', function() { populate_calendar({{calendar_view|tojson}}); });
         </script>
 
          <style>

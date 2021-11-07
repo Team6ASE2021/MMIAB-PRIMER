@@ -15,10 +15,10 @@
          <script>
              {% if calendar_view is defined %}
                  {% include "js/calendar.js" %}
-                 window.onload = function() { 
+                 window.addEventListener('load', function() { 
                      var container = document.getElementsByClassName("container")[0];
                      populate_day_nav(container, {{calendar_view|tojson}}); 
-                 }
+                 });
              {% endif %}
          </script>
 
