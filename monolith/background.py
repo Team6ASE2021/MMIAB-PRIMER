@@ -4,7 +4,7 @@ import random
 from celery import Celery
 from celery.schedules import crontab
 from celery.utils.log import get_task_logger
-from flask_mail import Mail
+# from flask_mail import Mail
 
 from monolith.classes.lottery import LotteryModel
 from monolith.classes.message import MessageModel
@@ -14,7 +14,7 @@ _APP = None
 
 BACKEND = BROKER = "redis://localhost:6379"
 celery = Celery(__name__, backend=BACKEND, broker=BROKER)
-mail = Mail()
+# mail = Mail()
 
 TaskBase = celery.Task
 

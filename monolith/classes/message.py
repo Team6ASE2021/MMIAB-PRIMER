@@ -1,5 +1,7 @@
 import string
 from datetime import datetime
+from datetime import timedelta 
+import calendar
 from os import path
 from typing import List
 from typing import Optional
@@ -260,25 +262,69 @@ class MessageModel:
             return None
 
     @staticmethod
-    def get_timeline_day_mess_send(id,day):
-        result = db.session.query(Message).filter(Message.id_sender == id, Message.date_of_send == day).all()
+    def get_timeline_day_mess_send(id, year, month, day):
+        start_of_today = datetime(year, month, day)
+        start_of_tomorrow = start_of_today + timedelta(days=1)
+        result = (
+            db.session.query(Message)
+            .filter(
+                Message.id_sender == id,
+                Message.is_sent == True,
+                Message.date_of_send >= start_of_today,
+                Message.date_of_send < start_of_tomorrow,
+            )
+            .all()
+        )
         return result
     
     @staticmethod
-    def get_timeline_day_mess_received(id,day):
-        result = db.session.query(Message,User).filter(Message.date_of_send == day) \
-            .filter(Message.recipients.any(Recipient.id_recipient == id)).all()
+    def get_timeline_day_mess_received(id, year, month, day):
+        start_of_today = datetime(year, month, day)
+        start_of_tomorrow = start_of_today + timedelta(days=1)
+        result = (
+            db.session.query(Message)
+            .filter(
+                Message.is_sent == True,
+                Message.is_arrived == True,
+                Message.date_of_send >= start_of_today,
+                Message.date_of_send < start_of_tomorrow,
+            )
+            .filter(Message.recipients.any(Recipient.id_recipient == id))
+            .all()
+        )
         return result
 
     @staticmethod
-    def get_timeline_month_mess_send(id):
-        result = db.session.query(Message).filter(Message.id_sender == id ).all()
+    def get_timeline_month_mess_send(id, month, year):
+        month_fst = datetime(year, month, 1)
+        next_month_fst = month_fst + timedelta(days=calendar.monthrange(year, month)[1])
+        result = (
+            db.session.query(Message)
+            .filter(
+                Message.is_sent == True,
+                Message.id_sender == id,
+                Message.date_of_send >= month_fst,
+                Message.date_of_send < next_month_fst,
+            )
+            .all()
+        )
         return result
     
     @staticmethod
-    def get_timeline_month_mess_received(id):
-        result = db.session.query(Message,User) \
-            .filter(Message.recipients.any(Recipient.id_recipient == id)).all()
+    def get_timeline_month_mess_received(id, month, year):
+        month_fst = datetime(year, month, 1)
+        next_month_fst = month_fst + timedelta(days=calendar.monthrange(year, month)[1])
+        result = (
+            db.session.query(Message)
+            .filter(
+                Message.is_sent == True,
+                Message.is_arrived == True,
+                Message.date_of_send >= month_fst,
+                Message.date_of_send < next_month_fst,
+            )
+            .filter(Message.recipients.any(Recipient.id_recipient == id))
+            .all()
+        )
         return result
 
 

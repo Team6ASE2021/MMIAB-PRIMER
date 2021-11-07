@@ -9,17 +9,17 @@ from monolith.database import Recipient
 @pytest.mark.usefixtures('clean_db_and_logout', 'messages_setup')
 class TestViewsMailbox():
     def test_mailbox_not_logged(self, test_client):
-        response = test_client.get("/message/list/received")
+        response = test_client.get("/message/list/received", follow_redirects=True)
         assert response.status_code == 200
-        assert b"Hi Anonymous" in response.data
+        assert b"Login" in response.data
 
-        response = test_client.get("/message/list/sent")
+        response = test_client.get("/message/list/sent", follow_redirects=True)
         assert response.status_code == 200
-        assert b"Hi Anonymous" in response.data
+        assert b"Login" in response.data
 
-        response = test_client.get("/message/list/draft")
+        response = test_client.get("/message/list/draft", follow_redirects=True)
         assert response.status_code == 200
-        assert b"Hi Anonymous" in response.data
+        assert b"Login" in response.data
 
     def test_mailbox_count(self, test_client):
         admin_user = {"email": "example@example.com", "password": "admin"}
@@ -40,7 +40,7 @@ class TestViewsMailbox():
         )
         response = test_client.get('/message/list/received')
         assert response.status_code == 200
-        assert response.data.count(b'div class="message-block"') == db_count
+        assert response.data.count(b'<div class="row message-row">') == db_count
 
         db_count = (
             db.session.query(Message)
@@ -49,7 +49,7 @@ class TestViewsMailbox():
         )
         response = test_client.get('/message/list/sent')
         assert response.status_code == 200
-        assert response.data.count(b'div class="message-block"') == db_count
+        assert response.data.count(b'<div class="row message-row">') == db_count
 
         db_count = (
             db.session.query(Message)
@@ -58,6 +58,6 @@ class TestViewsMailbox():
         )
         response = test_client.get('/message/list/draft')
         assert response.status_code == 200
-        assert response.data.count(b'div class="message-block"') == db_count
+        assert response.data.count(b'<div class="row message-row">') == db_count
 
 
