@@ -289,16 +289,13 @@ def get_timeline_day(year,month,day):
         message_list_received = message_list_received, number_of_mess_received= number_of_mess_received)
 
     
-@messages.route('/timeline/monthly/<int:year>/<int:month>',methods=['GET'])
+@messages.route('/timeline/month/<int:_year>/<int:_month>',methods=['GET'])
 @login_required
-def get_timeline_monthly(_year,_month):
+def get_timeline_month(_year,_month):
 
-    year = _year
-    month = _month-1 #check if it is correct to set month to 'month - 1'
-    first_day = calendar.monthrange(_year,_month)[0]
-    number_of_days = calendar.monthrange(_year,_month)[1]
-    sent = []
-    received = []
+    first_day, number_of_days = calendar.monthrange(_year,_month)
+    sent = number_of_days*[0]
+    received = number_of_days*[0]
     message_list = MessageModel.get_timeline_month_mess_send(current_user.id)
     
     for elem in message_list:
@@ -313,15 +310,13 @@ def get_timeline_monthly(_year,_month):
             if(elem.date_of_send.month == _month):
                 received[elem.date_of_send.day - 1] += 1
 
-    calendar_view = {
-        'year': year,
-        'month': month,
+    return render_template("calendar.html", calendar_view = {
+        'year': _year,
+        'month': _month,
         'month_name': calendar.month_name[_month],
         'days_in_month': number_of_days,
         'starts_with': first_day,
         'sent': sent,
         'received': received
-    }
-
-    return jsonify(calendar_view)
+    })
 

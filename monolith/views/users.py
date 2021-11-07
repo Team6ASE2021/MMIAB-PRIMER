@@ -11,6 +11,7 @@ from flask import render_template
 from flask import request
 from flask.globals import current_app
 from flask.helpers import flash
+from flask.helpers import url_for
 from flask.wrappers import Response
 from flask_login import current_user
 from flask_login.utils import login_required
@@ -46,6 +47,14 @@ def create_user():
         if form.validate_on_submit():
             new_user = User()
             form.populate_obj(new_user)
+            try:
+                print(form.email.data)
+                UserModel.get_user_info_by_email(form.email.data)
+                print(form.email.data)
+                flash("Email address already present in the database!")
+                return render_template("create_user.html", form=form)
+            except NotExistingUserError:
+                pass
             """
 
             Password should be hashed with some salt. For example if you choose a hash function x,

@@ -93,13 +93,13 @@ function populate_last_row(container, days_in_month, day_num, sent, received){
 function populate_month_nav(container, calendar) {
     container.querySelector(".next-button").onclick = function() { 
         location.href=
-            "/timeline/" + 
+            "/timeline/month/" + 
             (calendar.month == 12 ? calendar.year + 1 : calendar.year) + "/" + 
             (calendar.month == 12 ? 1 : calendar.month + 1); 
     };
     container.querySelector(".prev-button").onclick = function() { 
         location.href=
-            "/timeline/" + 
+            "/timeline/month/" + 
             (calendar.month == 1 ? calendar.year - 1 : calendar.year) + "/" + 
             (calendar.month == 1 ? 12 : calendar.month - 1); 
     };
@@ -124,6 +124,8 @@ function populate_day_nav(container, calendar) {
 }
 
 function populate_calendar(calendar){
+    console.log(calendar.sent);
+    console.log(calendar.received);
 
     var container = document.getElementsByClassName("container")[0];
     populate_day_names(container);
