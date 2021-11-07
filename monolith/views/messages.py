@@ -267,4 +267,7 @@ def get_recipients():
         )
     )
 
-    return jsonify(recipients=recipients)
+    return jsonify(
+        recipients=recipients
+    )
+

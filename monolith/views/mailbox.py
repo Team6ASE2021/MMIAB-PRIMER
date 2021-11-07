@@ -1,5 +1,6 @@
 from flask import Blueprint
 from flask import render_template
+from flask_login.utils import login_required
 
 from monolith.auth import current_user
 from monolith.classes.mailbox_utility import MailboxUtility
@@ -8,6 +9,7 @@ mailbox = Blueprint("mailbox", __name__)
 
 
 @mailbox.route("/message/list/sent", methods=["GET"])
+@login_required
 # get message id to retrive message from the db table
 def mailbox_list_sent():
 
@@ -17,10 +19,11 @@ def mailbox_list_sent():
             current_user.get_id()
         )
 
-    return render_template("mailbox.html", message_list=message_list, list_type="sent")
+    return render_template("mailbox_bs.html", message_list=message_list, list_type="sent")
 
 
 @mailbox.route("/message/list/received", methods=["GET"])
+@login_required
 def mailbox_list_received():
 
     message_list = []
@@ -30,11 +33,14 @@ def mailbox_list_received():
         )
 
     return render_template(
-        "mailbox.html", message_list=message_list, list_type="received"
+        "mailbox_bs.html", 
+        message_list=message_list, 
+        list_type="received",
     )
 
 
 @mailbox.route("/message/list/draft", methods=["GET"])
+@login_required
 def mailbox_list_draft():
 
     message_list = []
@@ -43,4 +49,4 @@ def mailbox_list_draft():
             current_user.get_id()
         )
 
-    return render_template("mailbox.html", message_list=message_list, list_type="draft")
+    return render_template("mailbox_bs.html", message_list=message_list, list_type="draft")
