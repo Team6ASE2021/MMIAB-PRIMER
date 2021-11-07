@@ -5,7 +5,7 @@ from monolith.database import User
 
 class LotteryModel:
     @staticmethod
-    def get_participants_with_choices():
+    def get_participants():
         list = db.session.query(LotteryParticipant).join(User).all()
         return list
 
@@ -14,6 +14,23 @@ class LotteryModel:
         participant = LotteryParticipant(id_participant=id, choice=choice)
         db.session.add(participant)
         db.session.commit()
+
+    def is_participating(id_user: int) -> bool:
+
+        usr = (
+            db.session.query(LotteryParticipant)
+            .filter(LotteryParticipant.id_participant == id_user)
+            .first()
+        )
+        return usr is not None
+
+    def get_participant(id: int):
+        participant = (
+            db.session.query(LotteryParticipant)
+            .filter(LotteryParticipant.id_participant == id)
+            .first()
+        )
+        return participant
 
     @staticmethod
     def reset_lottery() -> None:

@@ -8,7 +8,7 @@ from monolith.database import LotteryParticipant
 @pytest.mark.usefixtures("clean_db_and_logout", "lottery_setup")
 class TestLottery:
     def test_get_participants(self):
-        participants = LotteryModel.get_participants_with_choices()
+        participants = LotteryModel.get_participants()
         p_id_and_choice = list(
             map(lambda u: (u.id_participant, u.choice), participants)
         )
@@ -24,6 +24,21 @@ class TestLottery:
             map(lambda u: (u.id_participant, u.choice), participants)
         )
         assert (1, 4) in p_id_and_choice
+        db.session.query(LotteryParticipant).filter(
+            LotteryParticipant.id_participant == 1
+        ).delete()
+
+    def test_is_participating(self):
+        assert LotteryModel.is_participating(2)
+
+    def test_is_not_participating(self):
+        assert not LotteryModel.is_participating(1)
+
+    def get_participant_exists(self):
+        assert LotteryModel.get_participant(2) is not None
+
+    def get_participant_not_exists(self):
+        assert LotteryModel.get_participant(100) is None
 
     def test_reset_lottery(self):
         LotteryModel.reset_lottery()

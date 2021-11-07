@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import backref
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
@@ -139,9 +140,11 @@ class Recipient(db.Model):
 
 class LotteryParticipant(db.Model):
 
-    __tablename__ = "lottery"
+    __tablename__ = "lottery_participant"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    id_participant = db.Column(db.ForeignKey("user.id"))
+    id_participant = db.Column(db.ForeignKey("user.id"), unique=True)
     choice = db.Column(db.Integer, nullable=False)
-    participant = db.relationship("User", lazy="joined")
+    participant = db.relationship(
+        "User", backref=backref("user", cascade="all,delete-orphan")
+    )

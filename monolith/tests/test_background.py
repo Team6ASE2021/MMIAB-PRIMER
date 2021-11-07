@@ -39,7 +39,7 @@ class TestBackgroundTasks:
 
     def test_lottery_draw_table_is_cleared_with_draw(self):
 
-        participants = LotteryModel.get_participants_with_choices()
+        participants = LotteryModel.get_participants()
         assert len(participants) > 0
         _lottery_draw()
-        assert len(LotteryModel.get_participants_with_choices()) == 0
+        assert len(LotteryModel.get_participants()) == 0

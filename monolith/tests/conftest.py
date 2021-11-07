@@ -52,6 +52,7 @@ def clean_db_and_logout(request, test_client):
     db.session.query(User).filter(User.email != admin_user["email"]).delete()
     db.session.query(Recipient).delete()
     db.session.query(Message).delete()
+    db.session.query(LotteryParticipant).delete()
     db.session.commit()
 
     def _finalizer():
@@ -60,6 +61,7 @@ def clean_db_and_logout(request, test_client):
         db.session.query(User).filter(User.email != admin_user["email"]).delete()
         db.session.query(Recipient).delete()
         db.session.query(Message).delete()
+        db.session.query(LotteryParticipant).delete()
         db.session.commit()
 
     request.addfinalizer(_finalizer)
@@ -168,21 +170,20 @@ def lottery_setup():
         email="test@test.com",
         firstname="test",
         lastname="test",
-        password="test",
         dateofbirth=datetime.strptime("01/01/2000", "%d/%m/%Y"),
     )
+    usr1.set_password("test")
     usr2 = User(
         email="test1@test.com",
         firstname="test",
         lastname="test",
-        password="test",
         dateofbirth=datetime.strptime("01/01/2000", "%d/%m/%Y"),
     )
+    usr2.set_password("pass")
     db.session.add(usr1)
     db.session.add(usr2)
-    db.session.add(LotteryParticipant(id_participant=2, choice=3))
-    db.session.add(LotteryParticipant(id_participant=3, choice=15))
+    p1 = LotteryParticipant(id_participant=2, choice=3)
+    db.session.add(p1)
+    p2 = LotteryParticipant(id_participant=3, choice=15)
+    db.session.add(p2)
     db.session.commit()
-    yield
-    db.session.query(User).filter(User.id > 1).delete()
-    db.session.query(LotteryParticipant).delete()
