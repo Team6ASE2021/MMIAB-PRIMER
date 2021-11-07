@@ -6,6 +6,7 @@ from typing import Optional
 
 from sqlalchemy import and_
 
+from monolith.classes.user import UserModel
 from monolith.database import db
 from monolith.database import Message
 from monolith.database import Recipient
@@ -98,7 +99,7 @@ class MessageModel:
         )
 
         messages_arrived = []
-        
+
         for m in messages.all():
             if (m.date_of_send - datetime.now()).total_seconds() <= 0:
 
@@ -106,7 +107,7 @@ class MessageModel:
                 messages_arrived.append(m)
 
         db.session.commit()
-        
+
         return [
             {
                 "id": m.id_message,
@@ -119,7 +120,7 @@ class MessageModel:
             }
             for m in messages_arrived
         ]
-      
+
     @staticmethod
     def get_notify_recipient(id):
         notify_list = (
@@ -133,7 +134,7 @@ class MessageModel:
             .all()
         )
 
-        for notify in notify_list: 
+        for notify in notify_list:
             notify.is_notified = True
 
         db.session.commit()
@@ -143,11 +144,12 @@ class MessageModel:
     @staticmethod
     def get_notify_sender(id):
 
-        notifies = db.session.query(Message)\
-                                     .filter(id == Message.id_sender,\
-                                             Message.is_notified_sender == False,\
-                                             Message.is_arrived == True, \
-                                             Message.is_sent == True)
+        notifies = db.session.query(Message).filter(
+            id == Message.id_sender,
+            Message.is_notified_sender == False,
+            Message.is_arrived == True,
+            Message.is_sent == True,
+        )
 
         notify_list = []
         for notify in notifies.all():
@@ -158,19 +160,17 @@ class MessageModel:
 
         return notify_list
 
-
-
     @staticmethod
     def create_message(
         id_sender: int,
         body_message: str,
         recipients: List[int] = [],
         date_of_send: datetime = datetime.now(),
-        is_sent = False,
-        is_arrived = False,
-        is_notified = False,
-        reply_to = None,
-        to_filter = False
+        is_sent=False,
+        is_arrived=False,
+        is_notified=False,
+        reply_to=None,
+        to_filter=False,
     ):
         message = Message()
         message.id_sender = id_sender
@@ -208,6 +208,19 @@ class MessageModel:
         db.session.commit()
 
     @staticmethod
+    def withdraw_message(id_message: int):
+
+        mess = (
+            db.session.query(Message).filter(Message.id_message == id_message).first()
+        )
+        if mess is None:
+            raise NotExistingMessageError("Message not found")
+        else:
+            mess.is_sent = False
+            UserModel.update_points_to_user(mess.id_sender, -1)
+            db.session.commit()
+
+    @staticmethod
     def user_can_read(user_id: int, message: Message) -> bool:
         recipients = [rcp.id_recipient for rcp in message.recipients]
         if message.is_arrived == True:
@@ -227,14 +240,22 @@ class MessageModel:
     def get_replying_info(reply_to: Optional[int]) -> Optional[dict]:
         try:
             if reply_to is None:
-                raise NotExistingMessageError('Trying to reply to a non existing message')
+                raise NotExistingMessageError(
+                    "Trying to reply to a non existing message"
+                )
 
             r_message = MessageModel.id_message_exists(reply_to) if reply_to else None
-            r_user = db.session.query(User).filter(User.id == r_message.id_sender).first() 
-            return {
-                'message': r_message,
-                'user': r_user,
-            } if r_user else None
+            r_user = (
+                db.session.query(User).filter(User.id == r_message.id_sender).first()
+            )
+            return (
+                {
+                    "message": r_message,
+                    "user": r_user,
+                }
+                if r_user
+                else None
+            )
         except NotExistingMessageError:
             return None
 
@@ -246,3 +267,10 @@ class NotExistingMessageError(Exception):
     def __str__(self):
         return repr(self.value)
 
+
+class MessageNotWithdrawable(Exception):
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)

@@ -2,7 +2,6 @@ import datetime
 import os
 
 from flask import Flask
-# from flask_mail import Mail
 
 from monolith.auth import login_manager
 from monolith.constants import _ALLOWED_EXTENSIONS
@@ -11,6 +10,8 @@ from monolith.constants import _UPLOAD_FOLDER
 from monolith.database import db
 from monolith.database import User
 from monolith.views import blueprints
+
+# from flask_mail import Mail
 
 
 def create_app(testing: bool = False) -> Flask:
@@ -54,8 +55,8 @@ def create_app(testing: bool = False) -> Flask:
     return app
 
 
-app = create_app()
 # mail = Mail(app)
 
 if __name__ == "__main__":
+    app = create_app()
     app.run()

@@ -7,6 +7,10 @@
 
   Hi {{ current_user.firstname }}! <a href="/logout">Logout</a>
     <h2>{{ welcome }}</h2>
+    <a></a>
+    <p><a href="{{url_for('messages.draft')}}">Create a new message</a></p>
+    <p><a href="{{url_for('mailbox.mailbox_list_sent')}}">Your mailbox</a></p>
+    <p><a href="{{url_for('lottery.participate')}}">Try your luck in the next lottery and win points to withdraw sent messages!</a></p>
     <a href="{{url_for('users.user_info',id=current_user.id)}}">Account info</a>
 {% else %}
   Hi Anonymous, <a href="/login">Log in</a> or <a href='/create_user'> create an account</a>

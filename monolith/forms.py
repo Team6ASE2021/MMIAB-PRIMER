@@ -1,4 +1,3 @@
-from re import search
 import wtforms as f
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed
@@ -8,7 +7,11 @@ from wtforms.validators import DataRequired
 from wtforms.validators import Email
 from wtforms.validators import InputRequired
 from wtforms.validators import Length
+from wtforms.validators import NumberRange
 from wtforms.validators import Optional
+
+from monolith.constants import _ALLOWED_EXTENSIONS
+from monolith.constants import _MAX_CONTENT_LENGTH
 
 delivery_format = "%H:%M %d/%m/%Y"
 
@@ -21,7 +24,8 @@ class LoginForm(FlaskForm):
 
 class RecipientForm(FlaskForm):
     recipient = f.SelectField("Recipient", default=[])
-    search = f.StringField("Search Users", default='')
+    search = f.StringField("Search Users", default="")
+
 
 class EditMessageForm(FlaskForm):
     body_message = f.TextAreaField("Message", validators=[InputRequired()])
@@ -33,14 +37,15 @@ class EditMessageForm(FlaskForm):
     image = FileField(
         validators=[
             FileAllowed(
-                ["jpg", "jpeg", "png"],
+                _ALLOWED_EXTENSIONS,
                 message="You can only upload .jpg, .jpeg or .png files",
             ),
             Optional(),
-            FileSize(max_size=16 * 1024 * 1024, message="max size allowed=16 MB"),
+            FileSize(max_size=_MAX_CONTENT_LENGTH, message="max size allowed=16 MB"),
         ]
     )
     display = ["body_message", "image", "date_of_send", "recipients"]
+
 
 class UserForm(FlaskForm):
     email = f.StringField(
@@ -55,11 +60,11 @@ class UserForm(FlaskForm):
     profile_picture = FileField(
         validators=[
             FileAllowed(
-                ["jpg", "jpeg", "png"],
+                _ALLOWED_EXTENSIONS,
                 message="You can only upload a jpg,jpeg, or png file",
             ),
             Optional(),
-            FileSize(max_size=16 * 1024 * 1024, message="max size allowed=16 MB"),
+            FileSize(max_size=_MAX_CONTENT_LENGTH, message="max size allowed=16 MB"),
         ]
     )
     display = [
@@ -72,3 +77,9 @@ class UserForm(FlaskForm):
         "password",
         "dateofbirth",
     ]
+
+
+class LotteryForm(FlaskForm):
+    choice = f.IntegerField(
+        label="choice", validators=[DataRequired(), NumberRange(min=1, max=50)]
+    )
