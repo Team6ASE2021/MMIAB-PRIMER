@@ -1,5 +1,5 @@
 coverage
-coveralls
+codecov
 mock
 pytest
 pytest-cov
