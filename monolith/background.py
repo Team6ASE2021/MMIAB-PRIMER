@@ -24,9 +24,9 @@ class ContextTask(TaskBase):  # pragma: no cover
         global _APP
         # lazy init
         if _APP is None:
-            from monolith.app import app as flask_app
+            from monolith.app import create_app
 
-            app = _APP = flask_app
+            app = _APP = create_app()
         else:
             app = _APP
         with app.app_context():
@@ -63,7 +63,7 @@ def _lottery_draw():
     winner = random.randint(1, 50)
     logger.log(logging.INFO, f"Winning number: {winner}")
 
-    participants = LotteryModel.get_participants_with_choices()
+    participants = LotteryModel.get_participants()
     winners = list(
         map(
             lambda u: u.participant.id,
