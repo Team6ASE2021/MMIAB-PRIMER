@@ -12,5 +12,3 @@ script:
 branches:
   only:
   - main
-after_success:
-    - codecov
