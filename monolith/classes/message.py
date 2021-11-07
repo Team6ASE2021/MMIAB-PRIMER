@@ -247,7 +247,6 @@ class MessageModel:
     def get_timeline_day_mess_received(id,day):
         result = db.session.query(Message,User).filter(Message.date_of_send == day) \
             .filter(Message.recipients.any(Recipient.id_recipient == id)).all()
-    
         return result
 
     @staticmethod
@@ -259,7 +258,6 @@ class MessageModel:
     def get_timeline_month_mess_received(id):
         result = db.session.query(Message,User) \
             .filter(Message.recipients.any(Recipient.id_recipient == id)).all()
-    
         return result
 
 

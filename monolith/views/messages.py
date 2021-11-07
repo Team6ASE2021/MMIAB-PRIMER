@@ -257,12 +257,12 @@ def get_timeline_day(year,month,day):
         message_list_received = message_list_received, number_of_mess_received= number_of_mess_received)
 
     
-@messages.route('/timeline/send/<int:year>/<int:month>',methods=['GET'])
+@messages.route('/timeline/monthly/<int:year>/<int:month>',methods=['GET'])
 @login_required
-def get_timeline_month(_year,_month):
+def get_timeline_monthly(_year,_month):
 
     year = _year
-    month = _month-1
+    month = _month-1 #check if it is correct to set month to 'month - 1'
     first_day = calendar.monthrange(_year,_month)[0]
     number_of_days = calendar.monthrange(_year,_month)[1]
     sent = []
