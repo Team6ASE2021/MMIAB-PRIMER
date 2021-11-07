@@ -12,3 +12,5 @@ script:
 branches:
   only:
   - main
+notifications:
+  email: false
