@@ -10,6 +10,7 @@ from flask import redirect
 from flask import render_template
 from flask import request
 from flask.globals import current_app
+from flask.helpers import flash
 from flask.wrappers import Response
 from flask_login import current_user
 from flask_login.utils import login_required
@@ -19,7 +20,10 @@ from monolith.classes.user import BlockingCurrentUserError
 from monolith.classes.user import NotExistingUserError
 from monolith.classes.user import UserBlacklist
 from monolith.classes.user import UserModel
-from monolith.database import User
+
+from monolith.classes.report import ReportModel
+from monolith.database import User, Report, db
+
 from monolith.forms import UserForm
 
 users = Blueprint("users", __name__)
@@ -93,6 +97,7 @@ def delete_user(id: int) -> Response:
             abort(HTTPStatus.UNAUTHORIZED)
         else:
             UserModel.delete_user(id)
+            flash("We're sad to see you go!")
             return redirect("/")
     except NotExistingUserError:
         abort(HTTPStatus.NOT_FOUND)
@@ -104,6 +109,18 @@ def set_content_filter():
     UserModel.toggle_content_filter(current_user.id)
     return redirect("/users/" + str(current_user.id))
 
+@users.route('/user/report/<id>',methods=['GET', 'POST'])
+@login_required
+def report(id):
+
+    res = ReportModel.add_report(id, current_user.id)
+
+    if res == True:
+        flash("You have report the user: " + id)
+    else:
+        flash("You have already report this user")
+    
+    return redirect('/')
 
 @users.route("/user/blacklist", methods=["GET"])
 @login_required
@@ -134,3 +151,4 @@ def blacklist_remove(id: int):
         abort(HTTPStatus.NOT_FOUND, description=str(e))
 
     return redirect("/user/blacklist")
+

@@ -11,6 +11,8 @@ from monolith.database import db
 from monolith.database import User
 from monolith.views import blueprints
 
+# from flask_mail import Mail
+
 
 def create_app(testing: bool = False) -> Flask:
     app = Flask(__name__)
@@ -53,7 +55,8 @@ def create_app(testing: bool = False) -> Flask:
     return app
 
 
-app = create_app()
+# mail = Mail(app)
 
 if __name__ == "__main__":
+    app = create_app()
     app.run()

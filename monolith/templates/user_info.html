@@ -1,6 +1,6 @@
 <html>
   <body>
-    <h1>User info</h1>
+    <h1>Your profile</h1>
     <ul>
         <li><img src="{{url_for('static', filename='assets/' + user.pfp_path)}}" alt="pfp" width="120" height="90" ></li>
         <li>
@@ -13,10 +13,16 @@
         <li>{{user.nickname}}</li>
         <li>{{user.location}}</li>
     </ul>
-    <p><a href="{{url_for('auth.logout')}}">Logout</a></p>
-    <p><a href="{{url_for('users.delete_user',id=user.id)}}">Delete your account</a></p>
+    {% if user.lottery_points > 0 %}
+        <p>you can  withdraw {{user.lottery_points}} sent messages</p>
+        {% else %}
+        <p> You can't withdraw any more messages, try your luck in the next lottery!</p>
+        {% endif %}
     {% set cf_action = 'Enable' if user.content_filter == False else 'Disable' %}
     <p><a href="{{url_for('users.set_content_filter')}}">{{ cf_action }} content filter</a></p>
     <p><a href="{{url_for('users.blacklist')}}">See your blacklist</a></p>
+    <p><a href="{{url_for('auth.logout')}}">Logout</a></p>
+    <p><a href="{{url_for('users.delete_user',id=user.id)}}" onclick="return confirm('Are you sure you want  to delete your account? Remember that ALL sent messages will still be available to the recipients');">Delete your account</a></p>
+    <p><a href="{{url_for('home.index')}}">Go back to the home page</a></p>
   </body>
 </html>

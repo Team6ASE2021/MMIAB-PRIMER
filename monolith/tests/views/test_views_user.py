@@ -112,7 +112,7 @@ class TestViewsUser:
         assert response.status_code == 200
         response = test_client.get(f"/users/{1}")
         assert response.status_code == 200
-        assert b"User info" in response.data
+        assert b"Your profile" in response.data
 
     def test_show_user_info_not_existing(self, test_client):
         response = test_client.get(f"/users/{100}")

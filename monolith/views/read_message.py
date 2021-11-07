@@ -6,7 +6,6 @@ from flask_login.utils import login_required
 from monolith.auth import current_user
 from monolith.classes.message import MessageModel
 from monolith.classes.message import NotExistingMessageError
-from monolith.classes.recipient import RecipientModel
 from monolith.classes.user import NotExistingUserError
 from monolith.classes.user import UserModel
 
@@ -41,10 +40,12 @@ def read_messages(id):
 
     return render_template(
         "read_select_message.html",
+        id_mess=mess.id_message,
         user_allowed=user_allowed,
         mess_text=mess_text,
         sender=sender_email,
         img_path=mess.img_path,
+        is_sent=mess.is_sent,
         date_receipt=date_receipt,
         replying_info=replying_info,
     )
