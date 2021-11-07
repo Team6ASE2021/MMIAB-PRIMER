@@ -29,4 +29,23 @@ body {
     margin-left: 2%;
 }
 
+.bg-eggplant{
+    background-color: #a163b4;
+}
+
+.bg-grey{
+    background-color: #c0c5bf;
+}
+
+.bg-navy{
+    background-color: #181d75;
+}
+
+.text-navy{
+    color: #181d75;
+}
+
+.text-eggplant{
+   color: #a163b4;
+}
 

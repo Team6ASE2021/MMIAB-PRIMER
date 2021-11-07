@@ -1,9 +1,8 @@
 import os
 from http import HTTPStatus
-from re import search
 from uuid import uuid4
 
-from flask import abort, app
+from flask import abort
 from flask import Blueprint
 from flask import flash
 from flask import jsonify
@@ -21,7 +20,6 @@ from monolith.classes.message import ContentFilter
 from monolith.classes.message import MessageModel
 from monolith.classes.message import NotExistingMessageError
 from monolith.classes.recipient import RecipientModel
-from monolith.classes.user import UserBlacklist
 from monolith.classes.user import UserModel
 from monolith.database import Message
 from monolith.forms import EditMessageForm
@@ -239,16 +237,20 @@ def get_recipients():
         recipients=recipients
     )
 
+"""
 @messages.route('/calendar', methods=['GET'])
 @login_required
 def calendar():
     return render_template('calendar.html', calendar_view={
             'year': 2021,
-            'month': 11,
+            'month': 12,
+            'month_name': 'December',
             'days_in_month': 31,
             'starts_with': 2,
-            'messages': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            'sent': [0, 4, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1],
+            'received': [1, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0]
         })
+"""
 
 
 
