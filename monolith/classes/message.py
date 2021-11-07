@@ -259,6 +259,30 @@ class MessageModel:
         except NotExistingMessageError:
             return None
 
+    @staticmethod
+    def get_timeline_day_mess_send(id,day):
+        result = db.session.query(Message).filter(Message.id_sender == id, Message.date_of_send == day).all()
+        return result
+    
+    @staticmethod
+    def get_timeline_day_mess_received(id,day):
+        result = db.session.query(Message,User).filter(Message.date_of_send == day) \
+            .filter(Message.recipients.any(Recipient.id_recipient == id)).all()
+        return result
+
+    @staticmethod
+    def get_timeline_month_mess_send(id):
+        result = db.session.query(Message).filter(Message.id_sender == id ).all()
+        return result
+    
+    @staticmethod
+    def get_timeline_month_mess_received(id):
+        result = db.session.query(Message,User) \
+            .filter(Message.recipients.any(Recipient.id_recipient == id)).all()
+        return result
+
+
+
 
 class NotExistingMessageError(Exception):
     def __init__(self, value):
