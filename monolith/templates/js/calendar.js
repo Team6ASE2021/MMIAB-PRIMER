@@ -25,27 +25,37 @@ function set_sent_received(day, sent, received, ind) {
     }
 }
 
-function populate_first_row(container, starts_with, sent, received){
+function set_day_link(day, calendar, day_num) {
+    day.querySelector(".day-link").href = 
+        "/timeline/day/" + 
+        calendar.year + "/" +
+        calendar.month + "/" + 
+        day_num + "/received";
+}
+
+function populate_first_row(container, calendar){
 
     var row = container.querySelector('#first-row');
     var day_1= row.firstElementChild
     day_1.querySelector(".day-number").textContent = "1";
-    set_sent_received(day_1, sent, received, 0);
+    set_sent_received(day_1, calendar.sent, calendar.received, 0);
+    set_day_link(day_1, calendar, 1);
 
-    fst_row_days= 7 - starts_with;
+    fst_row_days= 7 - calendar.starts_with;
     for(let i = 0; i < fst_row_days - 1; i++) {
         var new_day = day_1.cloneNode(true);
         new_day.querySelector(".day-number").textContent = (i + 2);
-        set_sent_received(new_day, sent, received, i+1);
+        set_sent_received(new_day, calendar.sent, calendar.received, i+1);
+        set_day_link(new_day, calendar, i+2);
         row.appendChild(new_day);
     }
 
     return fst_row_days;
 }
 
-function populate_full_rows(container, days_in_month, day_num, sent, received){
+function populate_full_rows(container, calendar, day_num){
 
-    var full_rows = ~~((days_in_month - fst_row_days) / 7);
+    var full_rows = ~~((calendar.days_in_month - fst_row_days) / 7);
     var ref_row = container.querySelector('#full-row-0');
     ref_row.id = "full-row-" + (full_rows - 1);
 
@@ -59,12 +69,14 @@ function populate_full_rows(container, days_in_month, day_num, sent, received){
         } else row = ref_row;
 
         var day_1 = row.firstElementChild;
-        set_sent_received(day_1, sent, received, day_num);
+        set_sent_received(day_1, calendar.sent, calendar.received, day_num);
         day_1.querySelector(".day-number").textContent = ++day_num;
+        set_day_link(day_1, calendar, day_num);
         for(let i = 1; i < 7; i++) {
             var new_day = day_1.cloneNode(true);
-            set_sent_received(new_day, sent, received, day_num);
+            set_sent_received(new_day, calendar.sent, calendar.received, day_num);
             new_day.querySelector(".day-number").textContent = ++day_num;
+            set_day_link(new_day, calendar, day_num);
             row.appendChild(new_day);
         }
     }
@@ -73,19 +85,21 @@ function populate_full_rows(container, days_in_month, day_num, sent, received){
 
 }
 
-function populate_last_row(container, days_in_month, day_num, sent, received){
+function populate_last_row(container, calendar, day_num){
 
-    var last_row_days = days_in_month - day_num;
+    var last_row_days = calendar.days_in_month - day_num;
 
     var row = container.querySelector('#last-row');
     var day_1 = row.firstElementChild
-    set_sent_received(day_1, sent, received, day_num);
+    set_sent_received(day_1, calendar.sent, calendar.received, day_num);
     day_1.querySelector(".day-number").textContent = ++day_num;
+    set_day_link(day_1, calendar, day_num);
 
     for(let i = 0; i < last_row_days - 1; i++) {
         var new_day = day_1.cloneNode(true);
-        set_sent_received(new_day, sent, received, day_num);
+        set_sent_received(new_day, calendar.sent, calendar.received, day_num);
         new_day.querySelector(".day-number").textContent = ++day_num;
+        set_day_link(new_day, calendar, day_num);
         row.appendChild(new_day);
     }
 }
@@ -106,31 +120,34 @@ function populate_month_nav(container, calendar) {
     container.querySelector(".month-year-desc").textContent = calendar.month_name + " " + calendar.year;
 }
 
-function populate_day_nav(container, calendar) {
+function populate_day_nav(container, calendar, type) {
     container.querySelector(".next-button").onclick = function() { 
-        location.href="/timeline/" + 
+        location.href="/timeline/day/" + 
         calendar.tomorrow[0] + "/" + 
         calendar.tomorrow[1] + "/" + 
-        calendar.tomorrow[2];
+        calendar.tomorrow[2] + "/" + type;
     };
     container.querySelector(".prev-button").onclick = function() { 
-        location.href="/timeline/" + 
-        calendar.yesteray[0] + "/" + 
-        calendar.yesteray[1] + "/" + 
-        calendar.yesteray[2];
+        location.href="/timeline/day/" + 
+        calendar.yesterday[0] + "/" + 
+        calendar.yesterday[1] + "/" + 
+        calendar.yesterday[2] + "/" + type;
+    };
+    container.querySelector(".month-button").onclick = function() { 
+        location.href="/timeline/month/" + 
+        calendar.today[0] + "/" + 
+        calendar.today[1] 
     };
     container.querySelector(".date-desc").textContent = calendar.today[2] + "/" + calendar.today[1] + "/" + calendar.today[0];
 
 }
 
 function populate_calendar(calendar){
-    console.log(calendar.sent);
-    console.log(calendar.received);
 
     var container = document.getElementsByClassName("container")[0];
     populate_day_names(container);
-    var fst_row_days = populate_first_row(container, calendar.starts_with, calendar.sent, calendar.received);
-    var full_rows_days = populate_full_rows(container, calendar.days_in_month, fst_row_days, calendar.sent, calendar.received);
-    populate_last_row(container, calendar.days_in_month, fst_row_days + full_rows_days, calendar.sent, calendar.received);
+    var fst_row_days = populate_first_row(container, calendar);
+    var full_rows_days = populate_full_rows(container, calendar, fst_row_days);
+    populate_last_row(container, calendar, fst_row_days + full_rows_days);
     populate_month_nav(container, calendar);
 }

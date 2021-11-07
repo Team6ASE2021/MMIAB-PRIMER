@@ -1,8 +1,6 @@
 
 .day-box{
-    border: 0px solid var(--primary);
     height: 100px;
-    
 }
 
 .calendar-box{
@@ -18,3 +16,6 @@
     background-color: transparent;
 }
 
+a{
+    cursor: pointer;
+}

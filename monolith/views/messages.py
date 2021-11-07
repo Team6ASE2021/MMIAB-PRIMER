@@ -1,4 +1,5 @@
 from datetime import datetime
+from datetime import timedelta
 import os
 from http import HTTPStatus
 from uuid import uuid4
@@ -273,42 +274,62 @@ def get_recipients():
         recipients=recipients
     )
 
-@messages.route('/timeline/day/<int:year>/<int:month>/<int:day>',methods=['GET'])
+@messages.route('/timeline/day/<int:year>/<int:month>/<int:day>/sent',methods=['GET'])
 @login_required
-def get_timeline_day(year,month,day):
-    day = datetime.datetime(year,month,day)
-    day = day.strftime("%d/%m/%Y")
+def get_timeline_day_sent(year,month,day):
+    today_dt = datetime(year, month, day)
+    tomorrow = today_dt + timedelta(days=1)
+    yesterday = today_dt - timedelta(days=1)
+    messages = MessageModel.get_timeline_day_mess_send(current_user.id, year, month, day)
+    print(messages)
 
-    message_list_send = MessageModel.get_timeline_day_mess_send(current_user.id,day)
-    number_of_mess_send = message_list_send.count()
+    return render_template(
+        "mailbox_bs.html",
+        message_list=messages,
+        list_type='sent',
+        calendar_view={
+            'today': (year, month, day),
+            'tomorrow': (tomorrow.year, tomorrow.month, tomorrow.day), 
+            'yesterday': (yesterday.year, yesterday.month, yesterday.day)
+        },
+    )
 
-    message_list_received = MessageModel.get_timeline_day_mess_received(current_user.id,day)
-    number_of_mess_received = message_list_received.count()
+@messages.route('/timeline/day/<int:year>/<int:month>/<int:day>/received',methods=['GET'])
+@login_required
+def get_timeline_day_received(year,month,day):
+    today_dt = datetime(year, month, day)
+    tomorrow = today_dt + timedelta(days=1)
+    yesterday = today_dt - timedelta(days=1)
 
-    return render_template("timeline.html",message_list_send=message_list_send,number_of_mess_send=number_of_mess_send, \
-        message_list_received = message_list_received, number_of_mess_received= number_of_mess_received)
+    messages = MessageModel.get_timeline_day_mess_received(current_user.id, year, month, day)
 
+    return render_template(
+        "mailbox_bs.html",
+        message_list=messages,
+        list_type='received',
+        calendar_view={
+            'today': (year, month, day),
+            'tomorrow': (tomorrow.year, tomorrow.month, tomorrow.day), 
+            'yesterday': (yesterday.year, yesterday.month, yesterday.day)
+        },
+    )
     
 @messages.route('/timeline/month/<int:_year>/<int:_month>',methods=['GET'])
 @login_required
 def get_timeline_month(_year,_month):
 
     first_day, number_of_days = calendar.monthrange(_year,_month)
-    sent = number_of_days*[0]
-    received = number_of_days*[0]
-    message_list = MessageModel.get_timeline_month_mess_send(current_user.id)
+    sent, received = number_of_days*[0], number_of_days*[0]
+    
+    message_list = MessageModel.get_timeline_month_mess_send(current_user.id, _month, _year)
     
     for elem in message_list:
-        if(elem.date_of_send.year == _year):
-            if(elem.date_of_send.month == _month):
-                sent[elem.date_of_send.day - 1] += 1
+        sent[elem.date_of_send.day - 1] += 1
     
-    message_list = MessageModel.get_timeline_month_mess_received(current_user.id)
+    message_list = MessageModel.get_timeline_month_mess_received(current_user.id, _month, _year)
     
     for elem in message_list:
-        if(elem.date_of_send.year == _year):
-            if(elem.date_of_send.month == _month):
-                received[elem.date_of_send.day - 1] += 1
+        received[elem.date_of_send.day - 1] += 1
 
     return render_template("calendar.html", calendar_view = {
         'year': _year,

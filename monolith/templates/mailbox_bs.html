@@ -17,7 +17,7 @@
                  {% include "js/calendar.js" %}
                  window.addEventListener('load', function() { 
                      var container = document.getElementsByClassName("container")[0];
-                     populate_day_nav(container, {{calendar_view|tojson}}); 
+                     populate_day_nav(container, {{calendar_view|tojson}}, '{{list_type}}'); 
                  });
              {% endif %}
          </script>
@@ -43,6 +43,16 @@
     <div class="container overflow-hidden">
       {% if calendar_view is defined %}
       <div class="row py-2">
+          <div class="col-3">
+              <div class=" px-0">
+                  <button type="button" class="btn btn-primary bg-navy py-1 month-button">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-calendar3" viewBox="0 0 16 16">
+  <path d="M14 0H2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM1 3.857C1 3.384 1.448 3 2 3h12c.552 0 1 .384 1 .857v10.286c0 .473-.448.857-1 .857H2c-.552 0-1-.384-1-.857V3.857z"/>
+  <path d="M6.5 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+</svg>
+                  </button>
+              </div>
+          </div>
           <div class="col-1">
               <div class="d-grid px-0">
                   <button type="button" class="btn btn-primary bg-navy py-1 prev-button">
@@ -74,8 +84,8 @@
                     {% set sent_url = url_for('mailbox.mailbox_list_sent') %}
                     {% set draft_url = url_for('mailbox.mailbox_list_draft') %}
                 {% else %}
-                    {% set received_url = url_for('messages.timeline_day_sent', year=calendar_view['today'][0], month=calendar_view['today'][1], day=calendar_view['today'][2]) %}
-                    {% set received_url = url_for('messages.timeline_day_received', year=calendar_view['today'][0], month=calendar_view['today'][1], day=calendar_view['today'][2]) %}
+                    {% set sent_url = url_for('messages.get_timeline_day_sent', year=calendar_view['today'][0], month=calendar_view['today'][1], day=calendar_view['today'][2]) %}
+                    {% set received_url = url_for('messages.get_timeline_day_received', year=calendar_view['today'][0], month=calendar_view['today'][1], day=calendar_view['today'][2]) %}
                 {% endif %}
                   <li class="nav-item">
                       <a href="{{ received_url }}" class="nav-link {{'active' if list_type=='received'}}">Received</a>
