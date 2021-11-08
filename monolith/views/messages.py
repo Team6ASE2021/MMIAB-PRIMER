@@ -34,6 +34,8 @@ messages = Blueprint("messages", __name__)
 @login_required
 def draft():
     reply_to = request.args.get("reply_to", None)
+    send_to = request.args.get("send_to", None) if reply_to is None else None
+    print(send_to)
     replying_info = MessageModel.get_replying_info(reply_to)
 
     form = EditMessageForm(recipients=[{"name": "Recipient"}])
@@ -71,9 +73,10 @@ def draft():
             return redirect("/read_message/" + str(new_draft.id_message))
 
     return render_template(
-        "create_message.html",
+        "draft_bs.html",
         form=form,
         replying_info=replying_info,
+        send_to=send_to,
         available_recipients=available_recipients,
     )
 
@@ -145,7 +148,8 @@ def edit_draft(id):
             return redirect("/read_message/" + str(draft.id_message))
 
     return render_template(
-        "edit_message.html",
+        "draft_bs.html",
+        edit=True,
         form=form,
         old_date=draft.date_of_send,
         old_message=draft.body_message,
@@ -265,7 +269,7 @@ def get_recipients():
             lambda u: (u.id, u.nickname if u.nickname else u.email),
             filter(
                 lambda u: u.id != current_user.get_id(),
-                UserModel.search_user_by_key_word(current_user.id, _filter),
+                UserModel.search_user_by_keyword(current_user.id, _filter),
             ),
         )
     )

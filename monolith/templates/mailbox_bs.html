@@ -28,18 +28,25 @@
          </style>
          <!--<link rel="stylesheet" href="css/style.css">-->
          <!--<link rel="stylesheet" href="css/mailbox_bs.css">-->
+         {% from 'alert_macro.html' import warning %}
+         {% from 'alert_macro.html' import flash %}
     </head>
     <body>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul class=flashes>
-            {% for message in messages %}
-                <li>{{ message }}</li>
-            {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
-    <div style="height: 80px;"></div>
+    <div style="min-height: 80px;">
+        <div class="container py-3 overflow-hidden" style="padding-bottom: 200px;">
+            <div class="row justify-content-center mb-3">
+                <div class="col">
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            {{ flash(message) }}
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="container overflow-hidden">
       {% if calendar_view is defined %}
       <div class="row py-2">
@@ -186,7 +193,7 @@
                               {% set edit_url = url_for('messages.edit_draft', id=id_message) %}
                               {% set send_url = url_for('messages.send_message', id=id_message) %}
                               {% set forward_url = url_for('home.index') %}
-                              {% set reply_url = url_for('home.index', id=id_message) %}
+                              {% set reply_url = url_for('messages.reply_to_message', id=id_message) %}
                               {% set withdraw_url = url_for('home.index', id=id_message) %}
                               {% set delete_url = url_for('home.index') %}
                                   {% if list_type=='draft' %}
