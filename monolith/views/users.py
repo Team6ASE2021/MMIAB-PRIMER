@@ -73,7 +73,7 @@ def create_user():
             UserModel.create_user(new_user, form.password.data)
             return redirect("/login")
 
-    return render_template("create_user.html", form=form)
+    return render_template("create_user_bs.html", form=form)
 
 
 @users.route("/users/<int:id>", methods=["GET"])

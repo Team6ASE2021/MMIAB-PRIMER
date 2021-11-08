@@ -71,7 +71,7 @@ def draft():
             return redirect("/read_message/" + str(new_draft.id_message))
 
     return render_template(
-        "create_message.html",
+        "draft_bs.html",
         form=form,
         replying_info=replying_info,
         available_recipients=available_recipients,
@@ -145,7 +145,8 @@ def edit_draft(id):
             return redirect("/read_message/" + str(draft.id_message))
 
     return render_template(
-        "edit_message.html",
+        "draft_bs.html",
+        edit=True,
         form=form,
         old_date=draft.date_of_send,
         old_message=draft.body_message,
