@@ -675,3 +675,25 @@ class TestWithDrawMessage:
         assert resp.status_code == HTTPStatus.OK
         assert not mess.is_sent
         test_client.post("/logout")
+
+    def test_view_daily_timeline_sent(self,test_client):
+        user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=user)
+        resp = test_client.get("/timeline/day/2021/3/6/sent",follow_redirects=True)
+        assert resp.status_code == HTTPStatus.OK
+        test_client.post("/logout")
+
+    def test_view_daily_timeline(_receivedself,test_client):
+        user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=user)
+        resp = test_client.get("/timeline/day/2021/3/6/received",follow_redirects=True)
+        assert resp.status_code == HTTPStatus.OK
+        test_client.post("/logout")
+
+    def test_view_monthly_timeline(self,test_client):
+        user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=user)
+        resp = test_client.get("/timeline/month/2021/3",follow_redirects=True)
+        assert resp.status_code == HTTPStatus.OK
+        test_client.post("/logout")
+

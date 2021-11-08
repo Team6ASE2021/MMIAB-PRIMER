@@ -281,7 +281,6 @@ def get_timeline_day_sent(year,month,day):
     tomorrow = today_dt + timedelta(days=1)
     yesterday = today_dt - timedelta(days=1)
     messages = MessageModel.get_timeline_day_mess_send(current_user.id, year, month, day)
-    print(messages)
 
     return render_template(
         "mailbox_bs.html",
