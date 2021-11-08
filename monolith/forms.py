@@ -79,6 +79,12 @@ class UserForm(FlaskForm):
         "dateofbirth",
     ]
 
+class EditProfileForm(UserForm):
+    email = f.StringField( "Email", validators=[Optional()])
+    password = f.PasswordField("Password", validators=[Optional()])
+    old_password = f.PasswordField("Old Password", validators=[])
+    new_password = f.PasswordField("New Password", validators=[])
+    UserForm.display.extend(["new_password", "old_password"])
 
 class LotteryForm(FlaskForm):
     choice = f.IntegerField(

@@ -1,10 +1,16 @@
+import os 
+
 from typing import List
 from typing import Optional
 from typing import Set
 
+from uuid import uuid4
+
 from monolith.database import db
 from monolith.database import User
 
+from flask.globals import current_app
+from werkzeug.utils import secure_filename
 
 class UserModel:
 
@@ -52,15 +58,34 @@ class UserModel:
     @staticmethod
     def update_user(id, fields=None):
         if fields is not None:
-            rows = db.session.query(User).filter(User.id == id).update(values=fields)
+            print(fields)
+            filtered_fields = {k: v for k, v in fields.items() if k not in ['email', 'password', 'old_password', 'new_password']}
+            user = db.session.query(User).filter(User.id == id)
+            rows = user.update(values=filtered_fields)
+
             if rows == 0:
                 raise NotExistingUserError("User not found")
-            else:
-                if User.password in fields.keys():
-                    db.session.query(User).filter(User.id == id).first().set_password(
-                        fields[User.password]
-                    )
-                db.session.commit()
+
+            if "new_password" in fields.keys():
+                if "old_password" not in fields.keys():
+                    raise WrongPasswordError("You must enter your old password to change it")
+                if not user.first().check_password(fields["old_password"]):
+                    raise WrongPasswordError("You entered the wrong password")
+
+                user.first().set_password(
+                    fields["new_password"]
+                )
+
+            if "profile_picture" in fields.keys():
+                file = fields["profile_picture"]
+                name = file.filename
+                name = str(uuid4()) + secure_filename(name)
+
+                path = os.path.join(current_app.config["UPLOAD_FOLDER"], name)
+                user.set_pfp_path(name)
+                file.save(path)
+
+            db.session.commit()
 
     @staticmethod
     def delete_user(id: Optional[int] = None, email: str = "") -> int:
@@ -200,6 +225,8 @@ class UserBlacklist:
 class NotExistingUserError(Exception):
     pass
 
+class WrongPasswordError(Exception):
+    pass
 
 class BlockingCurrentUserError(Exception):
     pass

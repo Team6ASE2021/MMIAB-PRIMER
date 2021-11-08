@@ -129,7 +129,7 @@
                                     </button>
                                     <ul class="dropdown-menu" aria-labelledby="settings-button">
                                         {% if current_user.id == user.id %}
-                                        <li><a class="dropdown-item" href="{{url_for('mailbox.mailbox_list_sent')}}">
+                                        <li><a class="dropdown-item" href="{{url_for('users.edit_profile')}}">
                                                 Edit Profile
                                         </a></li>
                                         <li><hr class="dropdown-divider"></li>

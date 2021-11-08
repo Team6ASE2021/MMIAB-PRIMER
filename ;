@@ -16,7 +16,6 @@ from flask.wrappers import Response
 from flask_login import current_user
 from flask_login.utils import login_required
 from werkzeug.utils import secure_filename
-from sqlalchemy import inspect
 
 from monolith.classes.report import ReportModel
 from monolith.classes.user import BlockingCurrentUserError
@@ -24,7 +23,7 @@ from monolith.classes.user import NotExistingUserError
 from monolith.classes.user import WrongPasswordError
 from monolith.classes.user import UserBlacklist
 from monolith.classes.user import UserModel
-from monolith.database import User, db
+from monolith.database import User
 from monolith.forms import UserForm
 from monolith.forms import EditProfileForm
 
@@ -82,27 +81,23 @@ def edit_profile():
     form = EditProfileForm()
 
     user = UserModel.get_user_info_by_id(current_user.id)
-    user_data = {str(k)[5:]: getattr(user, str(k)[5:]) for k in user.__table__.columns if str(k)[5:] != 'password'}
-
-    print(user_data)
+    for i in User.__table__.columns:
+        print(i)
+        print(user[i[6:]))
 
     if request.method == "POST":
         if form.validate_on_submit():
 
             form_data = {i: form.data[i] for i in form.data if i not in ["csrf_token", "submit"]}
-            new_data = {k: v for k, v in form_data.items() if v is not None and v != ''}
+            new_data = {k: v for k, v in form_data.items() if v is not None}
 
             try:
                 UserModel.update_user(current_user.id, new_data)
-                return redirect(url_for('users.profile_info'))
+                return redirect(url_for('user.user_profile'))
             except (NotExistingUserError, WrongPasswordError) as e:
-                flash(e)
+                flash(e.message)
 
-    return render_template(
-        "create_user_bs.html", 
-        form=form, 
-        user_data=user_data
-    )
+    return render_template("create_user_bs.html", form=form)
 
 @users.route("/users/<int:id>", methods=["GET"])
 @login_required

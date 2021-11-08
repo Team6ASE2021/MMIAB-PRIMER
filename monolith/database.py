@@ -47,6 +47,9 @@ class User(db.Model):
         self._authenticated = checked
         return self._authenticated
 
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+
     def get_id(self):
         return self.id
 
