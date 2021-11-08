@@ -82,8 +82,10 @@ def user_info(id: int) -> Text:
     try:
         user = UserModel.get_user_info_by_id(id)
         return render_template(
-            "user_info.html" if current_user.id == id else "user_info_other.html",
+            "user_info_bs.html",
             user=user,
+            blocked=UserBlacklist.is_user_blocked(current_user.id, id),
+            reported=ReportModel.is_user_reported(current_user.id, id)
         )
 
     except NotExistingUserError:
@@ -93,9 +95,12 @@ def user_info(id: int) -> Text:
 @users.route("/user_list", methods=["GET"])
 @login_required
 def user_list() -> Optional[Text]:
-    user_list = UserModel.get_user_list()[1:]  # ignore admin
-    user_list = UserBlacklist.filter_blacklist(current_user.id, user_list)
-    return render_template("user_list.html", list=user_list)
+    _q = request.args.get('q', None)
+    user_list = list(filter(
+            lambda u: u.id != current_user.id,
+            UserModel.search_user_by_keyword(current_user.id, _q)
+    ))
+    return render_template("user_list_bs.html", list=user_list)
 
 
 @users.route("/users/<int:id>/delete", methods=["GET"])
@@ -134,8 +139,12 @@ def report(id):
 @users.route("/user/blacklist", methods=["GET"])
 @login_required
 def blacklist():
-    blocked_users = UserBlacklist.get_blocked_users(current_user.id)
-    return render_template("blocked_users.html", list=blocked_users)
+    _q = request.args.get('q', None)
+    user_list = list(filter(
+            lambda u: u.id != current_user.id,
+            UserModel.search_blacklist_by_keyword(current_user.id, _q)
+    ))
+    return render_template("user_list_bs.html", list=user_list, blacklist=True)
 
 
 @users.route("/user/blacklist/add/<int:id>", methods=["GET"])

@@ -28,9 +28,45 @@
          <!--
          <link rel="stylesheet" href="css/style.css">
          -->
+         {% from 'alert_macro.html' import warning %}
+         {% from 'alert_macro.html' import flash %}
     </head>
     <body>
-    <div style="height: 80px;"></div>
+    <div style="min-height: 80px;">
+        <div class="container py-3 overflow-hidden" style="padding-bottom: 200px;">
+            <div class="row justify-content-center mb-3">
+                <div class="col-8">
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            {{ flash(message) }}
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% set fields = ['body_message', 'date_of_send', 'image'] %}
+                {% for field in fields %}
+                    {% if form[field].errors %}
+                        {% for e in form[field].errors %}
+                            {{ warning(form[field].label, e) }}
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+                {% set fields = ['search', 'recipient'] %}
+                {% for recipient_form in form.recipients %}
+                    {% set fields = ['search', 'recipient'] %}
+                    {% for field in fields %}
+                        {% if recipient_form[field].errors %}
+                            {% for e in recipient_form[field].errors %}
+                                {{ warning(recipient_form[field].label, e) }}
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="container overflow-hidden" style="padding-bottom: 200px;">
         <div class="row justify-content-center mb-3">
             <div class="col-8">
@@ -98,12 +134,14 @@
                                 >
                                     {% set outer_loop = loop %}
                                     {% for rcp in available_recipients %}
+                                    {{ rcp[0] }}
                                     <option 
                                         value="{{ rcp[0] }}" 
                                         {% if edit == True %}
                                             {{'selected' if old_recs|length > 0 and old_recs[outer_loop.index0] == rcp[0]}}
                                         {% else %}
                                             {{'selected' if replying_info is not none and replying_info['message'].id_sender == rcp[0]}}
+                                            {{'selected' if send_to is not none and send_to == rcp[0]|string }}
                                         {% endif %}
                                     >
                                         {{ rcp[1] }}
@@ -142,6 +180,28 @@
                 </form>
             </div>
         </div>
+        {% if replying_info %}
+        <div class="row justify-content-center mb-2" style="margin-top: 60px;">
+            <div class="col-8">
+                <div class="hstack">
+                    <span class="m-1 fs-5 text-navy">{{replying_info['message'].date_of_send|delivery_datetime_format}}</span>
+                    <span class="m-1 ms-auto fw-bold fs-5 text-navy">replying to:</span>
+                    <a href="{{url_for('users.user_info', id=replying_info['user'].id)}}"
+                        <span class="m-1 text-decoration-none badge bg-primary text-white rounded-pill fs-5">
+                            {{ replying_info['user'].firstname }} {{ replying_info['user'].lastname }}
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center mb-2">
+            <div class="col-8">
+                <div class="shadow-sm border border-success rounded-3 text-navy fs-5" style="padding: 20px 35px 50px 35px; min-height: 200px;">
+                    {{ replying_info['message'].body_message }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     </body>

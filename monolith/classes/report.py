@@ -23,3 +23,14 @@ class ReportModel:
             if count == 10:
                 db.session.query(User).filter(User.id == id_reported).update({User.is_banned : True})
             return True
+
+    def is_user_reported(current_id, other_id):
+        return ( 
+            db.session.query(Report)
+            .filter(
+                Report.id_reported == other_id,
+                Report.id_signaller == current_id
+            )
+            .count()
+        ) == 1
+

@@ -19,7 +19,12 @@ def mailbox_list_sent():
             current_user.get_id()
         )
 
-    return render_template("mailbox_bs.html", message_list=message_list, list_type="sent")
+    return render_template(
+        "mailbox_bs.html", 
+        message_list=message_list, 
+        list_type="sent",
+        withdraw=current_user.lottery_points > 0
+    )
 
 
 @mailbox.route("/message/list/received", methods=["GET"])

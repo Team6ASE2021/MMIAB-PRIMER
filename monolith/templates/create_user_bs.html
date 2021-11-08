@@ -19,9 +19,34 @@
          <!--
          <link rel="stylesheet" href="css/style.css">
          -->
+         {% from 'alert_macro.html' import warning %}
+         {% from 'alert_macro.html' import flash %}
     </head>
     <body>
-    <div style="height: 80px;"></div>
+    <div style="min-height: 80px;">
+        <div class="container py-3 overflow-hidden" style="padding-bottom: 200px;">
+            <div class="row justify-content-center mb-3">
+                <div class="col-7">
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            {{ flash(message) }}
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% set fields = ['firstname', 'lastname', 'nickname', 'email', 'password', 'dateofbirth', 'location', 'profile_picture'] %}
+                {% for field in fields %}
+                    {% if form[field].errors %}
+                        {% for e in form[field].errors %}
+                            {{ warning(form[field].label, e) }}
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="container py-2 overflow-hidden" style="padding-bottom: 200px;">
         <div class="row justify-content-center mb-3">
             <div class="col-7">

@@ -75,9 +75,8 @@ class UserModel:
         db_user.update({User.content_filter: new_val})
         db.session.commit()
 
-    def search_user_by_key_word(user_id: int, key_word: Optional[str]) -> List[User]:
-        valid_users = UserBlacklist.filter_blacklist(user_id, UserModel.get_user_list())
-
+    @staticmethod
+    def _filter_users_by_keyword(users: List[User], key_word: str) -> List[User]:
         filter_users = lambda elem: (
             key_word in elem.firstname
             or key_word in elem.lastname
@@ -87,10 +86,19 @@ class UserModel:
         )
 
         if not key_word or key_word == "":
-            return valid_users
+            return users
 
-        filtered_users = list(filter(filter_users, valid_users))
-        return filtered_users if len(filtered_users) > 0 else valid_users
+        filtered_users = list(filter(filter_users, users))
+        return filtered_users if len(filtered_users) > 0 else users
+
+    def search_user_by_keyword(user_id: int, key_word: Optional[str]) -> List[User]:
+        valid_users = UserBlacklist.filter_blacklist(user_id, UserModel.get_user_list())
+        return UserModel._filter_users_by_keyword(valid_users, key_word)
+
+
+    def search_blacklist_by_keyword(user_id: int, key_word: Optional[str]) -> List[User]:
+        blocked_users = UserBlacklist.get_blocked_users(user_id)
+        return UserModel._filter_users_by_keyword(blocked_users, key_word)
 
     @staticmethod
     def filter_available_recipients(
@@ -162,6 +170,10 @@ class UserBlacklist:
         blocked_users = UserBlacklist._get_blacklist(current_user)
         return UserModel.get_users_by_ids(list(blocked_users))
 
+    @staticmethod
+    def is_user_blocked(current_id: int, other_id: int) -> bool:
+        current_user = UserModel.get_user_info_by_id(current_id)
+        return other_id in UserBlacklist._get_blacklist(current_user)
 
 class NotExistingUserError(Exception):
     pass

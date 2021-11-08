@@ -605,6 +605,7 @@ class TestReplyToMessage:
             url_for("messages.reply_to_message", id=1), follow_redirects=True
         )
         assert resp.status_code == HTTPStatus.OK
+        print(resp.data)
         assert bytes(message.first().body_message, "utf-8") in resp.data
         test_client.get("/logout")
 
