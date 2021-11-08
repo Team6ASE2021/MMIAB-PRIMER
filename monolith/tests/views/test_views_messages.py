@@ -683,7 +683,7 @@ class TestWithDrawMessage:
         assert resp.status_code == HTTPStatus.OK
         test_client.post("/logout")
 
-    def test_view_daily_timeline(_receivedself,test_client):
+    def test_view_daily_timeline_received(self,test_client):
         user = {"email": "example@example.com", "password": "admin"}
         test_client.post("/login", data=user)
         resp = test_client.get("/timeline/day/2021/3/6/received",follow_redirects=True)
