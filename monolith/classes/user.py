@@ -13,6 +13,15 @@ class UserModel:
     """
 
     @staticmethod
+    def user_exists(id=None, email=""):
+        if id is not None:
+            return db.session.query(User).filter(User.id == id).first() is not None
+        else:
+            return (
+                db.session.query(User).filter(User.email == email).first() is not None
+            )
+
+    @staticmethod
     def get_user_info_by_id(id: int) -> Optional[User]:
         user = db.session.query(User).filter(id == User.id).first()
         if user is None:
@@ -39,6 +48,19 @@ class UserModel:
         db.session.commit()
         user = db.session.query(User).filter(user.email == User.email).first()
         return user
+
+    @staticmethod
+    def update_user(id, fields=None):
+        if fields is not None:
+            rows = db.session.query(User).filter(User.id == id).update(values=fields)
+            if rows == 0:
+                raise NotExistingUserError("User not found")
+            else:
+                if User.password in fields.keys():
+                    db.session.query(User).filter(User.id == id).first().set_password(
+                        fields[User.password]
+                    )
+                db.session.commit()
 
     @staticmethod
     def delete_user(id: Optional[int] = None, email: str = "") -> int:

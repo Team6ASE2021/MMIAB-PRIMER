@@ -13,6 +13,18 @@ from monolith.database import User
 
 
 class TestUserModel:
+    def test_user_exists_id_ok(self):
+        assert UserModel.user_exists(id=1)
+
+    def test_user_exists_email_ok(self):
+        assert UserModel.user_exists(email="example@example.com")
+
+    def test_user_not_exists_id(self):
+        assert not UserModel.user_exists(id=300)
+
+    def test_user_not_exists_mail(self):
+        assert not UserModel.user_exists(email="fail@fail.com")
+
     def test_create_user(self):
         user = User(
             firstname="Niccolò",
@@ -68,6 +80,55 @@ class TestUserModel:
         with pytest.raises(NotExistingUserError) as ex:
             UserModel.get_user_info_by_id(999)
         assert str(ex.value) == "No user found!"
+
+    def test_update_user(self):
+        fields = {
+            User.firstname: "Marco",
+            User.password: "new_pass",
+            User.dateofbirth: datetime.datetime.strptime("02/02/2002", "%d/%m/%Y"),
+        }
+        user = User(
+            firstname="Niccolò",
+            lastname="Piazzesi",
+            email="ex1@ex.com",
+            dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+        )
+        db.session.add(user)
+        UserModel.update_user(2, fields=fields)
+        assert user.firstname == "Marco"
+        assert user.lastname == "Piazzesi"
+        assert user.authenticate(fields[User.password])
+        db.session.delete(user)
+        db.session.commit()
+
+    def test_update_user_empty_fields(self):
+        user = User(
+            firstname="Niccolò",
+            lastname="Piazzesi",
+            email="ex1@ex.com",
+            dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+        )
+        db.session.add(user)
+        db.session.commit()
+        UserModel.update_user(2)
+        assert user.firstname == "Niccolò"
+        assert user.lastname == "Piazzesi"
+        assert user.email == "ex1@ex.com"
+        assert user.dateofbirth == datetime.datetime.strptime("01/01/2000", "%d/%m/%Y")
+
+        db.session.delete(user)
+        db.session.commit()
+
+    def test_update_user_not_exists(self):
+        fields = {
+            User.firstname: "Marco",
+            User.password: "new_pass",
+            User.dateofbirth: datetime.datetime.strptime("02/02/2002", "%d/%m/%Y"),
+        }
+        with pytest.raises(NotExistingUserError):
+            UserModel.update_user(200, fields=fields)
+        db.session.rollback()
+        db.session.commit()
 
     def test_delete_user_by_id_ok(self):
         user = User(

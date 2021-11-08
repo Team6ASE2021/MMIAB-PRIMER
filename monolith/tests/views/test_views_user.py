@@ -46,6 +46,18 @@ class TestViewsUser:
         assert response.status_code == HTTPStatus.OK
         assert b"Not a valid" in response.data
 
+    def test_create_user_email_exists_already(self, test_client):
+        data = {
+            "firstname": "Niccolò",
+            "lastname": "Piazzesi",
+            "email": "example@example.com",
+            "password": "abc",
+            "dateofbirth": "01/01/2000",
+        }
+        response = test_client.post("/create_user", data=data, follow_redirects=True)
+        assert response.status_code == HTTPStatus.OK
+        assert b"An user with this email already exists" in response.data
+
     def test_create_user_ok(self, test_client):
         data = {
             "firstname": "Niccolò",
