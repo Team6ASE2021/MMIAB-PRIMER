@@ -16,14 +16,12 @@ from flask_login import current_user
 from flask_login.utils import login_required
 from werkzeug.utils import secure_filename
 
+from monolith.classes.report import ReportModel
 from monolith.classes.user import BlockingCurrentUserError
 from monolith.classes.user import NotExistingUserError
 from monolith.classes.user import UserBlacklist
 from monolith.classes.user import UserModel
-
-from monolith.classes.report import ReportModel
-from monolith.database import User, Report, db
-
+from monolith.database import User
 from monolith.forms import UserForm
 
 users = Blueprint("users", __name__)
@@ -44,25 +42,28 @@ def create_user():
 
     if request.method == "POST":
         if form.validate_on_submit():
-            new_user = User()
-            form.populate_obj(new_user)
-            """
+            if UserModel.user_exists(email=form.email.data):
+                flash("An user with this email already exists")
+            else:
+                new_user = User()
+                form.populate_obj(new_user)
+                """
 
-            Password should be hashed with some salt. For example if you choose a hash function x,
-            where x is in [md5, sha1, bcrypt], the hashed_password should be = x(password + s) where
-            s is a secret key.
-            """
-            if form.profile_picture.data:
-                file = form.profile_picture.data
-                name = file.filename
-                name = str(uuid4()) + secure_filename(name)
+                Password should be hashed with some salt. For example if you choose a hash function x,
+                where x is in [md5, sha1, bcrypt], the hashed_password should be = x(password + s) where
+                s is a secret key.
+                """
+                if form.profile_picture.data:
+                    file = form.profile_picture.data
+                    name = file.filename
+                    name = str(uuid4()) + secure_filename(name)
 
-                path = os.path.join(current_app.config["UPLOAD_FOLDER"], name)
-                new_user.set_pfp_path(name)
-                file.save(path)
+                    path = os.path.join(current_app.config["UPLOAD_FOLDER"], name)
+                    new_user.set_pfp_path(name)
+                    file.save(path)
 
-            UserModel.create_user(new_user, form.password.data)
-            return redirect("/login")
+                UserModel.create_user(new_user, form.password.data)
+                return redirect("/login")
 
     return render_template("create_user.html", form=form)
 
@@ -109,7 +110,8 @@ def set_content_filter():
     UserModel.toggle_content_filter(current_user.id)
     return redirect("/users/" + str(current_user.id))
 
-@users.route('/user/report/<id>',methods=['GET', 'POST'])
+
+@users.route("/user/report/<id>", methods=["GET", "POST"])
 @login_required
 def report(id):
 
@@ -119,8 +121,9 @@ def report(id):
         flash("You have report the user: " + id)
     else:
         flash("You have already report this user")
-    
-    return redirect('/')
+
+    return redirect("/")
+
 
 @users.route("/user/blacklist", methods=["GET"])
 @login_required
@@ -151,4 +154,3 @@ def blacklist_remove(id: int):
         abort(HTTPStatus.NOT_FOUND, description=str(e))
 
     return redirect("/user/blacklist")
-
