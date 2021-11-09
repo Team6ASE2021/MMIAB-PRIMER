@@ -344,7 +344,7 @@ def get_timeline_month(_year, _month):
         received[elem.date_of_send.day - 1] += 1
 
     return render_template(
-        "calendar.html",
+        "calendar_bs.html",
         calendar_view={
             "year": _year,
             "month": _month,

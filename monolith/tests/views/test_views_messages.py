@@ -591,6 +591,29 @@ class TestReplyToMessage:
         assert bytes(message.first().body_message, "utf-8") in resp.data
         test_client.get("/logout")
 
+@pytest.mark.usefixtures("clean_db_and_logout")
+class TestTimeline:
+    def test_view_daily_timeline_sent(self,test_client):
+        user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=user)
+        resp = test_client.get("/timeline/day/2021/3/6/sent",follow_redirects=True)
+        assert resp.status_code == HTTPStatus.OK
+        test_client.post("/logout")
+
+    def test_view_daily_timeline_received(self,test_client):
+        user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=user)
+        resp = test_client.get("/timeline/day/2021/3/6/received",follow_redirects=True)
+        assert resp.status_code == HTTPStatus.OK
+        test_client.post("/logout")
+
+    def test_view_monthly_timeline(self,test_client):
+        user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=user)
+        resp = test_client.get("/timeline/month/2021/3",follow_redirects=True)
+        assert resp.status_code == HTTPStatus.OK
+        test_client.post("/logout")
+
 
 @pytest.mark.usefixtures("clean_db_and_logout", "draft_setup")
 class TestWithDrawMessage:
@@ -652,31 +675,11 @@ class TestWithDrawMessage:
         mess = MessageModel.id_message_exists(1)
         UserModel.update_points_to_user(1, 1)
         mess.is_sent = True
+        db.session.commit()
         resp = test_client.get(
             url_for("messages.withdraw_message", id=1), follow_redirects=True
         )
         assert resp.status_code == HTTPStatus.OK
         assert not mess.is_sent
-        test_client.post("/logout")
-
-    def test_view_daily_timeline_sent(self,test_client):
-        user = {"email": "example@example.com", "password": "admin"}
-        test_client.post("/login", data=user)
-        resp = test_client.get("/timeline/day/2021/3/6/sent",follow_redirects=True)
-        assert resp.status_code == HTTPStatus.OK
-        test_client.post("/logout")
-
-    def test_view_daily_timeline_received(self,test_client):
-        user = {"email": "example@example.com", "password": "admin"}
-        test_client.post("/login", data=user)
-        resp = test_client.get("/timeline/day/2021/3/6/received",follow_redirects=True)
-        assert resp.status_code == HTTPStatus.OK
-        test_client.post("/logout")
-
-    def test_view_monthly_timeline(self,test_client):
-        user = {"email": "example@example.com", "password": "admin"}
-        test_client.post("/login", data=user)
-        resp = test_client.get("/timeline/month/2021/3",follow_redirects=True)
-        assert resp.status_code == HTTPStatus.OK
         test_client.post("/logout")
 
