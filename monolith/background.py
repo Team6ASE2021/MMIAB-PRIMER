@@ -90,6 +90,11 @@ def _lottery_draw():
 
     for winner in winners:
         UserModel.update_points_to_user(winner, 1)
+        NotifyModel.add_notify(
+            id_message=None, 
+            id_user=winner, 
+            for_lottery=True
+        )
 
     logger.log(logging.INFO, "Cleaning up lottery participants...")
 
