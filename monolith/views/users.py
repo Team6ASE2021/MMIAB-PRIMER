@@ -16,16 +16,18 @@ from flask.wrappers import Response
 from flask_login import current_user
 from flask_login.utils import login_required
 from werkzeug.utils import secure_filename
-
-from monolith.classes.user import BlockingCurrentUserError
-from monolith.classes.user import NotExistingUserError
-from monolith.classes.user import UserBlacklist
-from monolith.classes.user import UserModel
+from sqlalchemy import inspect
 
 from monolith.classes.report import ReportModel
-from monolith.database import User, Report, db
-
+from monolith.classes.user import BlockingCurrentUserError
+from monolith.classes.user import NotExistingUserError
+from monolith.classes.user import EmailAlreadyExistingError
+from monolith.classes.user import WrongPasswordError
+from monolith.classes.user import UserBlacklist
+from monolith.classes.user import UserModel
+from monolith.database import User, db
 from monolith.forms import UserForm
+from monolith.forms import EditProfileForm
 
 users = Blueprint("users", __name__)
 
@@ -40,41 +42,68 @@ def _users() -> Text:
 
 
 @users.route("/create_user", methods=["POST", "GET"])
-def create_user():
+def create_user() -> Text:
     form = UserForm()
 
     if request.method == "POST":
         if form.validate_on_submit():
-            new_user = User()
-            form.populate_obj(new_user)
+            if UserModel.user_exists(email=form.email.data):
+                flash("An user with this email already exists")
+            else:
+                new_user = User()
+                form.populate_obj(new_user)
+                """
+
+                Password should be hashed with some salt. For example if you choose a hash function x,
+                where x is in [md5, sha1, bcrypt], the hashed_password should be = x(password + s) where
+                s is a secret key.
+                """
+                if form.profile_picture.data:
+                    file = form.profile_picture.data
+                    name = file.filename
+                    name = str(uuid4()) + secure_filename(name)
+
+                    path = os.path.join(current_app.config["UPLOAD_FOLDER"], name)
+                    new_user.set_pfp_path(name)
+                    file.save(path)
+
+                UserModel.create_user(new_user, form.password.data)
+                return redirect("/login")
+
+    return render_template("create_user_bs.html", form=form)
+
+@users.route("/user/profile", methods=["POST", "GET"])
+@login_required
+def profile_info() -> Text:
+    return redirect(url_for('users.user_info', id=current_user.id))
+
+@users.route("/user/profile/edit", methods=["POST", "GET"])
+@login_required
+def edit_profile():
+    form = EditProfileForm()
+
+    if request.method == "POST":
+        if form.validate_on_submit():
+
+            form_data = {i: form.data[i] for i in form.data if i not in ["csrf_token", "submit"]}
+            new_data = {k: v for k, v in form_data.items() if v is not None and v != ''}
+
             try:
-                print(form.email.data)
-                UserModel.get_user_info_by_email(form.email.data)
-                print(form.email.data)
-                flash("Email address already present in the database!")
-                return render_template("create_user.html", form=form)
-            except NotExistingUserError:
-                pass
-            """
+                UserModel.update_user(current_user.id, new_data)
+                return redirect(url_for('users.profile_info'))
+            except (
+                NotExistingUserError, 
+                WrongPasswordError,
+                EmailAlreadyExistingError
+            ) as e:
+                flash(e)
 
-            Password should be hashed with some salt. For example if you choose a hash function x,
-            where x is in [md5, sha1, bcrypt], the hashed_password should be = x(password + s) where
-            s is a secret key.
-            """
-            if form.profile_picture.data:
-                file = form.profile_picture.data
-                name = file.filename
-                name = str(uuid4()) + secure_filename(name)
-
-                path = os.path.join(current_app.config["UPLOAD_FOLDER"], name)
-                new_user.set_pfp_path(name)
-                file.save(path)
-
-            UserModel.create_user(new_user, form.password.data)
-            return redirect("/login")
-
-    return render_template("create_user.html", form=form)
-
+    user_data = UserModel.get_user_dict_by_id(current_user.id)
+    return render_template(
+        "create_user_bs.html", 
+        form=form, 
+        user_data=user_data
+    )
 
 @users.route("/users/<int:id>", methods=["GET"])
 @login_required
@@ -82,8 +111,10 @@ def user_info(id: int) -> Text:
     try:
         user = UserModel.get_user_info_by_id(id)
         return render_template(
-            "user_info.html" if current_user.id == id else "user_info_other.html",
+            "user_info_bs.html",
             user=user,
+            blocked=UserBlacklist.is_user_blocked(current_user.id, id),
+            reported=ReportModel.is_user_reported(current_user.id, id)
         )
 
     except NotExistingUserError:
@@ -93,9 +124,12 @@ def user_info(id: int) -> Text:
 @users.route("/user_list", methods=["GET"])
 @login_required
 def user_list() -> Optional[Text]:
-    user_list = UserModel.get_user_list()[1:]  # ignore admin
-    user_list = UserBlacklist.filter_blacklist(current_user.id, user_list)
-    return render_template("user_list.html", list=user_list)
+    _q = request.args.get('q', None)
+    user_list = list(filter(
+            lambda u: u.id != current_user.id,
+            UserModel.search_user_by_keyword(current_user.id, _q)
+    ))
+    return render_template("user_list_bs.html", list=user_list)
 
 
 @users.route("/users/<int:id>/delete", methods=["GET"])
@@ -118,7 +152,8 @@ def set_content_filter():
     UserModel.toggle_content_filter(current_user.id)
     return redirect("/users/" + str(current_user.id))
 
-@users.route('/user/report/<id>',methods=['GET', 'POST'])
+
+@users.route("/user/report/<id>", methods=["GET", "POST"])
 @login_required
 def report(id):
 
@@ -128,14 +163,19 @@ def report(id):
         flash("You have report the user: " + id)
     else:
         flash("You have already report this user")
-    
-    return redirect('/')
+
+    return redirect(url_for('users.user_info', id=id))
+
 
 @users.route("/user/blacklist", methods=["GET"])
 @login_required
 def blacklist():
-    blocked_users = UserBlacklist.get_blocked_users(current_user.id)
-    return render_template("blocked_users.html", list=blocked_users)
+    _q = request.args.get('q', None)
+    user_list = list(filter(
+            lambda u: u.id != current_user.id,
+            UserModel.search_blacklist_by_keyword(current_user.id, _q)
+    ))
+    return render_template("user_list_bs.html", list=user_list, blacklist=True)
 
 
 @users.route("/user/blacklist/add/<int:id>", methods=["GET"])
@@ -160,4 +200,3 @@ def blacklist_remove(id: int):
         abort(HTTPStatus.NOT_FOUND, description=str(e))
 
     return redirect("/user/blacklist")
-

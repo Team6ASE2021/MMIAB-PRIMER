@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+mkdir -p ./monolith/db
 
 export FLASK_APP=monolith
 export FLASK_ENV=development

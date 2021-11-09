@@ -49,15 +49,16 @@ class EditMessageForm(FlaskForm):
 
 class UserForm(FlaskForm):
     email = f.StringField(
-        "email", validators=[DataRequired(), Email(), Length(max=120)]
+        "Email", validators=[DataRequired(), Email(), Length(max=120)]
     )
-    firstname = f.StringField("firstname", validators=[DataRequired()])
-    lastname = f.StringField("lastname", validators=[DataRequired()])
-    password = f.PasswordField("password", validators=[DataRequired()])
-    dateofbirth = f.DateField("dateofbirth", format="%d/%m/%Y")
-    nickname = f.StringField("nickname", validators=[Optional()])
-    location = f.StringField("location", validators=[Optional()])
+    firstname = f.StringField("First Name", validators=[DataRequired()])
+    lastname = f.StringField("Last Name", validators=[DataRequired()])
+    password = f.PasswordField("Password", validators=[DataRequired()])
+    dateofbirth = f.DateField("Date Of Birth", format="%d/%m/%Y")
+    nickname = f.StringField("Nickname", validators=[Optional()])
+    location = f.StringField("Location", validators=[Optional()])
     profile_picture = FileField(
+        "Profile Picture",
         validators=[
             FileAllowed(
                 _ALLOWED_EXTENSIONS,
@@ -78,6 +79,11 @@ class UserForm(FlaskForm):
         "dateofbirth",
     ]
 
+class EditProfileForm(UserForm):
+    password = f.PasswordField("Password", validators=[Optional()])
+    old_password = f.PasswordField("Old Password", validators=[Optional()])
+    new_password = f.PasswordField("New Password", validators=[Optional()])
+    UserForm.display.extend(["new_password", "old_password"])
 
 class LotteryForm(FlaskForm):
     choice = f.IntegerField(

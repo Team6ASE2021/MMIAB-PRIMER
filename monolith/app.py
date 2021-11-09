@@ -2,6 +2,7 @@ import datetime
 import os
 
 from flask import Flask
+from flask_migrate import Migrate
 
 from monolith.auth import login_manager
 from monolith.constants import _ALLOWED_EXTENSIONS
@@ -24,7 +25,7 @@ def create_app(testing: bool = False) -> Flask:
     if testing:
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///tests/mmiab.db"
     else:
-        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///../mmiab.db"
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db/mmiab.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["CELERY_BROKER_URL"] = "redis://localhost:6379/0"
     app.config["CELERY_RESULT_BACKEND"] = "redis://localhost:6379/0"
@@ -36,7 +37,7 @@ def create_app(testing: bool = False) -> Flask:
     db.init_app(app)
     login_manager.init_app(app)
     db.create_all(app=app)
-
+    Migrate(app, db)
     # create a first admin user
     with app.app_context():
         q = db.session.query(User).filter(User.email == "example@example.com")

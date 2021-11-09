@@ -1,7 +1,7 @@
+import calendar
 import string
 from datetime import datetime
-from datetime import timedelta 
-import calendar
+from datetime import timedelta
 from os import path
 from typing import List
 from typing import Optional
@@ -62,8 +62,11 @@ class MessageModel:
     """
 
     @staticmethod
-    def id_message_exists(id_message) -> Optional[Message]:
-        # get the message from database
+    def id_message_exists(id_message) -> Message:
+        """
+        Checks that the id passed corresponds to a message in the db and returns it, raising an exception
+        if no message is found
+        """
         message = (
             db.session.query(Message).filter(Message.id_message == id_message).first()
         )
@@ -93,7 +96,7 @@ class MessageModel:
         db.session.commit()
 
     @staticmethod
-    def arrived_message():
+    def get_new_arrived_messages():
         messages = db.session.query(Message).filter(
             Message.is_sent == True,
             Message.is_arrived == False,
@@ -101,7 +104,6 @@ class MessageModel:
         )
 
         messages_arrived = []
-
         for m in messages.all():
             if (m.date_of_send - datetime.now()).total_seconds() <= 0:
 
@@ -116,51 +118,13 @@ class MessageModel:
                 "date": m.date_of_send.strftime("%H:%M %d/%m/%Y"),
                 "sent": m.is_sent,
                 "received": m.is_arrived,
+                "recipients": [recipient.id_recipient for recipient in m.recipients],
                 "notified": [
-                    (rcp.id_recipient, rcp.is_notified) for rcp in m.recipients
+                    (rcp.id_recipient) for rcp in m.recipients
                 ],
             }
             for m in messages_arrived
         ]
-
-    @staticmethod
-    def get_notify_recipient(id):
-        notify_list = (
-            db.session.query(Recipient)
-            .filter(Recipient.is_notified == False, Recipient.id_recipient == id)
-            .filter(
-                Recipient.message.has(
-                    and_(Message.is_arrived == True, Message.is_sent == True)
-                )
-            )
-            .all()
-        )
-
-        for notify in notify_list:
-            notify.is_notified = True
-
-        db.session.commit()
-
-        return notify_list
-
-    @staticmethod
-    def get_notify_sender(id):
-
-        notifies = db.session.query(Message).filter(
-            id == Message.id_sender,
-            Message.is_notified_sender == False,
-            Message.is_arrived == True,
-            Message.is_sent == True,
-        )
-
-        notify_list = []
-        for notify in notifies.all():
-            notify.is_notified_sender = True
-            notify_list.append(notify)
-
-        db.session.commit()
-
-        return notify_list
 
     @staticmethod
     def create_message(
@@ -276,7 +240,7 @@ class MessageModel:
             .all()
         )
         return result
-    
+
     @staticmethod
     def get_timeline_day_mess_received(id, year, month, day):
         start_of_today = datetime(year, month, day)
@@ -309,7 +273,7 @@ class MessageModel:
             .all()
         )
         return result
-    
+
     @staticmethod
     def get_timeline_month_mess_received(id, month, year):
         month_fst = datetime(year, month, 1)
@@ -326,8 +290,6 @@ class MessageModel:
             .all()
         )
         return result
-
-
 
 
 class NotExistingMessageError(Exception):

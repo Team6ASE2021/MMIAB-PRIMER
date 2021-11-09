@@ -50,8 +50,8 @@ class TestViewsReadMessage:
         assert response.status_code == 200
 
         response = test_client.get("/read_message/9")
-        assert response.status_code == 200
-        assert b"you are not allowed to read this message" in response.data
+        assert response.status_code == 401
+        assert b"You are not allowed to read this message" in response.data
         test_client.get("/logout")
 
     def test_read_draft_not_me(self, test_client):
@@ -60,6 +60,6 @@ class TestViewsReadMessage:
         assert response.status_code == 200
 
         response = test_client.get("/read_message/6", follow_redirects=True)
-        assert response.status_code == 200
-        assert b"you are not allowed to read this message" in response.data
+        assert response.status_code == 401
+        assert b"You are not allowed to read this message" in response.data
         test_client.get("/logout", follow_redirects=True)

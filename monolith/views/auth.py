@@ -42,7 +42,7 @@ def login():
             flash("No user with this email was found on this server")
             return redirect(url_for("auth.login"))
 
-    return render_template("login.html", form=form)
+    return render_template("login_bs.html", form=form)
 
 
 @auth.route("/logout")

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+    <head>
+    <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+        <!-- Bootstrap Icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+        <title>Hello, world!</title>
+        <!-- Bootstrap Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+</head>
+
+         <style>
+            {% include "css/style.css" %} 
+         </style>
+         <!--
+         <link rel="stylesheet" href="css/style.css">
+         -->
+         {% from 'alert_macro.html' import warning %}
+         {% from 'alert_macro.html' import flash %}
+        <script>
+            {% include "js/notifications.js" %}
+            window.addEventListener('load', function() { get_notifications(); });
+        </script>
+    </head>
+    <body>
+    <div style="min-height: 80px;">
+        <div class="container py-3 overflow-hidden" style="padding-bottom: 200px;">
+            <div class="row justify-content-center mb-3">
+                <div id="alert-box" class="col-7">
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            {{ flash(message) }}
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container overflow-hidden" style="padding: 20px 0px 200px 0px">
+        <div class="row justify-content-center mb-2">
+            <div class="col-7">
+                <div class="hstack">
+                    <span class="m-1 fs-5 text-navy">{{message.date_of_send|delivery_datetime_format}}</span>
+                    <span class="m-1 ms-auto fw-bold fs-5 text-navy">from:</span>
+                    <a href="{{url_for('users.user_info', id=message.id_sender)}}"
+                        <span class="m-1 text-decoration-none badge rounded-pill bg-primary text-white fs-5">
+                            {% if sender is not none %}
+                                {{ sender.firstname }} {{ sender.lastname }}
+                            {% else %}
+                                Anonymous
+                            {% endif %}
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% if message.img_path %}
+        <div class="row justify-content-center mb-2">
+            <div class="col-7">
+                <div class="shadow-sm rounded-3 text-navy fs-5">
+                    <img class="rounded img-fluid" src="{{url_for('static', filename='assets/' + message.img_path)}}" alt="mess" >
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <div class="row justify-content-center mb-2">
+            <div class="col-7">
+                <div class="shadow-sm border border-primary rounded-3 text-navy fs-5" style="padding: 20px 35px 50px 35px; min-height: 200px;">
+                    {{ message.body_message }}
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center" style="padding-bottom: 60px;">
+            <div class="col-7">
+                <div class="hstack" style="flex-flow: row wrap;">
+                    <span class="m-1 fw-bold fs-5 text-navy">to:</span>
+                    {% for rcp in message.recipients %}
+                        <a href="{{url_for('users.user_info', id=rcp.id_recipient)}}"
+                            <span class="m-1 text-decoration-none badge bg-primary text-white rounded-pill fs-5">
+                                {{ rcp.user.firstname }} {{ rcp.user.lastname }}
+                            </span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% if replying_info %}
+        <div class="row justify-content-center mb-2">
+            <div class="col-7">
+                <div class="hstack">
+                    <span class="m-1 fs-5 text-navy">{{replying_info['message'].date_of_send|delivery_datetime_format}}</span>
+                    <span class="m-1 ms-auto fw-bold fs-5 text-navy">replying to:</span>
+                    <a href="{{url_for('users.user_info', id=replying_info['user'].id)}}"
+                        <span class="m-1 text-decoration-none badge bg-primary text-white rounded-pill fs-5">
+                            {{ replying_info['user'].firstname }} {{ replying_info['user'].lastname }}
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center mb-2">
+            <div class="col-7">
+                <div class="shadow-sm border border-success rounded-3 text-navy fs-5" style="padding: 20px 35px 50px 35px; min-height: 200px;">
+                    {{ replying_info['message'].body_message }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    </body>
+</html>
+

@@ -28,18 +28,29 @@
          </style>
          <!--<link rel="stylesheet" href="css/style.css">-->
          <!--<link rel="stylesheet" href="css/mailbox_bs.css">-->
+         {% from 'alert_macro.html' import warning %}
+         {% from 'alert_macro.html' import flash %}
+        <script>
+            {% include "js/notifications.js" %}
+            window.addEventListener('load', function() { get_notifications(); });
+        </script>
     </head>
     <body>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul class=flashes>
-            {% for message in messages %}
-                <li>{{ message }}</li>
-            {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
-    <div style="height: 80px;"></div>
+    <div style="min-height: 80px;">
+        <div class="container py-3 overflow-hidden" style="padding-bottom: 200px;">
+            <div class="row justify-content-center mb-3">
+                <div id="alert-box" class="col-10">
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            {{ flash(message) }}
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="container overflow-hidden">
       {% if calendar_view is defined %}
       <div class="row py-2">
@@ -76,7 +87,7 @@
           </div>
       </div>
       {% endif %}
-      <div class="row py-2">
+      <div class="row py-2 justify-content-center">
           <div class="col-3">
               <ul class="nav nav-pills flex-column text-end fs-5 fw-bold">
                 {% if calendar_view is not defined %}
@@ -100,8 +111,8 @@
                   {% endif %}
               </ul>
           </div>
-          <div class="col-9">
-              <div class="container-fluid rounded-3 bg-info message-container">
+          <div class="col-8">
+              <div class="container-fluid message-container">
               {% for m in message_list: %}
                 {% if list_type != 'received' %}
                     {% set message_url = url_for('read_message.read_messages', id=m.id_message) %}
@@ -117,7 +128,7 @@
                     {% set datetime_list = (m.Message.date_of_send|delivery_datetime_format).split(' ') %}
                     {% set id_message = m.Message.id_message %}
                 {% endif %}
-                  <div class="row message-row">
+                  <div class="row bg-info mb-2 rounded-3 message-row" style="padding-left: 20px; ">
                       <div class="col-9">
                           <div class="container-fluid h-100 gx-0">
                               <div class="row user-row justify-content-start align-items-end">
@@ -186,7 +197,7 @@
                               {% set edit_url = url_for('messages.edit_draft', id=id_message) %}
                               {% set send_url = url_for('messages.send_message', id=id_message) %}
                               {% set forward_url = url_for('home.index') %}
-                              {% set reply_url = url_for('home.index', id=id_message) %}
+                              {% set reply_url = url_for('messages.reply_to_message', id=id_message) %}
                               {% set withdraw_url = url_for('home.index', id=id_message) %}
                               {% set delete_url = url_for('home.index') %}
                                   {% if list_type=='draft' %}

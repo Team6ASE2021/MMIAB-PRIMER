@@ -1,12 +1,30 @@
 version: '3'
 services:
-    flask:
+    mmiab:
+        depends_on:
+            - redis
+        restart: always
         build: .
         ports:
             - "5000:5000"
+        expose:
+            - "5000"
         volumes:
-            - .:/code
+            - ./monolith/db:/code/monolith/db
+    celery:
+        depends_on:
+            - redis
+            - mmiab
+        build: .
+        restart: always
+        command: bash ./celery.sh
+        links:
+            -  redis
+        volumes:
+            - ./monolith/db:/code/monolith/db
     redis:
         image: "redis:alpine"
-        ports:
-            - "6379:6379"
+        container_name: rd01
+        restart: on-failure
+        expose:
+            - "6379"

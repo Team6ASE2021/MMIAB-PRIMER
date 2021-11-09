@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+    <head>
+    <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+        <!-- Bootstrap Icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+        <title>Hello, world!</title>
+        <!-- Bootstrap Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+</head>
+
+        <style>
+            {% include "css/style.css" %} 
+        </style>
+        <script>
+           function searchUser() {
+                var base_url = "{{url_for('users.blacklist') if blacklist == True else url_for('users.user_list')}}";
+                location.href = base_url + "?q=" + document.getElementById("search").value;
+           }
+           function sendToUser(user_id) {
+                var base_url = "{{url_for('messages.draft')}}";
+                location.href = base_url + "?send_to=" + user_id;
+           }
+           function unblockUser(user_id) {
+                var base_url = "/user/blacklist/remove/";
+                location.href = base_url + user_id;
+           }
+        </script>
+        <!--
+        <link rel="stylesheet" href="css/style.css">
+        -->
+         {% from 'alert_macro.html' import warning %}
+         {% from 'alert_macro.html' import flash %}
+        <script>
+            {% include "js/notifications.js" %}
+            window.addEventListener('load', function() { get_notifications(); });
+        </script>
+    </head>
+    <body>
+    <div style="min-height: 80px;">
+        <div class="container py-3 overflow-hidden" style="padding-bottom: 200px;">
+            <div class="row justify-content-center mb-3">
+                <div id="alert-box" class="col">
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            {{ flash(message) }}
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid overflow-hidden" style="padding: 20px 20px 180px 20px">
+        <div class="row justify-content-center mb-3">
+            <div class="col-8">
+                <div class="fw-bold fs-2 text-navy px-3">User</div>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-8">
+                <div class="rounded py-3 bg-primary text-white">
+                    <div class="container-fluid py-3">
+                        <div class="row align-items-stretch" style="margin-right: 8px;">
+                            <div class="col-3 py-2 d-flex justify-content-center">
+                                <div class="rounded-circle d-flex justify-content-center" style="width: 120px; height: 120px; overflow: hidden;">
+                                    <a class="text-decoration-none" href="{{url_for('users.user_info', id=user.id)}}">
+                                        <img 
+                                            src="{{url_for('static',filename='assets/' + (user.pfp_path if user.pfp_path is not none else 'default.jpg'))}}"
+                                            height="120px">
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-8 d-flex align-items-center">
+                                <div class="vstack justify-content-center">
+                                    <div class="hstack py-2" style="flex-wrap: wrap;">
+                                        <span class="badge bg-success fs-6">Name: </span>
+                                        <span class="mx-3 text-truncate fs-4">
+                                            {{user.firstname}} {{user.lastname}}
+                                        </span>
+                                    </div>
+                                    <div class="hstack py-2" style="flex-wrap: wrap;">
+                                        <span class="badge bg-success fs-6">Email: </span>
+                                        <span class="mx-3 text-truncate fs-4">
+                                            {{user.email}}
+                                        </span>
+                                    </div>
+                                    {% if user.nickname %}
+                                    <div class="hstack py-2" style="flex-wrap: wrap;">
+                                        <span class="badge bg-success fs-6">Nickname: </span>
+                                        <span class="mx-3 text-truncate fs-4">
+                                            {{ user.nickname }}
+                                        </span>
+                                    </div>
+                                    {% endif %}
+                                    <div class="hstack py-2" style="flex-wrap: wrap;">
+                                        <span class="badge bg-success fs-6">Date of Birth: </span>
+                                        <span class="mx-3 text-truncate fs-4">
+                                            {{ user.dateofbirth|datetime_format }}
+                                        </span>
+                                    </div>
+                                    {% if user.location %}
+                                    <div class="hstack py-2" style="flex-wrap: wrap;">
+                                        <span class="badge bg-success fs-6">Location: </span>
+                                        <span class="mx-3 text-truncate fs-4">
+                                            {{ user.location }}
+                                        </span>
+                                    </div>
+                                    {% endif %}
+                                    {% if current_user.id == user.id %}
+                                    <div class="hstack py-2" style="flex-wrap: wrap;">
+                                        <span class="badge bg-success fs-6">Content Filter: </span>
+                                        <span class="mx-3 text-truncate fs-4"> {{ 'Enabled' if user.content_filter == True else 'Disabled'}} </span>
+                                    </div>
+                                    <div class="hstack py-2" style="flex-wrap: wrap;">
+                                        <span class="badge bg-success fs-6">Lottery points: </span>
+                                        <span class="mx-3 text-truncate fs-4"> {{ user.lottery_points }} </span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-1 px-0">
+                                <div class="dropdown">
+                                    <button id="settings-button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-gear-fill" viewBox="0 0 16 16">
+  <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
+</svg>
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="settings-button">
+                                        {% if current_user.id == user.id %}
+                                        <li><a class="dropdown-item" href="{{url_for('users.edit_profile')}}">
+                                                Edit Profile
+                                        </a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        {% if current_user.lottery_points > 0 %}
+                                        <li><a class="dropdown-item text-danger" href="{{url_for('mailbox.mailbox_list_sent')}}">
+                                                Withdraw Sent Messages!
+                                        </a></li>
+                                        {% endif %}
+                                        <li><a class="dropdown-item" href="{{url_for('users.set_content_filter')}}">
+                                                {{'Disable' if user.content_filter == True else 'Enable' }} Content Filter
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{url_for('users.blacklist')}}">Blacklist</a></li>
+                                        <li><a class="dropdown-item" href="{{url_for('users.delete_user',id=user.id)}}" onclick="return confirm(' Are you sure you want to delete your account? Remember that ALL sent messages will still be available to the recipients');">
+                                            Delete Account
+                                        </a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{{url_for('auth.logout')}}">Logout</a></li>
+                                        {% else %}
+                                            <li><a class="dropdown-item" href="{{url_for('users.blacklist_' + ('remove' if blocked == True else 'add'), id=user.id)}}">
+                                                {{'Unblock' if blocked == True else 'Block'}}
+                                            </a></li>
+                                            {% if reported == False %}
+                                            <li><a class="dropdown-item" href="{{url_for('users.report', id=user.id)}}">Report</a></li>
+                                            {% endif %}
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </body>
+</html>
+

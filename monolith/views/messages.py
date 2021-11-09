@@ -1,9 +1,9 @@
+import calendar
+import os
 from datetime import datetime
 from datetime import timedelta
-import os
 from http import HTTPStatus
 from uuid import uuid4
-import calendar
 
 from flask import abort
 from flask import Blueprint
@@ -34,6 +34,8 @@ messages = Blueprint("messages", __name__)
 @login_required
 def draft():
     reply_to = request.args.get("reply_to", None)
+    send_to = request.args.get("send_to", None) if reply_to is None else None
+    print(send_to)
     replying_info = MessageModel.get_replying_info(reply_to)
 
     form = EditMessageForm(recipients=[{"name": "Recipient"}])
@@ -68,12 +70,13 @@ def draft():
                 new_draft, draft_recipients, replying=replying_info is not None
             )
 
-            return redirect("/read_message/" + str(new_draft.id_message))
+            return redirect("/message/list/draft")
 
     return render_template(
-        "create_message.html",
+        "draft_bs.html",
         form=form,
         replying_info=replying_info,
+        send_to=send_to,
         available_recipients=available_recipients,
     )
 
@@ -142,10 +145,11 @@ def edit_draft(id):
                 current_user.id, draft_recipients
             )
 
-            return redirect("/read_message/" + str(draft.id_message))
+            return redirect("/message/list/draft")
 
     return render_template(
-        "edit_message.html",
+        "draft_bs.html",
+        edit=True,
         form=form,
         old_date=draft.date_of_send,
         old_message=draft.body_message,
@@ -158,13 +162,8 @@ def edit_draft(id):
 
 
 @messages.route("/send_message/<int:id>", methods=["GET", "POST"])
+@login_required
 def send_message(id):
-    # check if the current user is logged
-    if current_user.get_id() == None:
-        abort(
-            HTTPStatus.UNAUTHORIZED, description="You must be logged to send a message"
-        )
-
     try:
         # get the message from the database
         message = MessageModel.id_message_exists(id)
@@ -172,6 +171,11 @@ def send_message(id):
         # check if the id_sender and the id of the current user correspond
         if current_user.get_id() != message.id_sender:
             abort(HTTPStatus.UNAUTHORIZED, "You can't send this message")
+
+        # check if the message has already been sent
+        if message.is_sent == True:
+            flash("This message has already been sent")
+            return redirect(url_for("messages.edit_draft", id=message.id_message))
 
         # check if the date_of_send is not Null
         if message.date_of_send is None:
@@ -253,9 +257,6 @@ def reply_to_message(id):
     return redirect(url_for("messages.draft", reply_to=id))
 
 
-# RESTful API
-
-
 @messages.route("/recipients", methods=["GET"])
 @login_required
 def get_recipients():
@@ -265,78 +266,92 @@ def get_recipients():
             lambda u: (u.id, u.nickname if u.nickname else u.email),
             filter(
                 lambda u: u.id != current_user.get_id(),
-                UserModel.search_user_by_key_word(current_user.id, _filter),
+                UserModel.search_user_by_keyword(current_user.id, _filter),
             ),
         )
     )
 
-    return jsonify(
-        recipients=recipients
-    )
+    return jsonify(recipients=recipients)
 
-@messages.route('/timeline/day/<int:year>/<int:month>/<int:day>/sent',methods=['GET'])
+
+@messages.route("/timeline/day/<int:year>/<int:month>/<int:day>/sent", methods=["GET"])
 @login_required
-def get_timeline_day_sent(year,month,day):
-    today_dt = datetime(year, month, day)
-    tomorrow = today_dt + timedelta(days=1)
-    yesterday = today_dt - timedelta(days=1)
-    messages = MessageModel.get_timeline_day_mess_send(current_user.id, year, month, day)
-
-    return render_template(
-        "mailbox_bs.html",
-        message_list=messages,
-        list_type='sent',
-        calendar_view={
-            'today': (year, month, day),
-            'tomorrow': (tomorrow.year, tomorrow.month, tomorrow.day), 
-            'yesterday': (yesterday.year, yesterday.month, yesterday.day)
-        },
-    )
-
-@messages.route('/timeline/day/<int:year>/<int:month>/<int:day>/received',methods=['GET'])
-@login_required
-def get_timeline_day_received(year,month,day):
+def get_timeline_day_sent(year, month, day):
     today_dt = datetime(year, month, day)
     tomorrow = today_dt + timedelta(days=1)
     yesterday = today_dt - timedelta(days=1)
 
-    messages = MessageModel.get_timeline_day_mess_received(current_user.id, year, month, day)
+    messages = MessageModel.get_timeline_day_mess_send(
+        current_user.id, year, month, day
+    )
 
     return render_template(
         "mailbox_bs.html",
         message_list=messages,
-        list_type='received',
+        list_type="sent",
         calendar_view={
-            'today': (year, month, day),
-            'tomorrow': (tomorrow.year, tomorrow.month, tomorrow.day), 
-            'yesterday': (yesterday.year, yesterday.month, yesterday.day)
+            "today": (year, month, day),
+            "tomorrow": (tomorrow.year, tomorrow.month, tomorrow.day),
+            "yesterday": (yesterday.year, yesterday.month, yesterday.day),
         },
     )
-    
-@messages.route('/timeline/month/<int:_year>/<int:_month>',methods=['GET'])
-@login_required
-def get_timeline_month(_year,_month):
 
-    first_day, number_of_days = calendar.monthrange(_year,_month)
-    sent, received = number_of_days*[0], number_of_days*[0]
-    
-    message_list = MessageModel.get_timeline_month_mess_send(current_user.id, _month, _year)
-    
+
+@messages.route(
+    "/timeline/day/<int:year>/<int:month>/<int:day>/received", methods=["GET"]
+)
+@login_required
+def get_timeline_day_received(year, month, day):
+    today_dt = datetime(year, month, day)
+    tomorrow = today_dt + timedelta(days=1)
+    yesterday = today_dt - timedelta(days=1)
+
+    messages = MessageModel.get_timeline_day_mess_received(
+        current_user.id, year, month, day
+    )
+
+    return render_template(
+        "mailbox_bs.html",
+        message_list=messages,
+        list_type="received",
+        calendar_view={
+            "today": (year, month, day),
+            "tomorrow": (tomorrow.year, tomorrow.month, tomorrow.day),
+            "yesterday": (yesterday.year, yesterday.month, yesterday.day),
+        },
+    )
+
+
+@messages.route("/timeline/month/<int:_year>/<int:_month>", methods=["GET"])
+@login_required
+def get_timeline_month(_year, _month):
+
+    first_day, number_of_days = calendar.monthrange(_year, _month)
+    sent, received = number_of_days * [0], number_of_days * [0]
+
+    message_list = MessageModel.get_timeline_month_mess_send(
+        current_user.id, _month, _year
+    )
+
     for elem in message_list:
         sent[elem.date_of_send.day - 1] += 1
-    
-    message_list = MessageModel.get_timeline_month_mess_received(current_user.id, _month, _year)
-    
+
+    message_list = MessageModel.get_timeline_month_mess_received(
+        current_user.id, _month, _year
+    )
+
     for elem in message_list:
         received[elem.date_of_send.day - 1] += 1
 
-    return render_template("calendar.html", calendar_view = {
-        'year': _year,
-        'month': _month,
-        'month_name': calendar.month_name[_month],
-        'days_in_month': number_of_days,
-        'starts_with': first_day,
-        'sent': sent,
-        'received': received
-    })
-
+    return render_template(
+        "calendar.html",
+        calendar_view={
+            "year": _year,
+            "month": _month,
+            "month_name": calendar.month_name[_month],
+            "days_in_month": number_of_days,
+            "starts_with": first_day,
+            "sent": sent,
+            "received": received,
+        },
+    )
