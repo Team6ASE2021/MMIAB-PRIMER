@@ -120,7 +120,7 @@ class MessageModel:
                 "received": m.is_arrived,
                 "recipients": [recipient.id_recipient for recipient in m.recipients],
                 "notified": [
-                    (rcp.id_recipient, rcp.is_notified) for rcp in m.recipients
+                    (rcp.id_recipient) for rcp in m.recipients
                 ],
             }
             for m in messages_arrived

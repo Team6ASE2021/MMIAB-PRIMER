@@ -120,7 +120,7 @@ class TestMessage:
         db.session.commit()
         message.recipients = [Recipient(id_recipient=1)]
 
-        MessageModel.arrived_message()
+        MessageModel.get_new_arrived_messages()
         assert message.is_arrived == True
 
         db.session.delete(message)

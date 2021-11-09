@@ -10,6 +10,8 @@ from monolith.database import LotteryParticipant
 from monolith.database import Message
 from monolith.database import Recipient
 from monolith.database import User
+from monolith.database import Notify
+from monolith.database import Report
 
 """
 Fixture for the client and the db used during testing
@@ -53,6 +55,8 @@ def clean_db_and_logout(request, test_client):
     db.session.query(Recipient).delete()
     db.session.query(Message).delete()
     db.session.query(LotteryParticipant).delete()
+    db.session.query(Notify).delete()
+    #db.session.query(Report).delete()
     db.session.commit()
 
     def _finalizer():
@@ -62,6 +66,8 @@ def clean_db_and_logout(request, test_client):
         db.session.query(Recipient).delete()
         db.session.query(Message).delete()
         db.session.query(LotteryParticipant).delete()
+        db.session.query(Notify).delete()
+        #db.session.query(Report).delete()
         db.session.commit()
 
     request.addfinalizer(_finalizer)
@@ -80,6 +86,7 @@ def messages_setup(test_client):
 
     db.session.query(User).filter(User.email != admin_user["email"]).delete()
     db.session.query(Message).delete()
+    db.session.query(Notify).delete()
     db.session.query(Recipient).delete()
     db.session.commit()
 

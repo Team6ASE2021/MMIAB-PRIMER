@@ -7,26 +7,52 @@ from monolith.database import db, Notify
 class TestNotify:
 
     def test_add_notify(self):
-        NotifyModel.add_notify(id_user=1, id_message=1, for_sender=True, \
-                               for_recipient=False, for_lottery=False, from_recipient=None)
+        NotifyModel.add_notify(
+            id_message=1, 
+            id_user=1, 
+            for_sender=True,
+       )
 
+        print(db.session.query(Notify).count())
         notify = db.session.query(Notify).filter(Notify.id_user == 1).first()
-        assert notify.id_message == 1
+        print(notify.id_message, notify.id_user)
         assert notify.for_sender == True
+        assert notify.id_message == 1
+        db.session.delete(notify)
 
     def test_get_notify(self):
-        NotifyModel.add_notify(id_user=1, id_message=1, for_sender=True, \
-                               for_recipient=False, for_lottery=False, from_recipient=None)
+        NotifyModel.add_notify(
+            id_user=1, 
+            id_message=1, 
+            for_sender=True,
+            from_recipient=1,
+        )
 
         notify = NotifyModel.get_notify(id_user=1)
-        assert notify[1]["is_notified"] == True
-        assert notify[1]["for_sender"] == True
+        assert notify['sender_notify'][0]["is_notified"] == True
+        assert notify['sender_notify'][0]["for_sender"] == True
+        assert notify['sender_notify'][0]["from_recipient"] == 'Admin Admin'
+        db.session.query(Notify).filter(Notify.id_user == 1).delete()
  
-    def test_to_notify(self):
-        assert NotifyModel.to_notify(id_sender=1, id_recipient=2, id_message=1) == True
+        NotifyModel.add_notify(
+            id_user=2, 
+            id_message=1, 
+            for_recipient=True,
+        )
 
-    def test_not_to_notify(self):
-        NotifyModel.add_notify(id_user=1, id_message=1, for_sender=True, \
-                               for_recipient=False, for_lottery=False, from_recipient=2)
+        notify = NotifyModel.get_notify(id_user=2)
+        assert notify['recipient_notify'][0]["is_notified"] == True
+        assert notify['recipient_notify'][0]["for_recipient"] == True
+        db.session.query(Notify).filter(Notify.id_user == 2).delete()
 
-        assert NotifyModel.to_notify(id_sender=1, id_recipient=2, id_message=1) == False
+        NotifyModel.add_notify(
+            id_user=3, 
+            id_message=1, 
+            for_lottery=True,
+        )
+
+        notify = NotifyModel.get_notify(id_user=3)
+        assert notify['lottery_notify'][0]["is_notified"] == True
+        assert notify['lottery_notify'][0]["for_lottery"] == True
+        db.session.query(Notify).filter(Notify.id_user == 3).delete()
+        assert db.session.query(Notify).count() == 0

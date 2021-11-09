@@ -48,16 +48,17 @@ class NotifyModel:
         sender_notify = list(filter(lambda n: n.for_sender == True, notify_list))
 
         from_recipients = UserModel.get_users_by_ids([n.from_recipient for n in sender_notify])
-        recipients_dict = {user.id: (user.firstname + user.lastname) for user in from_recipients}
+        recipients_dict = {user.id: (user.firstname + ' ' + user.lastname) for user in from_recipients}
 
         recipient_notify = list(filter(lambda n: n.for_recipient == True, notify_list))
         lottery_notify = list(filter(lambda n: n.for_lottery == True, notify_list))
 
+        print(recipients_dict)
         map_dictionary = lambda n: {
             "id_user": n.id_user,
             "id_message" : n.id_message,
             "is_notified": n.is_notified,
-            "from_receipent": recipients_dict[n.for_recipient] if n.from_recipient is not None else None,
+            "from_recipient": recipients_dict.get(n.from_recipient, 'Anonymous') if n.from_recipient is not None else 'Anonymous',
             "for_sender" : n.for_sender,
             "for_recipient" : n.for_recipient,
             "for_lottery" : n.for_lottery,
@@ -87,5 +88,5 @@ class NotifyModel:
             return True
         else:
             return False
-    """
     def to_notify(id_sender, id_recipient, id_message):
+    """
