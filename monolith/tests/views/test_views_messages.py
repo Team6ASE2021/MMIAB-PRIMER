@@ -222,6 +222,19 @@ class TestViewsMessagesDraft:
         ) == [1, 3]
         test_client.get("/logout")
 
+    def test_delete_draft(self,test_client):
+        admin_user = {"email": "example@example.com", "password": "admin"}
+
+        response = test_client.post("/login", data=admin_user, follow_redirects=True)
+        assert response.status_code == 200
+
+        response = test_client.get("/draft/1/delete",follow_redirects = True)
+        assert response.status_code == 404
+
+        print(db.session.query(Message).count())
+        response = test_client.get("/draft/0/delete",follow_redirects = True)
+        assert response.status_code == 200
+
 
 @pytest.mark.usefixtures("clean_db_and_logout")
 class TestViewsMessagesSend:

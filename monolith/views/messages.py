@@ -19,7 +19,7 @@ from flask_login.utils import login_required
 from werkzeug.utils import secure_filename
 
 from monolith.auth import current_user
-from monolith.classes.message import ContentFilter
+from monolith.classes.message import ContentFilter, NotExistingDraftError
 from monolith.classes.message import MessageModel
 from monolith.classes.message import NotExistingMessageError
 from monolith.classes.recipient import RecipientModel
@@ -219,6 +219,28 @@ def delete_message(id: int):
         flash("Message succesfully deleted")
         return redirect(url_for("mailbox.mailbox_list_received"))
 
+@messages.route("/draft/<int:id>/delete", methods=["GET"])
+@login_required
+def delete_draft(id: int):
+    try:
+        mess = MessageModel.id_message_exists(id)
+    except NotExistingMessageError:
+        abort(404, description="Message not found")
+    
+    if (
+        mess.id_sender != current_user.get_id() 
+    ):
+        abort(
+            HTTPStatus.UNAUTHORIZED,
+            description="You are not allowed to delete this draft",
+        )
+    else:
+        try:
+            MessageModel.delete_draft(id)
+            flash("Message succesfully deleted")
+            return redirect(url_for("mailbox.mailbox_list_draft"))
+        except NotExistingDraftError:
+            abort(404, description="Draft not found")
 
 @messages.route("/message/<int:id>/withdraw", methods=["GET"])
 @login_required
