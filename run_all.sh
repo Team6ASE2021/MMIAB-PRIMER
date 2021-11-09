@@ -8,8 +8,7 @@ redis-server &>redis.log &
 # stop celery if running
 pgrep -x celery >/dev/null && killall -9 celery
 # start celery (only for temporal tasks)
-celery -A monolith.background worker -B --loglevel=info &>celery.log &
-# start celery (for all tasks)
+celery -b redis://localhost:6379/0 --result-backend redis://localhost:6379 -A monolith.background worker  -B --loglevel=info &>celery.log &# start celery (for all tasks)
 # celery -A monolith.background worker --loglevel=info
 
 # start flask
