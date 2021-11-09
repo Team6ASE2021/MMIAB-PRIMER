@@ -1,4 +1,5 @@
 from monolith.database import Notify, db, User, Message, Report
+from monolith.classes.user import UserModel
 import datetime
 from typing import Optional
 
@@ -45,6 +46,10 @@ class NotifyModel:
         db.session.commit()
 
         sender_notify = list(filter(lambda n: n.for_sender == True, notify_list))
+
+        from_recipients = UserModel.get_users_by_ids([n.from_recipient for n in sender_notify])
+        recipients_dict = {user.id: (user.firstname + user.lastname) for user in from_recipients}
+
         recipient_notify = list(filter(lambda n: n.for_recipient == True, notify_list))
         lottery_notify = list(filter(lambda n: n.for_lottery == True, notify_list))
 
@@ -52,7 +57,7 @@ class NotifyModel:
             "id_user": n.id_user,
             "id_message" : n.id_message,
             "is_notified": n.is_notified,
-            "from_receipent": n.from_recipient,
+            "from_receipent": recipients_dict[n.for_recipient] if n.from_recipient is not None else None,
             "for_sender" : n.for_sender,
             "for_recipient" : n.for_recipient,
             "for_lottery" : n.for_lottery,
