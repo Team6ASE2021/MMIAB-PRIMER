@@ -280,6 +280,7 @@ def get_timeline_day_sent(year, month, day):
     today_dt = datetime(year, month, day)
     tomorrow = today_dt + timedelta(days=1)
     yesterday = today_dt - timedelta(days=1)
+
     messages = MessageModel.get_timeline_day_mess_send(
         current_user.id, year, month, day
     )
@@ -343,7 +344,7 @@ def get_timeline_month(_year, _month):
         received[elem.date_of_send.day - 1] += 1
 
     return render_template(
-        "calendar.html",
+        "calendar_bs.html",
         calendar_view={
             "year": _year,
             "month": _month,

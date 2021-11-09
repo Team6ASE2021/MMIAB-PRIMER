@@ -114,9 +114,13 @@ class UserModel:
     @staticmethod
     def update_points_to_user(id: int, points: int):
         user = UserModel.get_user_info_by_id(id)
-        user.lottery_points += points
-        if user.lottery_points < 0:
-            user.lottery_points = 0
+
+        new_points = user.lottery_points
+        new_points += points
+        if new_points < 0:
+            new_points = 0
+
+        user.lottery_points = new_points
         db.session.commit()
 
     @staticmethod
