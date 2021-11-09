@@ -11,18 +11,23 @@ from flask import render_template
 from flask import request
 from flask.globals import current_app
 from flask.helpers import flash
+from flask.helpers import url_for
 from flask.wrappers import Response
 from flask_login import current_user
 from flask_login.utils import login_required
 from werkzeug.utils import secure_filename
+from sqlalchemy import inspect
 
 from monolith.classes.report import ReportModel
 from monolith.classes.user import BlockingCurrentUserError
 from monolith.classes.user import NotExistingUserError
+from monolith.classes.user import EmailAlreadyExistingError
+from monolith.classes.user import WrongPasswordError
 from monolith.classes.user import UserBlacklist
 from monolith.classes.user import UserModel
-from monolith.database import User
+from monolith.database import User, db
 from monolith.forms import UserForm
+from monolith.forms import EditProfileForm
 
 users = Blueprint("users", __name__)
 
@@ -37,7 +42,7 @@ def _users() -> Text:
 
 
 @users.route("/create_user", methods=["POST", "GET"])
-def create_user():
+def create_user() -> Text:
     form = UserForm()
 
     if request.method == "POST":
@@ -67,6 +72,38 @@ def create_user():
 
     return render_template("create_user_bs.html", form=form)
 
+@users.route("/user/profile", methods=["POST", "GET"])
+@login_required
+def profile_info() -> Text:
+    return redirect(url_for('users.user_info', id=current_user.id))
+
+@users.route("/user/profile/edit", methods=["POST", "GET"])
+@login_required
+def edit_profile():
+    form = EditProfileForm()
+
+    if request.method == "POST":
+        if form.validate_on_submit():
+
+            form_data = {i: form.data[i] for i in form.data if i not in ["csrf_token", "submit"]}
+            new_data = {k: v for k, v in form_data.items() if v is not None and v != ''}
+
+            try:
+                UserModel.update_user(current_user.id, new_data)
+                return redirect(url_for('users.profile_info'))
+            except (
+                NotExistingUserError, 
+                WrongPasswordError,
+                EmailAlreadyExistingError
+            ) as e:
+                flash(e)
+
+    user_data = UserModel.get_user_dict_by_id(current_user.id)
+    return render_template(
+        "create_user_bs.html", 
+        form=form, 
+        user_data=user_data
+    )
 
 @users.route("/users/<int:id>", methods=["GET"])
 @login_required

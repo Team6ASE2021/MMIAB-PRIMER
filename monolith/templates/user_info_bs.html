@@ -67,7 +67,7 @@
                                 <div class="rounded-circle d-flex justify-content-center" style="width: 120px; height: 120px; overflow: hidden;">
                                     <a class="text-decoration-none" href="{{url_for('users.user_info', id=user.id)}}">
                                         <img 
-                                            src="{{url_for('static',filename='assets/' + (user.pfp_path if user.pfp_path is not none else 'default1.jpg'))}}"
+                                            src="{{url_for('static',filename='assets/' + (user.pfp_path if user.pfp_path is not none else 'default.jpg'))}}"
                                             height="120px">
                                     </a>
                                 </div>
@@ -129,7 +129,7 @@
                                     </button>
                                     <ul class="dropdown-menu" aria-labelledby="settings-button">
                                         {% if current_user.id == user.id %}
-                                        <li><a class="dropdown-item" href="{{url_for('mailbox.mailbox_list_sent')}}">
+                                        <li><a class="dropdown-item" href="{{url_for('users.edit_profile')}}">
                                                 Edit Profile
                                         </a></li>
                                         <li><hr class="dropdown-divider"></li>

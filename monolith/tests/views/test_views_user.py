@@ -4,6 +4,8 @@ from http import HTTPStatus
 import mock
 from werkzeug.datastructures import FileStorage
 
+from datetime import datetime
+
 from monolith.app import db
 from monolith.auth import current_user
 from monolith.classes.user import UserModel
@@ -108,6 +110,174 @@ class TestViewsUser:
                 in UserModel.get_user_info_by_email(data["email"]).pfp_path
             )
             UserModel.delete_user(email=data["email"])
+
+
+    def test_show_update_user_form(self, test_client):
+
+        response = test_client.post(
+            "/login",
+            data={"email": "example@example.com", "password": "admin"},
+            follow_redirects=True,
+        )
+
+        response = test_client.get("/user/profile/edit")
+        assert response.status_code == 200
+        assert b"Save" in response.data
+        assert b"Admin" in response.data
+
+        test_client.get('/logout')
+
+    def test_update_user_bad_field(self, test_client):
+        response = test_client.post(
+            "/login",
+            data={"email": "example@example.com", "password": "admin"},
+            follow_redirects=True,
+        )
+
+        data = {
+            "firstname": "Niccolò",
+            "lastname": "Piazzesi",
+            "email": "abc@abc.com",
+            "dateofbirth": "fail",
+        }
+        response = test_client.post("/user/profile/edit", data=data, follow_redirects=True)
+        assert response.status_code == HTTPStatus.OK
+        assert b"Not a valid" in response.data
+
+        test_client.get('/logout')
+
+    def test_update_user_email_exists_already(self, test_client):
+        user = User(
+            firstname="Lorenzo",
+            lastname="Volpi",
+            email="ex1@ex.com",
+            dateofbirth=datetime.strptime("01/01/2000", "%d/%m/%Y"),
+        )
+        UserModel.create_user(user, 'old_pass')
+
+        response = test_client.post(
+            "/login",
+            data={"email": "ex1@ex.com", "password": "old_pass"},
+            follow_redirects=True,
+        )
+        assert user.is_authenticated
+
+        data = {
+            "firstname": "Marco",
+            "lastname": "Piazzesi",
+            "email": "example@example.com",
+            "dateofbirth": "01/01/2000",
+        }
+        response = test_client.post("/user/profile/edit", data=data, follow_redirects=True)
+        assert response.status_code == HTTPStatus.OK
+        assert b"An user with this email already exists" in response.data
+
+        test_client.get('/logout')
+        UserModel.delete_user(email=user.email)
+
+    def test_update_user_ok(self, test_client):
+        user = User(
+            firstname="Lorenzo",
+            lastname="Volpi",
+            email="ex1@ex.com",
+            dateofbirth=datetime.strptime("01/01/1990", "%d/%m/%Y"),
+        )
+        UserModel.create_user(user, 'old_pass')
+
+        response = test_client.post(
+            "/login",
+            data={"email": "ex1@ex.com", "password": "old_pass"},
+            follow_redirects=True,
+        )
+
+        data = {
+            "firstname": "Niccolò",
+            "lastname": "Piazzesi",
+            "email": "abc@abc.com",
+            "old_password": "old_pass",
+            "new_password": "master",
+            "dateofbirth": "01/01/2000",
+        }
+        response = test_client.post("/user/profile/edit", data=data, follow_redirects=True)
+        assert response.status_code == HTTPStatus.OK
+        assert b"User" in response.data
+        assert bytes(data["firstname"], 'utf-8') in response.data
+        assert bytes(data["lastname"], 'utf-8') in response.data
+        assert bytes(data["email"], 'utf-8') in response.data
+        assert bytes(data["dateofbirth"], 'utf-8') in response.data
+        assert UserModel.user_exists(email="abc@abc.com")
+
+        test_client.get('/logout')
+        UserModel.delete_user(email="abc@abc.com")
+
+    def test_update_user_with_img_bad_file_extension(self, test_client):
+        user = User(
+            firstname="Lorenzo",
+            lastname="Volpi",
+            email="ex1@ex.com",
+            dateofbirth=datetime.strptime("01/01/1990", "%d/%m/%Y"),
+        )
+        UserModel.create_user(user, 'old_pass')
+
+        response = test_client.post(
+            "/login",
+            data={"email": "ex1@ex.com", "password": "old_pass"},
+            follow_redirects=True,
+        )
+
+        image_name = "fake-image-stream.txt"
+        file = FileStorage(filename=image_name, stream=io.BytesIO(b"data data"))
+        data = {
+            "firstname": "Niccolò",
+            "lastname": "Piazzesi",
+            "email": "ex1@ex.com",
+            "profile_picture": file,
+            "dateofbirth": "01/01/2000",
+        }
+        response = test_client.post("/user/profile/edit", data=data, follow_redirects=True)
+        assert response.status_code == HTTPStatus.OK
+        assert b"You can only upload a jpg,jpeg, or png file" in response.data
+
+        test_client.get('/logout')
+        UserModel.delete_user(email="ex1@ex.com")
+
+    def test_update_user_with_img_ok_file_extension(self, test_client):
+        user = User(
+            firstname="Lorenzo",
+            lastname="Volpi",
+            email="ex1@ex.com",
+            dateofbirth=datetime.strptime("01/01/1990", "%d/%m/%Y"),
+        )
+        UserModel.create_user(user, 'old_pass')
+
+        response = test_client.post(
+            "/login",
+            data={"email": "ex1@ex.com", "password": "old_pass"},
+            follow_redirects=True,
+        )
+
+        with mock.patch.object(FileStorage, "save", autospec=True, return_value=None):
+            image_name = "fake-image-stream.jpg"
+            file = FileStorage(filename=image_name, stream=io.BytesIO(b"data data"))
+            data = {
+                "firstname": "Niccolò",
+                "lastname": "Piazzesi",
+                "email": "ex1@ex.com",
+                "profile_picture": file,
+                "dateofbirth": "01/01/2000",
+            }
+            response = test_client.post(
+                "/user/profile/edit", data=data, follow_redirects=True
+            )
+            assert response.status_code == HTTPStatus.OK
+            assert b"User" in response.data
+            assert (
+                file.filename
+                in UserModel.get_user_info_by_email(data["email"]).pfp_path
+            )
+
+        test_client.get('/logout')
+        UserModel.delete_user(email="ex1@ex.com")
 
     def test_show_user_info_not_logged(self, test_client):
         test_client.get("/logout")
