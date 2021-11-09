@@ -1,3 +1,4 @@
+from monolith.database import Message, Notify
 from flask import abort
 from flask import Blueprint
 from flask import render_template
@@ -9,6 +10,7 @@ from monolith.classes.message import NotExistingMessageError
 from monolith.classes.recipient import RecipientModel
 from monolith.classes.user import NotExistingUserError
 from monolith.classes.user import UserModel
+from monolith.classes.notify import NotifyModel
 
 read_message = Blueprint("read_message", __name__)
 
@@ -36,6 +38,12 @@ def read_messages(id):
     try:
         sender = UserModel.get_user_info_by_id(sender_id)
         sender_email = sender.email
+
+        if sender_id != current_user.get_id() and mess.is_arrived == True and NotifyModel.to_notify(sender_id, current_user.get_id(), id) == True:
+            
+            NotifyModel.add_notify(id_message=id, id_user=sender_id, for_sender=True, \
+                                   for_recipient=False, for_lottery=False, from_recipient=current_user.get_id())
+            
     except NotExistingUserError:
         sender_email = "Anonymous"
 

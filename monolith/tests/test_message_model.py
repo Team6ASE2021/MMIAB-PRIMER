@@ -131,27 +131,6 @@ class TestMessage:
         db.session.delete(message)
         db.session.commit()
 
-    def test_get_notify(self):
-        message = Message(
-            id_sender = 1,
-            body_message = "Ciao",
-            date_of_send = datetime.datetime.now(),
-            is_sent = True,
-            is_arrived = True
-        )
-        db.session.add(message)
-        db.session.commit()
-        message.recipients = [Recipient(id_recipient=1)]
-
-        user = UserModel.get_user_info_by_id(message.recipients[0].id_recipient)
-        MessageModel.get_notify_recipient(user.id)
-        assert message.recipients[0].is_notified == True 
-
-        message.recipients = []
-        db.session.delete(message)
-        db.session.commit()
-
-
     def test_delete_message_ok(self):
         message = Message(
             id_sender=2,

@@ -71,12 +71,10 @@ class Message(db.Model):
     img_path = db.Column(db.Unicode(128))
     date_of_send = db.Column(db.DateTime)
 
-
     # boolean variables that describe the state of the message
     is_sent = db.Column(db.Boolean, default=False)
     is_arrived = db.Column(db.Boolean, default=False)
     is_notified_sender = db.Column(db.Boolean, default = False)
-    is_notified_receipent = db.Column(db.Boolean, default = False)
 
     # boolean flag that tells if the message must be filtered for users who resquest it
     to_filter = db.Column(db.Boolean, default=False)
@@ -111,15 +109,18 @@ class Notify(db.Model):
     __tablename__ = 'notify'
 
     id_notify = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    id_sender = db.Column(db.Integer)
-    id_receipent = db.Column(db.Integer)
+    id_message = db.Column(db.Integer)
+    id_user = db.Column(db.Integer)
 
-    sender_notified = db.Column(db.Boolean, default = False)
-    receipent_notified = db.Column(db.Boolean, default = False)
+    is_notified = db.Column(db.Boolean, default = False)
+    for_recipient = db.Column(db.Boolean, default = False)
+    for_sender = db.Column(db.Boolean, default = False)
+    for_lottery = db.Column(db.Boolean, default = False)
+    from_recipient = db.Column(db.Integer, default = None)
 
     #constructor of the notify object
     def __init__(self, *args, **kw):
-        super(Report, self).__init__(*args, **kw)
+        super(Notify, self).__init__(*args, **kw)
 
 class Recipient(db.Model):
 
