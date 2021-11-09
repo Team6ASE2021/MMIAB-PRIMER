@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-
+mkdir -p ./monolith/db
 # stop redis if running
-pgrep -x redis-server >/dev/null && killall -9 redis-server
+pgrep -x redis-server >/dev/null && sudo killall -9 redis-server
 # start redis
 redis-server &>redis.log &
 

@@ -1,3 +1,4 @@
+from monolith.database import Message, Notify
 from flask import abort
 from flask import Blueprint
 from flask import render_template
@@ -8,6 +9,8 @@ from monolith.classes.message import MessageModel
 from monolith.classes.message import NotExistingMessageError
 from monolith.classes.user import NotExistingUserError
 from monolith.classes.user import UserModel
+from monolith.classes.notify import NotifyModel
+from monolith.classes.recipient import RecipientModel
 
 from http import HTTPStatus
 
@@ -31,6 +34,19 @@ def read_messages(id):
 
     try:
         sender = UserModel.get_user_info_by_id(mess.id_sender)
+
+        if (
+            mess.id_sender != current_user.id and 
+            RecipientModel.is_recipient(mess, current_user.id) and
+            not RecipientModel.has_opened(mess, current_user.id)
+        ):
+            NotifyModel.add_notify(
+                id_message=mess.id_message, 
+                id_user=mess.id_sender, 
+                for_sender=True,
+                from_recipient=current_user.id
+            )
+            
     except NotExistingUserError:
         sender = None
 
