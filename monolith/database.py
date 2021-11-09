@@ -61,17 +61,16 @@ class Message(db.Model):
     # id_message is the primary key that identify a message
     id_message = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    # id of sender
     id_sender = db.Column(db.Integer)
 
-    # recipients
     recipients = db.relationship(
         "Recipient", back_populates="message", cascade="all, delete-orphan"
     )
 
-    # body of message and date of send
     body_message = db.Column(db.Unicode(256))
-    img_path = db.Column(db.Unicode(128))
+    img_path = db.Column(
+        db.Unicode(128)
+    )  # we store the path of the image in the web server
     date_of_send = db.Column(db.DateTime)
 
     # boolean variables that describe the state of the message
@@ -142,7 +141,7 @@ class Recipient(db.Model):
 
 
 class LotteryParticipant(db.Model):
-
+    # Table that stores the participants for the next lottery
     __tablename__ = "lottery_participant"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

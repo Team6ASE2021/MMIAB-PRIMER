@@ -25,7 +25,7 @@ def create_app(testing: bool = False) -> Flask:
     if testing:
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///tests/mmiab.db"
     else:
-        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///../mmiab.db"
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db/mmiab.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["CELERY_BROKER_URL"] = "redis://localhost:6379/0"
     app.config["CELERY_RESULT_BACKEND"] = "redis://localhost:6379/0"

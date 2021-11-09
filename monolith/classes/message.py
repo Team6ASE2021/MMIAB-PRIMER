@@ -1,7 +1,7 @@
+import calendar
 import string
 from datetime import datetime
-from datetime import timedelta 
-import calendar
+from datetime import timedelta
 from os import path
 from typing import List
 from typing import Optional
@@ -62,8 +62,11 @@ class MessageModel:
     """
 
     @staticmethod
-    def id_message_exists(id_message) -> Optional[Message]:
-        # get the message from database
+    def id_message_exists(id_message) -> Message:
+        """
+        Checks that the id passed corresponds to a message in the db and returns it, raising an exception
+        if no message is found
+        """
         message = (
             db.session.query(Message).filter(Message.id_message == id_message).first()
         )
@@ -276,7 +279,7 @@ class MessageModel:
             .all()
         )
         return result
-    
+
     @staticmethod
     def get_timeline_day_mess_received(id, year, month, day):
         start_of_today = datetime(year, month, day)
@@ -309,7 +312,7 @@ class MessageModel:
             .all()
         )
         return result
-    
+
     @staticmethod
     def get_timeline_month_mess_received(id, month, year):
         month_fst = datetime(year, month, 1)
@@ -326,8 +329,6 @@ class MessageModel:
             .all()
         )
         return result
-
-
 
 
 class NotExistingMessageError(Exception):
