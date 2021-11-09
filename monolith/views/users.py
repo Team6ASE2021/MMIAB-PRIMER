@@ -21,6 +21,7 @@ from sqlalchemy import inspect
 from monolith.classes.report import ReportModel
 from monolith.classes.user import BlockingCurrentUserError
 from monolith.classes.user import NotExistingUserError
+from monolith.classes.user import EmailAlreadyExistingError
 from monolith.classes.user import WrongPasswordError
 from monolith.classes.user import UserBlacklist
 from monolith.classes.user import UserModel
@@ -81,11 +82,6 @@ def profile_info() -> Text:
 def edit_profile():
     form = EditProfileForm()
 
-    user = UserModel.get_user_info_by_id(current_user.id)
-    user_data = {str(k)[5:]: getattr(user, str(k)[5:]) for k in user.__table__.columns if str(k)[5:] != 'password'}
-
-    print(user_data)
-
     if request.method == "POST":
         if form.validate_on_submit():
 
@@ -95,9 +91,14 @@ def edit_profile():
             try:
                 UserModel.update_user(current_user.id, new_data)
                 return redirect(url_for('users.profile_info'))
-            except (NotExistingUserError, WrongPasswordError) as e:
+            except (
+                NotExistingUserError, 
+                WrongPasswordError,
+                EmailAlreadyExistingError
+            ) as e:
                 flash(e)
 
+    user_data = UserModel.get_user_dict_by_id(current_user.id)
     return render_template(
         "create_user_bs.html", 
         form=form, 

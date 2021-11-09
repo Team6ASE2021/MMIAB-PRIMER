@@ -22,22 +22,24 @@
          {% from 'alert_macro.html' import warning %}
          {% from 'alert_macro.html' import flash %}
 
+         {% if user_data is defined %}
          <script>
              window.addEventListener(
-                'load', 
-                function() {
-                    var data = {{user_data|tojson}}
-                    console.log(data)
-                    for (var key in data) {
-                        var field = document.getElementById(key);
-                        console.log(field)
-                        if (field != undefined)
-                            if(key == 'dateofbirth') field.value = '{{user_data.dateofbirth|datetime_format}}'
-                            else field.value = data[key];
-                    }
-                }
-            )
+                 'load', 
+                 function() {
+                     var data = {{user_data|tojson}}
+                     console.log(data)
+                     for (var key in data) {
+                         var field = document.getElementById(key);
+                         console.log(field)
+                         if (field != undefined)
+                             if(key == 'dateofbirth') field.value = '{{user_data.dateofbirth|datetime_format}}'
+                             else field.value = data[key];
+                     }
+                 }
+             )
          </script>
+         {% endif %}
     </head>
     <body>
     <div style="min-height: 80px;">
@@ -117,7 +119,6 @@
                             type="text" 
                             class="form-control" 
                             placeholder="example@example.com" 
-                            {{'disabled' if user_data is defined}}
                         >
                         <label for="email">Email</label>
                     </div>
@@ -177,6 +178,15 @@
                         >
                         <label for="location">Location</label>
                     </div>
+                    {% if user_data is defined %}
+                    <div class="form mb-3 hstack justify-content-center">
+                        <div class="rounded-circle d-flex justify-content-center" style="width: 200px; height: 200px; overflow: hidden;">
+                            <img 
+                                src="{{url_for('static',filename='assets/' + (user_data['pfp_path'] if user_data['pfp_path'] is not none else 'default.jpg'))}}"
+                                height="200px">
+                        </div>
+                    </div>
+                    {% endif %}
                     <div class="form mb-3">
                         <label for="profile_picture">Profile Picture</label>
                         <input 
@@ -187,7 +197,7 @@
                         >
                     </div>
                     <div class="my-3 mb-3" style="padding-top: 20px;">
-                        <button type="submit" class="btn btn-primary col-2">Submit</button>
+                        <button type="submit" class="btn btn-primary col-2">{{'Save' if user_data is defined else 'Submit'}}</button>
                     </div>
                 </form>
             </div>
