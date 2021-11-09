@@ -9,8 +9,8 @@ class NotifyModel:
     """
     
     def add_notify(
-            id_message: int, 
             id_user: int, 
+            id_message: Optional[int] = None, 
             for_recipient: bool = False, 
             for_sender: bool = False, 
             for_lottery: bool = False, 

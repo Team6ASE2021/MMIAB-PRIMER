@@ -56,7 +56,7 @@ def clean_db_and_logout(request, test_client):
     db.session.query(Message).delete()
     db.session.query(LotteryParticipant).delete()
     db.session.query(Notify).delete()
-    #db.session.query(Report).delete()
+    db.session.query(Report).delete()
     db.session.commit()
 
     def _finalizer():
@@ -67,7 +67,7 @@ def clean_db_and_logout(request, test_client):
         db.session.query(Message).delete()
         db.session.query(LotteryParticipant).delete()
         db.session.query(Notify).delete()
-        #db.session.query(Report).delete()
+        db.session.query(Report).delete()
         db.session.commit()
 
     request.addfinalizer(_finalizer)
