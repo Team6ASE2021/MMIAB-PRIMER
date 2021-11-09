@@ -162,13 +162,8 @@ def edit_draft(id):
 
 
 @messages.route("/send_message/<int:id>", methods=["GET", "POST"])
+@login_required
 def send_message(id):
-    # check if the current user is logged
-    if current_user.get_id() == None:
-        abort(
-            HTTPStatus.UNAUTHORIZED, description="You must be logged to send a message"
-        )
-
     try:
         # get the message from the database
         message = MessageModel.id_message_exists(id)
@@ -176,6 +171,11 @@ def send_message(id):
         # check if the id_sender and the id of the current user correspond
         if current_user.get_id() != message.id_sender:
             abort(HTTPStatus.UNAUTHORIZED, "You can't send this message")
+
+        # check if the message has already been sent
+        if message.is_sent == True:
+            flash("This message has already been sent")
+            return redirect(url_for("messages.edit_draft", id=message.id_message))
 
         # check if the date_of_send is not Null
         if message.date_of_send is None:

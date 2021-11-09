@@ -225,24 +225,6 @@ class TestViewsMessagesDraft:
 
 @pytest.mark.usefixtures("clean_db_and_logout")
 class TestViewsMessagesSend:
-    def test_send_message_not_logged(self, test_client):
-
-        message = Message(
-            id_sender=1,
-            body_message="Ciao",
-            date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"),
-        )
-        db.session.add(message)
-        db.session.flush()
-        message.recipients.append(Recipient(id_recipient=1))
-        db.session.commit()
-
-        response = test_client.post("/send_message/" + str(message.id_message))
-
-        assert response.status_code == 401
-        RecipientModel.set_recipients(message, [])
-        db.session.delete(message)
-        db.session.commit()
 
     def test_send_message_id_wrong(self, test_client):
         admin_user = {"email": "example@example.com", "password": "admin"}
