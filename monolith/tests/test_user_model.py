@@ -3,8 +3,14 @@ import datetime
 import pytest
 import sqlalchemy
 
+import io
+import mock
+from werkzeug.datastructures import FileStorage
+
 from monolith.auth import current_user
 from monolith.classes.user import BlockingCurrentUserError
+from monolith.classes.user import WrongPasswordError
+from monolith.classes.user import EmailAlreadyExistingError
 from monolith.classes.user import NotExistingUserError
 from monolith.classes.user import UserBlacklist
 from monolith.classes.user import UserModel
@@ -13,6 +19,27 @@ from monolith.database import User
 
 
 class TestUserModel:
+    def test_user_exists_id_ok(self):
+        assert UserModel.user_exists(id=1)
+
+    def test_user_exists_email_ok(self):
+        assert UserModel.user_exists(email="example@example.com")
+
+    def test_user_not_exists_id(self):
+        assert not UserModel.user_exists(id=300)
+
+    def test_user_not_exists_mail(self):
+        assert not UserModel.user_exists(email="fail@fail.com")
+
+    def test_get_user_dict(self):
+        data = UserModel.get_user_dict_by_id(1)
+        assert data['firstname'] == 'Admin'
+        assert data['lastname'] == 'Admin'
+        assert data['email'] == 'example@example.com'
+
+        with pytest.raises(NotExistingUserError):
+            UserModel.get_user_dict_by_id(100)
+
     def test_create_user(self):
         user = User(
             firstname="Niccolò",
@@ -69,6 +96,148 @@ class TestUserModel:
             UserModel.get_user_info_by_id(999)
         assert str(ex.value) == "No user found!"
 
+    def test_update_user(self):
+        fields = {
+            'firstname': "Marco",
+            'old_password': "old_pass",
+            'new_password': "new_pass",
+            'email': "ex2@ex2.com",
+            User.dateofbirth: datetime.datetime.strptime("02/02/2002", "%d/%m/%Y"),
+        }
+        user = User(
+            firstname="Niccolò",
+            lastname="Piazzesi",
+            email="ex1@ex.com",
+            dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+        )
+        UserModel.create_user(user, 'old_pass')
+
+        UserModel.update_user(2, fields=fields)
+        assert user.firstname == "Marco"
+        assert user.lastname == "Piazzesi"
+        assert user.check_password(fields['new_password'])
+        assert user.email == fields['email']
+
+        fields = {
+            'firstname': "Ferdinando",
+            'email': "ex3@ex3.com",
+            User.dateofbirth: datetime.datetime.strptime("02/02/2002", "%d/%m/%Y"),
+        }
+        UserModel.update_user(2, fields=fields)
+        assert user.firstname == "Ferdinando"
+        assert user.lastname == "Piazzesi"
+        assert user.email == fields['email']
+
+        db.session.delete(user)
+        db.session.commit()
+
+    def test_update_user_email_existing(self):
+        fields = {
+            'firstname': "Marco",
+            'email': "example@example.com",
+            'dateofbirth': datetime.datetime.strptime("02/02/2002", "%d/%m/%Y"),
+        }
+        user = User(
+            firstname="Niccolò",
+            lastname="Piazzesi",
+            email="ex1@ex.com",
+            dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+        )
+        UserModel.create_user(user, 'old_pass')
+
+        with pytest.raises(EmailAlreadyExistingError):
+            UserModel.update_user(2, fields=fields)
+        assert user.firstname == "Marco"
+        assert user.lastname == "Piazzesi"
+        assert user.email == "ex1@ex.com"
+        db.session.delete(user)
+        db.session.commit()
+    
+    def test_update_user_wrong_password(self):
+        user = User(
+            firstname="Niccolò",
+            lastname="Piazzesi",
+            email="ex1@ex.com",
+            dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+        )
+        UserModel.create_user(user, 'old_pass')
+
+        fields = {
+            'firstname': "Marco",
+            'new_password': "new_pass",
+            'dateofbirth': datetime.datetime.strptime("02/02/2002", "%d/%m/%Y"),
+        }
+
+        with pytest.raises(WrongPasswordError):
+            UserModel.update_user(2, fields=fields)
+
+        assert user.firstname == "Marco"
+        assert user.lastname == "Piazzesi"
+        assert user.check_password('old_pass')
+
+        fields['old_password'] = "not_old_pass"
+
+        with pytest.raises(WrongPasswordError):
+            UserModel.update_user(2, fields=fields)
+
+        assert user.firstname == "Marco"
+        assert user.lastname == "Piazzesi"
+        assert user.check_password('old_pass')
+        db.session.delete(user)
+        db.session.commit()
+
+    def test_update_user_with_img(self):
+        user = User(
+            firstname="Niccolò",
+            lastname="Piazzesi",
+            email="ex1@ex.com",
+            dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+        )
+        UserModel.create_user(user, 'old_pass')
+
+        with mock.patch.object(FileStorage, "save", autospec=True, return_value=None):
+            image_name = "fake-image-stream.jpg"
+            file = FileStorage(filename=image_name, stream=io.BytesIO(b"data data"))
+            fields = {
+                'firstname': "Marco",
+                'profile_picture': file
+            }
+            UserModel.update_user(2, fields=fields)
+            assert user.firstname == "Marco"
+            assert user.pfp_path != None
+
+        db.session.delete(user)
+        db.session.commit()
+
+    def test_update_user_empty_fields(self):
+        user = User(
+            firstname="Niccolò",
+            lastname="Piazzesi",
+            email="ex1@ex.com",
+            dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+        )
+        db.session.add(user)
+        db.session.commit()
+        UserModel.update_user(2)
+        assert user.firstname == "Niccolò"
+        assert user.lastname == "Piazzesi"
+        assert user.email == "ex1@ex.com"
+        assert user.dateofbirth == datetime.datetime.strptime("01/01/2000", "%d/%m/%Y")
+
+        db.session.delete(user)
+        db.session.commit()
+
+    def test_update_user_not_exists(self):
+        fields = {
+            User.firstname: "Marco",
+            User.password: "new_pass",
+            User.dateofbirth: datetime.datetime.strptime("02/02/2002", "%d/%m/%Y"),
+        }
+        with pytest.raises(NotExistingUserError):
+            UserModel.update_user(200, fields=fields)
+        db.session.rollback()
+        db.session.commit()
+
     def test_delete_user_by_id_ok(self):
         user = User(
             firstname="Niccolò",
@@ -91,6 +260,23 @@ class TestUserModel:
 
         rows = UserModel.delete_user(email="ex1@ex.com")
         assert rows == 1
+
+    def test_add_points_to_user(self):
+        usr = UserModel.get_user_info_by_id(1)
+        UserModel.update_points_to_user(1, 1)
+        assert usr.lottery_points == 1
+        usr.lottery_points = 0
+
+    def test_remove_points_to_user_negative_becomes_zero(self):
+        UserModel.update_points_to_user(1, -1)
+        assert UserModel.get_user_info_by_id(1).lottery_points == 0
+
+    def test_remove_points_to_user_not_negative(self):
+        usr = UserModel.get_user_info_by_id(1)
+        usr.lottery_points = 2
+        UserModel.update_points_to_user(1, -1)
+        assert usr.lottery_points == 1
+        usr.lottery_points = 0
 
     def test_delete_user_by_id_not_exists(self):
         with pytest.raises(NotExistingUserError) as ex:

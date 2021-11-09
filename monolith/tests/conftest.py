@@ -6,6 +6,7 @@ import pytest
 from monolith.app import create_app
 from monolith.classes.message import MessageModel
 from monolith.database import db
+from monolith.database import LotteryParticipant
 from monolith.database import Message
 from monolith.database import Recipient
 from monolith.database import User
@@ -51,6 +52,7 @@ def clean_db_and_logout(request, test_client):
     db.session.query(User).filter(User.email != admin_user["email"]).delete()
     db.session.query(Recipient).delete()
     db.session.query(Message).delete()
+    db.session.query(LotteryParticipant).delete()
     db.session.commit()
 
     def _finalizer():
@@ -59,6 +61,7 @@ def clean_db_and_logout(request, test_client):
         db.session.query(User).filter(User.email != admin_user["email"]).delete()
         db.session.query(Recipient).delete()
         db.session.query(Message).delete()
+        db.session.query(LotteryParticipant).delete()
         db.session.commit()
 
     request.addfinalizer(_finalizer)
@@ -80,84 +83,107 @@ def messages_setup(test_client):
     db.session.query(Recipient).delete()
     db.session.commit()
 
-    test_client.post('/create_user', data=new_user, follow_redirects=True)
+    test_client.post("/create_user", data=new_user, follow_redirects=True)
 
     admin_id = (
-        db.session.query(User).filter(User.email == admin_user['email']).first().id
+        db.session.query(User).filter(User.email == admin_user["email"]).first().id
     )
     new_user_id = (
-        db.session.query(User).filter(User.email == new_user['email']).first().id
-    ) 
+        db.session.query(User).filter(User.email == new_user["email"]).first().id
+    )
 
     MessageModel.create_message(
-        id_sender=admin_id, recipients=[new_user_id], body_message='admin draft 1'
+        id_sender=admin_id, recipients=[new_user_id], body_message="admin draft 1"
     )
     MessageModel.create_message(
-        id_sender=admin_id, recipients=[new_user_id], body_message='admin draft 2'
+        id_sender=admin_id, recipients=[new_user_id], body_message="admin draft 2"
     )
     MessageModel.create_message(
         id_sender=admin_id,
         recipients=[new_user_id],
-        body_message='admin send 1',
+        body_message="admin send 1",
         date_of_send=datetime.now(),
-        is_sent=True
+        is_sent=True,
     )
     MessageModel.create_message(
         id_sender=admin_id,
         recipients=[new_user_id],
-        body_message='admin send 2',
+        body_message="admin send 2",
         date_of_send=datetime.now(),
         is_sent=True,
-        is_arrived=True
+        is_arrived=True,
     )
     MessageModel.create_message(
         id_sender=admin_id,
         recipients=[new_user_id],
-        body_message='admin send 3',
+        body_message="admin send 3",
         date_of_send=datetime.now(),
         is_sent=True,
-        is_arrived=True
+        is_arrived=True,
     )
 
     MessageModel.create_message(
-        id_sender=new_user_id, recipients=[admin_id], body_message='new_user draft 1'
+        id_sender=new_user_id, recipients=[admin_id], body_message="new_user draft 1"
     )
     MessageModel.create_message(
-        id_sender=new_user_id, recipients=[admin_id], body_message='new_user draft 2'
+        id_sender=new_user_id, recipients=[admin_id], body_message="new_user draft 2"
     )
     MessageModel.create_message(
-        id_sender=new_user_id, recipients=[admin_id], body_message='new_user draft 3'
-    )
-    MessageModel.create_message(
-        id_sender=new_user_id,
-        recipients=[admin_id],
-        body_message='new_user send 1',
-        date_of_send=datetime.now(),
-        is_sent=True
+        id_sender=new_user_id, recipients=[admin_id], body_message="new_user draft 3"
     )
     MessageModel.create_message(
         id_sender=new_user_id,
         recipients=[admin_id],
-        body_message='new_user send 2',
+        body_message="new_user send 1",
         date_of_send=datetime.now(),
         is_sent=True,
-        is_arrived=True
     )
     MessageModel.create_message(
         id_sender=new_user_id,
         recipients=[admin_id],
-        body_message='new_user send 3',
+        body_message="new_user send 2",
         date_of_send=datetime.now(),
         is_sent=True,
-        is_arrived=True
+        is_arrived=True,
     )
     MessageModel.create_message(
         id_sender=new_user_id,
         recipients=[admin_id],
-        body_message='new_user send 4',
+        body_message="new_user send 3",
         date_of_send=datetime.now(),
         is_sent=True,
-        is_arrived=True
+        is_arrived=True,
+    )
+    MessageModel.create_message(
+        id_sender=new_user_id,
+        recipients=[admin_id],
+        body_message="new_user send 4",
+        date_of_send=datetime.now(),
+        is_sent=True,
+        is_arrived=True,
     )
 
 
+@pytest.fixture(scope="class", autouse=False)
+def lottery_setup():
+    usr1 = User(
+        email="test@test.com",
+        firstname="test",
+        lastname="test",
+        dateofbirth=datetime.strptime("01/01/2000", "%d/%m/%Y"),
+    )
+    usr1.set_password("test")
+    usr2 = User(
+        email="test1@test.com",
+        firstname="test",
+        lastname="test",
+        dateofbirth=datetime.strptime("01/01/2000", "%d/%m/%Y"),
+    )
+    usr2.set_password("pass")
+    db.session.add(usr1)
+    db.session.add(usr2)
+    p1 = LotteryParticipant(id_participant=2, choice=3)
+    db.session.add(p1)
+    p2 = LotteryParticipant(id_participant=3, choice=15)
+    db.session.add(p2)
+    db.session.commit()

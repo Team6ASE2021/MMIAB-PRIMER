@@ -1,6 +1,7 @@
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,macos,flask,visualstudiocode,jupyternotebooks,linux,pycharm+all,virtualenv
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,macos,flask,visualstudiocode,jupyternotebooks,linux,pycharm+all,virtualenv
+TODO
 
 ### Flask ###
 instance/*
@@ -353,3 +354,4 @@ flake8-report/
 # End of https://www.toptal.com/developers/gitignore/api/python,macos,flask,visualstudiocode,jupyternotebooks,linux,pycharm+all,virtualenv
 monolith/static/assets/*
 !monolith/static/assets/default.png
+dump.rdb

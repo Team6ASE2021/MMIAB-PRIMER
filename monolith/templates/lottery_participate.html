@@ -1,0 +1,18 @@
+<html>
+<body>
+<h3> Please choose a number between 1 and 50</h3>
+    <form action="" method="POST">
+        {{ form.hidden_tag() }}
+    <dl>
+    <dt>{{ form.choice.label }}</dt>
+    <dd>{{ form.choice() }}</dd>
+        {% if form.choice.errors %}
+            {% for e in form.choice.errors %}
+                <p class="help-block">{{ e }}</p>
+            {% endfor %}
+        {% endif %}
+    </dl>
+    <input type=submit value="Play with this number">
+    </form>
+</body>
+</html>

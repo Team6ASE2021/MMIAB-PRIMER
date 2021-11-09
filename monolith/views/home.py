@@ -25,4 +25,4 @@ def index():
 def notification():
     #pop-up notification
     notifies = NotifyModel.get_notify(current_user.get_id())
-    return jsonify({"notify_list" : notifies})
+    return jsonify(notifications=notifies)

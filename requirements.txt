@@ -8,9 +8,11 @@ click-repl==0.2.0
 flake8==3.9.2
 flake8-flask==0.9.3
 Flask==1.1.4
+flask_mail
 Flask-Login==0.5.0
 Flask-SQLAlchemy==2.5.1
 Flask-WTF==0.15.1
+flask-migrate
 greenlet==1.1.2
 isort==5.9.3
 itsdangerous==1.1.0

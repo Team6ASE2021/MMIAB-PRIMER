@@ -1,8 +1,16 @@
 language: python
 python: 3.9
 env:
-- TOX_ENV=py39
+  global:
+    - CODECOV_TOKEN='83b60c68-4ecb-41c1-afc5-0c51a59614ad'
+
+    - TOX_ENV=py39
 install:
 - pip install tox
 script:
 - tox -e $TOX_ENV
+branches:
+  only:
+  - main
+notifications:
+  email: false

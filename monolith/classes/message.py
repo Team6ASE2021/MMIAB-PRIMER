@@ -1,11 +1,14 @@
+import calendar
 import string
 from datetime import datetime
+from datetime import timedelta
 from os import path
 from typing import List
 from typing import Optional
 
 from sqlalchemy import and_
 
+from monolith.classes.user import UserModel
 from monolith.database import db
 from monolith.database import Message
 from monolith.database import Recipient
@@ -59,8 +62,11 @@ class MessageModel:
     """
 
     @staticmethod
-    def id_message_exists(id_message) -> Optional[Message]:
-        # get the message from database
+    def id_message_exists(id_message) -> Message:
+        """
+        Checks that the id passed corresponds to a message in the db and returns it, raising an exception
+        if no message is found
+        """
         message = (
             db.session.query(Message).filter(Message.id_message == id_message).first()
         )
@@ -90,7 +96,7 @@ class MessageModel:
         db.session.commit()
 
     @staticmethod
-    def arrived_message():
+    def get_new_arrived_messages():
         messages = db.session.query(Message).filter(
             Message.is_sent == True,
             Message.is_arrived == False,
@@ -98,7 +104,6 @@ class MessageModel:
         )
 
         messages_arrived = []
-        
         for m in messages.all():
             if (m.date_of_send - datetime.now()).total_seconds() <= 0:
 
@@ -106,7 +111,7 @@ class MessageModel:
                 messages_arrived.append(m)
 
         db.session.commit()
-        
+
         return [
             {
                 "id": m.id_message,
@@ -120,18 +125,18 @@ class MessageModel:
             }
             for m in messages_arrived
         ]
-      
+
     @staticmethod
     def create_message(
         id_sender: int,
         body_message: str,
         recipients: List[int] = [],
         date_of_send: datetime = datetime.now(),
-        is_sent = False,
-        is_arrived = False,
-        is_notified = False,
-        reply_to = None,
-        to_filter = False
+        is_sent=False,
+        is_arrived=False,
+        is_notified=False,
+        reply_to=None,
+        to_filter=False,
     ):
         message = Message()
         message.id_sender = id_sender
@@ -169,6 +174,19 @@ class MessageModel:
         db.session.commit()
 
     @staticmethod
+    def withdraw_message(id_message: int):
+
+        mess = (
+            db.session.query(Message).filter(Message.id_message == id_message).first()
+        )
+        if mess is None:
+            raise NotExistingMessageError("Message not found")
+        else:
+            mess.is_sent = False
+            UserModel.update_points_to_user(mess.id_sender, -1)
+            db.session.commit()
+
+    @staticmethod
     def user_can_read(user_id: int, message: Message) -> bool:
         recipients = [rcp.id_recipient for rcp in message.recipients]
         if message.is_arrived == True:
@@ -188,16 +206,90 @@ class MessageModel:
     def get_replying_info(reply_to: Optional[int]) -> Optional[dict]:
         try:
             if reply_to is None:
-                raise NotExistingMessageError('Trying to reply to a non existing message')
+                raise NotExistingMessageError(
+                    "Trying to reply to a non existing message"
+                )
 
             r_message = MessageModel.id_message_exists(reply_to) if reply_to else None
-            r_user = db.session.query(User).filter(User.id == r_message.id_sender).first() 
-            return {
-                'message': r_message,
-                'user': r_user,
-            } if r_user else None
+            r_user = (
+                db.session.query(User).filter(User.id == r_message.id_sender).first()
+            )
+            return (
+                {
+                    "message": r_message,
+                    "user": r_user,
+                }
+                if r_user
+                else None
+            )
         except NotExistingMessageError:
             return None
+
+    @staticmethod
+    def get_timeline_day_mess_send(id, year, month, day):
+        start_of_today = datetime(year, month, day)
+        start_of_tomorrow = start_of_today + timedelta(days=1)
+        result = (
+            db.session.query(Message)
+            .filter(
+                Message.id_sender == id,
+                Message.is_sent == True,
+                Message.date_of_send >= start_of_today,
+                Message.date_of_send < start_of_tomorrow,
+            )
+            .all()
+        )
+        return result
+
+    @staticmethod
+    def get_timeline_day_mess_received(id, year, month, day):
+        start_of_today = datetime(year, month, day)
+        start_of_tomorrow = start_of_today + timedelta(days=1)
+        result = (
+            db.session.query(Message)
+            .filter(
+                Message.is_sent == True,
+                Message.is_arrived == True,
+                Message.date_of_send >= start_of_today,
+                Message.date_of_send < start_of_tomorrow,
+            )
+            .filter(Message.recipients.any(Recipient.id_recipient == id))
+            .all()
+        )
+        return result
+
+    @staticmethod
+    def get_timeline_month_mess_send(id, month, year):
+        month_fst = datetime(year, month, 1)
+        next_month_fst = month_fst + timedelta(days=calendar.monthrange(year, month)[1])
+        result = (
+            db.session.query(Message)
+            .filter(
+                Message.is_sent == True,
+                Message.id_sender == id,
+                Message.date_of_send >= month_fst,
+                Message.date_of_send < next_month_fst,
+            )
+            .all()
+        )
+        return result
+
+    @staticmethod
+    def get_timeline_month_mess_received(id, month, year):
+        month_fst = datetime(year, month, 1)
+        next_month_fst = month_fst + timedelta(days=calendar.monthrange(year, month)[1])
+        result = (
+            db.session.query(Message)
+            .filter(
+                Message.is_sent == True,
+                Message.is_arrived == True,
+                Message.date_of_send >= month_fst,
+                Message.date_of_send < next_month_fst,
+            )
+            .filter(Message.recipients.any(Recipient.id_recipient == id))
+            .all()
+        )
+        return result
 
 
 class NotExistingMessageError(Exception):
@@ -207,3 +299,10 @@ class NotExistingMessageError(Exception):
     def __str__(self):
         return repr(self.value)
 
+
+class MessageNotWithdrawable(Exception):
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)

@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-
+from sqlalchemy.orm import backref
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
@@ -22,7 +22,7 @@ class User(db.Model):
     dateofbirth = db.Column(db.DateTime)
     content_filter = db.Column(db.Boolean, default=False)
     blacklist = db.Column(db.Unicode(128))
-
+    lottery_points = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
     is_banned = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
@@ -47,6 +47,9 @@ class User(db.Model):
         self._authenticated = checked
         return self._authenticated
 
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+
     def get_id(self):
         return self.id
 
@@ -58,23 +61,22 @@ class Message(db.Model):
     # id_message is the primary key that identify a message
     id_message = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    # id of sender
     id_sender = db.Column(db.Integer)
 
-    # recipients
     recipients = db.relationship(
         "Recipient", back_populates="message", cascade="all, delete-orphan"
     )
 
-    # body of message and date of send
     body_message = db.Column(db.Unicode(256))
-    img_path = db.Column(db.Unicode(128))
+    img_path = db.Column(
+        db.Unicode(128)
+    )  # we store the path of the image in the web server
     date_of_send = db.Column(db.DateTime)
 
     # boolean variables that describe the state of the message
     is_sent = db.Column(db.Boolean, default=False)
     is_arrived = db.Column(db.Boolean, default=False)
-    is_notified_sender = db.Column(db.Boolean, default = False)
+    #is_notified_sender = db.Column(db.Boolean, default = False)
 
     # boolean flag that tells if the message must be filtered for users who resquest it
     to_filter = db.Column(db.Boolean, default=False)
@@ -88,25 +90,26 @@ class Message(db.Model):
 
 
 class Report(db.Model):
-    
-    __tablename__ = 'report'
 
-    #id_message is the primary key that identify a report
+    __tablename__ = "report"
+
+    # id_message is the primary key that identify a report
     id_report = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    #id of reported and signaller
+    # id of reported and signaller
     id_reported = db.Column(db.Integer)
     id_signaller = db.Column(db.Integer)
 
     date_of_report = db.Column(db.DateTime)
 
-    #constructor of the report object
+    # constructor of the report object
     def __init__(self, *args, **kw):
         super(Report, self).__init__(*args, **kw)
 
+
 class Notify(db.Model):
-    
-    __tablename__ = 'notify'
+
+    __tablename__ = "notify"
 
     id_notify = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_message = db.Column(db.Integer)
@@ -118,12 +121,12 @@ class Notify(db.Model):
     for_lottery = db.Column(db.Boolean, default = False)
     from_recipient = db.Column(db.Integer, default = None)
 
-    #constructor of the notify object
+    # constructor of the notify object
     def __init__(self, *args, **kw):
         super(Notify, self).__init__(*args, **kw)
 
-class Recipient(db.Model):
 
+class Recipient(db.Model):
 
     __tablename__ = "recipient"
 
@@ -132,9 +135,20 @@ class Recipient(db.Model):
     id_message = db.Column(db.ForeignKey("message.id_message"))
     id_recipient = db.Column(db.ForeignKey("user.id"))
 
-    is_notified = db.Column(db.Boolean, default=False)
+    has_opened = db.Column(db.Boolean, default=False)
 
     message = db.relationship("Message")
 
     user = db.relationship("User")
 
+
+class LotteryParticipant(db.Model):
+    # Table that stores the participants for the next lottery
+    __tablename__ = "lottery_participant"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_participant = db.Column(db.ForeignKey("user.id"), unique=True)
+    choice = db.Column(db.Integer, nullable=False)
+    participant = db.relationship(
+        "User", backref=backref("user", cascade="all,delete-orphan")
+    )

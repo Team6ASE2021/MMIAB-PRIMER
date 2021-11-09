@@ -1,0 +1,21 @@
+
+.day-box{
+    height: 100px;
+}
+
+.calendar-box{
+    border-bottom: 0px solid red;
+}
+
+.partial{
+    width: calc(100%/7);
+    *width: calc(100%/7);
+}
+
+.day-number {
+    background-color: transparent;
+}
+
+a{
+    cursor: pointer;
+}

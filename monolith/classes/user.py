@@ -1,10 +1,16 @@
+import os 
+
 from typing import List
 from typing import Optional
 from typing import Set
 
+from uuid import uuid4
+
 from monolith.database import db
 from monolith.database import User
 
+from flask.globals import current_app
+from werkzeug.utils import secure_filename
 
 class UserModel:
 
@@ -13,12 +19,25 @@ class UserModel:
     """
 
     @staticmethod
+    def user_exists(id=None, email=""):
+        if id is not None:
+            return db.session.query(User).filter(User.id == id).first() is not None
+        else:
+            return (
+                db.session.query(User).filter(User.email == email).first() is not None
+            )
+
+    @staticmethod
     def get_user_info_by_id(id: int) -> Optional[User]:
         user = db.session.query(User).filter(id == User.id).first()
         if user is None:
             raise NotExistingUserError("No user found!")
 
         return user
+
+    def get_user_dict_by_id(id: int) -> dict:
+        user = UserModel.get_user_info_by_id(id)
+        return {str(k)[5:]: getattr(user, str(k)[5:]) for k in user.__table__.columns if str(k)[5:] != 'password'}
 
     @staticmethod
     def get_users_by_ids(ids: List[int]) -> List[User]:
@@ -41,6 +60,45 @@ class UserModel:
         return user
 
     @staticmethod
+    def update_user(id : int, fields=None) -> None:
+        if fields is not None:
+            filtered_fields = {k: v for k, v in fields.items() if k not in ['email', 'password', 'old_password', 'new_password', 'profile_picture']}
+            user = db.session.query(User).filter(User.id == id)
+            rows = user.update(values=filtered_fields)
+
+            if rows == 0:
+                raise NotExistingUserError("User not found")
+
+            db.session.commit()
+
+            if "email" in fields.keys():
+                query = db.session.query(User).filter(User.email == fields['email'], User.id != id)
+                if query.count() > 0:
+                    raise EmailAlreadyExistingError("An user with this email already exists")
+                else:
+                    user.first().email = fields['email']
+
+            if "new_password" in fields.keys():
+                if "old_password" not in fields.keys():
+                    raise WrongPasswordError("You must enter your old password to change it")
+                if not user.first().check_password(fields["old_password"]):
+                    raise WrongPasswordError("You entered the wrong password")
+
+                user.first().set_password(fields["new_password"])
+
+            if "profile_picture" in fields.keys():
+                file = fields["profile_picture"]
+                name = file.filename
+                name = str(uuid4()) + secure_filename(name)
+
+                path = os.path.join(current_app.config["UPLOAD_FOLDER"], name)
+                user.first().set_pfp_path(name)
+                file.save(path)
+
+            db.session.commit()
+
+
+    @staticmethod
     def delete_user(id: Optional[int] = None, email: str = "") -> int:
         if id is not None:
             rows = db.session.query(User).filter_by(id=id).delete()
@@ -52,6 +110,14 @@ class UserModel:
         else:
             raise NotExistingUserError("No user found!")
         return rows
+
+    @staticmethod
+    def update_points_to_user(id: int, points: int):
+        user = UserModel.get_user_info_by_id(id)
+        user.lottery_points += points
+        if user.lottery_points < 0:
+            user.lottery_points = 0
+        db.session.commit()
 
     @staticmethod
     def get_user_list():
@@ -67,30 +133,46 @@ class UserModel:
         db_user.update({User.content_filter: new_val})
         db.session.commit()
 
-    def search_user_by_key_word(user_id: int, key_word: Optional[str]) -> List[User]:
-        valid_users = UserBlacklist.filter_blacklist(
-            user_id, UserModel.get_user_list()
+    @staticmethod
+    def _filter_users_by_keyword(users: List[User], key_word: str) -> List[User]:
+        filter_users = lambda elem: (
+            key_word in elem.firstname
+            or key_word in elem.lastname
+            or key_word in elem.email
+            or (elem.nickname and key_word in elem.nickname)
+            or (elem.location and key_word in elem.location)
         )
 
-        filter_users = lambda elem: (
-                key_word in elem.firstname or
-                key_word in elem.lastname or
-                key_word in elem.email or
-                (elem.nickname and key_word in elem.nickname) or
-                (elem.location and key_word in elem.location)
-            )
-        
-        if(not key_word or key_word == ""):
-            return valid_users
+        if not key_word or key_word == "":
+            return users
 
-        filtered_users = list(filter(filter_users, valid_users))
-        return filtered_users if len(filtered_users) > 0 else valid_users
-            
+        filtered_users = list(filter(filter_users, users))
+        return filtered_users if len(filtered_users) > 0 else users
+
+    def search_user_by_keyword(user_id: int, key_word: Optional[str]) -> List[User]:
+        valid_users = UserBlacklist.filter_blacklist(user_id, UserModel.get_user_list())
+        return UserModel._filter_users_by_keyword(valid_users, key_word)
+
+
+    def search_blacklist_by_keyword(user_id: int, key_word: Optional[str]) -> List[User]:
+        blocked_users = UserBlacklist.get_blocked_users(user_id)
+        return UserModel._filter_users_by_keyword(blocked_users, key_word)
+
     @staticmethod
-    def filter_available_recipients(current_id: int, recipients: List[int]) -> List[int]:
-        valid_users = [user.id for user in ( UserBlacklist.filter_blacklist( current_id, UserModel.get_users_by_ids(recipients)))]
+    def filter_available_recipients(
+        current_id: int, recipients: List[int]
+    ) -> List[int]:
+        valid_users = [
+            user.id
+            for user in (
+                UserBlacklist.filter_blacklist(
+                    current_id, UserModel.get_users_by_ids(recipients)
+                )
+            )
+        ]
         return [rcp_id for rcp_id in recipients if rcp_id in valid_users]
-    
+
+
 class UserBlacklist:
 
     __separator = "|"
@@ -146,11 +228,19 @@ class UserBlacklist:
         blocked_users = UserBlacklist._get_blacklist(current_user)
         return UserModel.get_users_by_ids(list(blocked_users))
 
+    @staticmethod
+    def is_user_blocked(current_id: int, other_id: int) -> bool:
+        current_user = UserModel.get_user_info_by_id(current_id)
+        return other_id in UserBlacklist._get_blacklist(current_user)
 
 class NotExistingUserError(Exception):
     pass
 
+class WrongPasswordError(Exception):
+    pass
 
+class EmailAlreadyExistingError(Exception):
+    pass
 
 class BlockingCurrentUserError(Exception):
     pass
