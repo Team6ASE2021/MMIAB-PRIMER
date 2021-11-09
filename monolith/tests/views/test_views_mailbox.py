@@ -40,7 +40,7 @@ class TestViewsMailbox():
         )
         response = test_client.get('/message/list/received')
         assert response.status_code == 200
-        assert response.data.count(b'<div class="row message-row">') == db_count
+        assert response.data.count(b'<div class="row bg-info mb-2 rounded-3 message-row"') == db_count
 
         db_count = (
             db.session.query(Message)
@@ -49,7 +49,7 @@ class TestViewsMailbox():
         )
         response = test_client.get('/message/list/sent')
         assert response.status_code == 200
-        assert response.data.count(b'<div class="row message-row">') == db_count
+        assert response.data.count(b'<div class="row bg-info mb-2 rounded-3 message-row"') == db_count
 
         db_count = (
             db.session.query(Message)
@@ -58,6 +58,5 @@ class TestViewsMailbox():
         )
         response = test_client.get('/message/list/draft')
         assert response.status_code == 200
-        assert response.data.count(b'<div class="row message-row">') == db_count
-
+        assert response.data.count(b'<div class="row bg-info mb-2 rounded-3 message-row"') == db_count
 

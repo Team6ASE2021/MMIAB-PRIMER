@@ -70,7 +70,7 @@ def draft():
                 new_draft, draft_recipients, replying=replying_info is not None
             )
 
-            return redirect("/read_message/" + str(new_draft.id_message))
+            return redirect("/message/list/draft")
 
     return render_template(
         "draft_bs.html",
@@ -145,7 +145,7 @@ def edit_draft(id):
                 current_user.id, draft_recipients
             )
 
-            return redirect("/read_message/" + str(draft.id_message))
+            return redirect("/message/list/draft")
 
     return render_template(
         "draft_bs.html",

@@ -30,12 +30,16 @@
          -->
          {% from 'alert_macro.html' import warning %}
          {% from 'alert_macro.html' import flash %}
+        <script>
+            {% include "js/notifications.js" %}
+            window.addEventListener('load', function() { get_notifications(); });
+        </script>
     </head>
     <body>
     <div style="min-height: 80px;">
         <div class="container py-3 overflow-hidden" style="padding-bottom: 200px;">
             <div class="row justify-content-center mb-3">
-                <div class="col-8">
+                <div id="alert-box" class="col-8">
                 {% with messages = get_flashed_messages() %}
                     {% if messages %}
                         {% for message in messages %}

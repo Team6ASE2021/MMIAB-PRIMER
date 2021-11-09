@@ -12,7 +12,7 @@ function get_lottery_icon() {
             '</svg>'
 }
 
-function get_new_notification(message) {
+function get_new_notification(message, icon) {
     var alert = document.createElement("div");
     alert.role = "alert";
     alert.classList.add("alert", "alert-success", "alert-dismissible");
@@ -29,16 +29,18 @@ function get_new_notification(message) {
 
 function _pop_notifications(notifications) {
 
-    var alert_box = getElementById("alert-box")
-    for (n in notifications.sender) {
+        
+    console.log(notifications)
+    var alert_box = document.getElementById("alert-box")
+    for (n in notifications.sender_notify) {
         var alert = get_new_notification(n.from_recipient + ' has opened the message you sent!', get_message_icon())
         alert_box.appendChild(alert);
     }
-    for (n in notifications.recipient ) {
+    for (n in notifications.recipient_notify ) {
         var alert = get_new_notification('You received a new message!', get_message_icon())
         alert_box.appendChild(alert);
     }
-    for (n in notifications.lottery ) {
+    for (n in notifications.lottery_notify ) {
         var alert = get_new_notification('You won the lottery and got a whole new point!', get_lottery_icon())
         alert_box.appendChild(alert);
     }

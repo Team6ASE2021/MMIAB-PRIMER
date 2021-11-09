@@ -18,6 +18,8 @@ from monolith.classes.recipient import RecipientModel
 
 _APP = None
 
+# BACKEND = "redis://localhost:6379"
+# BROKER = "redis://localhost:6379/0"
 BACKEND = "redis://rd01:6379"
 BROKER = "redis://rd01:6379/0"
 celery = Celery(__name__, backend=BACKEND, broker=BROKER)
@@ -57,11 +59,11 @@ def test():  # pragma: nocover
     message_list = MessageModel.get_new_arrived_messages()
 
     for message in message_list:
-        for recipient in message.recipients:
+        for recipient in message['recipients']:
             #add notify for the receipent
             NotifyModel.add_notify(
                 id_message=message["id"], 
-                id_user=recipient.id_recipient, 
+                id_user=recipient, 
                 for_recipient=True, 
             )
 

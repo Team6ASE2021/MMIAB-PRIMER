@@ -164,7 +164,7 @@ def report(id):
     else:
         flash("You have already report this user")
 
-    return redirect("/")
+    return redirect(url_for('users.user_info', id=id))
 
 
 @users.route("/user/blacklist", methods=["GET"])
