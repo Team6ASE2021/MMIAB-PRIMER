@@ -143,6 +143,33 @@ class TestMessage:
         nlen = db.session.query(Message).count()
         assert _len - nlen == 1
 
+    def test_delete_read_message(self):
+        message = Message(
+            id_sender=2,
+            body_message="Ciao",
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+        )
+        db.session.add(message)
+        db.session.commit()
+        message.recipients = [Recipient(id_recipient=1)]
+        db.session.commit()
+
+        assert MessageModel.delete_read_message(message.id_message, 2) == False
+        assert message.recipients[0].read_deleted == False
+
+        assert MessageModel.delete_read_message(message.id_message, 1) == False
+        assert message.recipients[0].read_deleted == False
+
+        message.recipients[0].has_opened = True
+        db.session.commit()
+        print(message.recipients[0].has_opened)
+        assert MessageModel.delete_read_message(message.id_message, 1) == True
+        assert message.recipients[0].read_deleted == True
+
+        message.recipients = []
+        db.session.delete(message)
+        db.session.commit()
+
     def test_withdraw_message_not_exists(self):
         with pytest.raises(NotExistingMessageError):
             MessageModel.withdraw_message(1000)

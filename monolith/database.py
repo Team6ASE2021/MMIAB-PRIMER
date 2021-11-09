@@ -84,6 +84,7 @@ class Message(db.Model):
     # id of the message this one is a reply for
     reply_to = db.Column(db.Integer)
 
+
     # constructor of the message object
     def __init__(self, *args, **kw):
         super(Message, self).__init__(*args, **kw)
@@ -135,7 +136,11 @@ class Recipient(db.Model):
     id_message = db.Column(db.ForeignKey("message.id_message"))
     id_recipient = db.Column(db.ForeignKey("user.id"))
 
+    # true if the recipient has opened the message
     has_opened = db.Column(db.Boolean, default=False)
+
+    # true if the recipient has deleted the read message
+    read_deleted = db.Column(db.Boolean, default=False)
 
     message = db.relationship("Message")
 

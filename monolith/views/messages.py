@@ -215,8 +215,10 @@ def delete_message(id: int):
             description="You are not allowed to delete this message",
         )
     else:
-        MessageModel.delete_message(id)
-        flash("Message succesfully deleted")
+        if MessageModel.delete_read_message(id, current_user.get_id()):
+            flash("Message succesfully deleted")
+        else:
+            flash("You cannot delete an unread message")
         return redirect(url_for("mailbox.mailbox_list_received"))
 
 

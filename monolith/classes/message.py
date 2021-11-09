@@ -174,6 +174,19 @@ class MessageModel:
         db.session.commit()
 
     @staticmethod
+    def delete_read_message(id_message: int, id_user: int) -> bool:
+        mess = MessageModel.id_message_exists(id_message)
+
+        user_rcp = next((rcp for rcp in mess.recipients if rcp.id_recipient == id_user), None)
+        if user_rcp is not None:
+            if user_rcp.has_opened == True:
+                user_rcp.read_deleted = True
+                db.session.commit()
+                return True
+
+        return False
+
+    @staticmethod
     def withdraw_message(id_message: int):
 
         mess = (
