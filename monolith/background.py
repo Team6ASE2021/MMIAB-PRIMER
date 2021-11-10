@@ -12,9 +12,6 @@ from celery.utils.log import get_task_logger
 from monolith.classes.lottery import LotteryModel
 from monolith.classes.message import MessageModel
 from monolith.classes.user import UserModel
-from monolith.classes.recipient import RecipientModel
-
-# from flask_mail import Mail
 
 _APP = None
 
@@ -44,7 +41,8 @@ class ContextTask(TaskBase):  # pragma: no cover
 celery.Task = ContextTask
 
 celery.conf.beat_schedule = {
-    "test": {"task": __name__ + ".test", "schedule": 20.0},
+    #"test": {"task": __name__ + ".test", "schedule": 20.0},
+    "arrived_messages": {"task": __name__ + ".arrived_messages", "schedule": 60.0},
     "lottery_draw": {
         "task": __name__ + ".lottery_draw",
         "schedule": crontab(0, 0, day_of_month=1),
@@ -55,7 +53,7 @@ logger = get_task_logger(__name__)
 
 
 @celery.task
-def test():  # pragma: nocover
+def arrived_messages():  # pragma: nocover
     message_list = MessageModel.get_new_arrived_messages()
 
     for message in message_list:
