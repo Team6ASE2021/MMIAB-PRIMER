@@ -2,8 +2,6 @@ from monolith.auth import *
 
 
 class TestAuth:
-
-    # TODO: test login required decorator
     def test_load_user_exists(self):
         user = load_user(1)
         assert user is not None

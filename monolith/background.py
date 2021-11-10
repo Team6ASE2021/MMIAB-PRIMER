@@ -41,7 +41,6 @@ class ContextTask(TaskBase):  # pragma: no cover
 celery.Task = ContextTask
 
 celery.conf.beat_schedule = {
-    #"test": {"task": __name__ + ".test", "schedule": 20.0},
     "arrived_messages": {"task": __name__ + ".arrived_messages", "schedule": 60.0},
     "lottery_draw": {
         "task": __name__ + ".lottery_draw",
@@ -57,12 +56,12 @@ def arrived_messages():  # pragma: nocover
     message_list = MessageModel.get_new_arrived_messages()
 
     for message in message_list:
-        for recipient in message['recipients']:
-            #add notify for the receipent
+        for recipient in message["recipients"]:
+            # add notify for the receipent
             NotifyModel.add_notify(
-                id_message=message["id"], 
-                id_user=recipient, 
-                for_recipient=True, 
+                id_message=message["id"],
+                id_user=recipient,
+                for_recipient=True,
             )
 
     return message_list
@@ -70,10 +69,21 @@ def arrived_messages():  # pragma: nocover
 
 @celery.task
 def lottery_draw():
+    """
+    we use a helper function to decouple the draw from the celery decorator,
+    this facilitate testing the function itself
+    """
     _lottery_draw()  # pragma: no cover
 
 
 def _lottery_draw():
+    """
+    The lottery simply chooses a number between 1 and 50 and assign one point to each user that correctly guessed
+    the number.
+    #TODO:
+        - allowing multiple choices, assigning one point for each correct guesses or bonuses for multiple guesses
+        - keep track of old lottery draws
+    """
     logger.log(logging.INFO, "Drawing next lottery winners...")
     winner = random.randint(1, 50)
     logger.log(logging.INFO, f"Winning number: {winner}")
@@ -90,11 +100,7 @@ def _lottery_draw():
 
     for winner in winners:
         UserModel.update_points_to_user(winner, 1)
-        NotifyModel.add_notify(
-            id_message=None, 
-            id_user=winner, 
-            for_lottery=True
-        )
+        NotifyModel.add_notify(id_message=None, id_user=winner, for_lottery=True)
 
     logger.log(logging.INFO, "Cleaning up lottery participants...")
 

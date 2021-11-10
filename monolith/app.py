@@ -56,8 +56,6 @@ def create_app(testing: bool = False) -> Flask:
     return app
 
 
-# mail = Mail(app)
-
 if __name__ == "__main__":
     app = create_app()
     app.run()

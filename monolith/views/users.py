@@ -31,17 +31,11 @@ from monolith.forms import UserForm
 users = Blueprint("users", __name__)
 
 
-@users.route("/users")
-def _users() -> Text:
-    _users = UserModel.get_user_list()
-    _users = _users[1:]
-    if current_user.is_authenticated:
-        _users = UserBlacklist.filter_blacklist(current_user.id, _users)
-    return render_template("users.html", users=_users)
-
-
 @users.route("/create_user", methods=["POST", "GET"])
 def create_user() -> Text:
+    """
+    View handling user creation
+    """
     form = UserForm()
 
     if request.method == "POST":
@@ -52,6 +46,8 @@ def create_user() -> Text:
                 new_user = User()
                 form.populate_obj(new_user)
                 if form.profile_picture.data:
+                    # store the image with a secured unique filename, storing relative path of the file
+                    # in the database
                     file = form.profile_picture.data
                     name = file.filename
                     name = str(uuid4()) + secure_filename(name)
@@ -69,17 +65,23 @@ def create_user() -> Text:
 @users.route("/user/profile", methods=["POST", "GET"])
 @login_required
 def profile_info() -> Text:
+    """
+    renders the current user profile page
+    """
     return redirect(url_for("users.user_info", id=current_user.id))
 
 
 @users.route("/user/profile/edit", methods=["POST", "GET"])
 @login_required
 def edit_profile():
+    """
+    route handling editing of user info
+    """
     form = EditProfileForm()
 
     if request.method == "POST":
         if form.validate_on_submit():
-
+            # this filters non empty fields in a concise way
             form_data = {
                 i: form.data[i] for i in form.data if i not in ["csrf_token", "submit"]
             }
@@ -102,6 +104,11 @@ def edit_profile():
 @users.route("/users/<int:id>", methods=["GET"])
 @login_required
 def user_info(id: int) -> Text:
+    """
+    Displays user_info identified by the id
+    :param id: id of user to display
+    :return: template showing user info
+    """
     try:
         user = UserModel.get_user_info_by_id(id)
         return render_template(
@@ -128,15 +135,12 @@ def user_list() -> Optional[Text]:
     return render_template("user_list_bs.html", list=user_list)
 
 
-@users.route("/users/<int:id>/delete", methods=["GET"])
+@users.route("/user/delete", methods=["GET"])
 @login_required
-def delete_user(id: int) -> Response:
-    if id != current_user.get_id():
-        abort(HTTPStatus.UNAUTHORIZED)
-    else:
-        UserModel.delete_user(id)
-        flash("We're sad to see you go!")
-        return redirect("/")
+def delete_user() -> Response:
+    UserModel.delete_user(current_user.get_id())
+    flash("We're sad to see you go!")
+    return redirect("/logout")
 
 
 @users.route("/user/content_filter", methods=["GET"])
@@ -149,7 +153,11 @@ def set_content_filter():
 @users.route("/user/report/<id>", methods=["GET"])
 @login_required
 def report(id):
+    """
+    Route to report the user identified by id
+    :param id: id of user reported
 
+    """
     res = ReportModel.add_report(id, current_user.id)
 
     if res:
@@ -158,6 +166,11 @@ def report(id):
         flash("You have already reported this user")
 
     return redirect(url_for("users.user_info", id=id))
+
+
+"""
+Routes handling blacklist operations
+"""
 
 
 @users.route("/user/blacklist", methods=["GET"])

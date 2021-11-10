@@ -39,6 +39,7 @@ class ContentFilter:
         for uw in ContentFilter.unsafe_words():
             index = _body.find(uw)
             while index >= 0:
+                #
                 if (
                     (index > 0 and _body[index - 1] not in ContentFilter.__alphanumeric)
                     or index == 0
@@ -119,9 +120,7 @@ class MessageModel:
                 "sent": m.is_sent,
                 "received": m.is_arrived,
                 "recipients": [recipient.id_recipient for recipient in m.recipients],
-                "notified": [
-                    (rcp.id_recipient) for rcp in m.recipients
-                ],
+                "notified": [(rcp.id_recipient) for rcp in m.recipients],
             }
             for m in messages_arrived
         ]
@@ -189,7 +188,9 @@ class MessageModel:
     def delete_read_message(id_message: int, id_user: int) -> bool:
         mess = MessageModel.id_message_exists(id_message)
 
-        user_rcp = next((rcp for rcp in mess.recipients if rcp.id_recipient == id_user), None)
+        user_rcp = next(
+            (rcp for rcp in mess.recipients if rcp.id_recipient == id_user), None
+        )
         if user_rcp is not None:
             if user_rcp.has_opened == True:
                 user_rcp.read_deleted = True
@@ -279,24 +280,33 @@ class MessageModel:
                 Message.date_of_send < start_of_tomorrow,
             )
             .filter(
-                Message.recipients.any(and_(
-                    Recipient.id_recipient == id,
-                    Recipient.read_deleted == False
-                ))
+                Message.recipients.any(
+                    and_(Recipient.id_recipient == id, Recipient.read_deleted == False)
+                )
             )
-        ) 
+        )
         if (
             db.session.query(User)
             .filter(User.id == id, User.content_filter == True)
-            .count() 
+            .count()
             > 0
         ):
             result = result.filter(Message.to_filter == False)
-        
-        messages = result.join(User, Message.id_sender == User.id).all()
-        opened_dict = {m.Message.id_message: next((rcp.has_opened for rcp in m.Message.recipients if rcp.id_recipient == id), True) for m in messages}
 
-        return messages, opened_dict 
+        messages = result.join(User, Message.id_sender == User.id).all()
+        opened_dict = {
+            m.Message.id_message: next(
+                (
+                    rcp.has_opened
+                    for rcp in m.Message.recipients
+                    if rcp.id_recipient == id
+                ),
+                True,
+            )
+            for m in messages
+        }
+
+        return messages, opened_dict
 
     @staticmethod
     def get_timeline_month_mess_send(id, month, year):
@@ -327,16 +337,15 @@ class MessageModel:
                 Message.date_of_send < next_month_fst,
             )
             .filter(
-                Message.recipients.any(and_(
-                    Recipient.id_recipient == id,
-                    Recipient.read_deleted == False
-                ))
+                Message.recipients.any(
+                    and_(Recipient.id_recipient == id, Recipient.read_deleted == False)
+                )
             )
         )
         if (
             db.session.query(User)
             .filter(User.id == id, User.content_filter == True)
-            .count() 
+            .count()
             > 0
         ):
             result = result.filter(Message.to_filter == False)
