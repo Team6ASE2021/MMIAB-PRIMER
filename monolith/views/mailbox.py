@@ -33,13 +33,14 @@ def mailbox_list_received():
 
     message_list = []
     if current_user.is_authenticated:
-        message_list = MailboxUtility.get_received_message_by_id_user(
+        message_list, opened_dict = MailboxUtility.get_received_message_by_id_user(
             current_user.get_id()
         )
 
     return render_template(
         "mailbox_bs.html", 
         message_list=message_list, 
+        opened_dict=opened_dict,
         list_type="received",
     )
 

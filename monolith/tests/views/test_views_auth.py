@@ -7,7 +7,7 @@ class TestViewsAuth:
             follow_redirects=True,
         )
         assert response.status_code == 200
-        assert b"Hi" in response.data
+        assert b"Logout" in response.data
         test_client.get("/logout", follow_redirects=True)
 
     def test_login_user_form_not_submitted(self, test_client):
@@ -22,4 +22,4 @@ class TestViewsAuth:
             follow_redirects=True,
         )
         assert response.status_code == 200
-        assert b"Hi" not in response.data
+        assert b"Logout" not in response.data
