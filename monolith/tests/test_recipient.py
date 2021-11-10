@@ -153,9 +153,46 @@ class TestRecipientModel:
         db.session.commit()
         assert db.session.query(Message).count() == 0
 
+    def test_recipient_has_opened_fail(self):
+        message = Message(id_sender=2,
+                          body_message="Ciao",
+                          date_of_send=datetime.strptime("01/01/2000", "%d/%m/%Y"))
+        db.session.add(message)
+        db.session.commit()
 
+        assert db.session.query(Message).count() == 1
+        assert db.session.query(Recipient).count() == 0
 
+        assert RecipientModel.has_opened(None, 1) == False
+        assert RecipientModel.has_opened(message, 1) == False
 
+        RecipientModel.set_recipients(message, [])
+        db.session.query(Message).delete()
+        db.session.commit()
+        assert db.session.query(Message).count() == 0
+
+    def test_recipient_has_opened_ok(self):
+        message = Message(id_sender=2,
+                          body_message="Ciao",
+                          date_of_send=datetime.strptime("01/01/2000", "%d/%m/%Y"))
+        db.session.add(message)
+        db.session.flush()
+        message.recipients = [Recipient(id_recipient=1), Recipient(id_recipient=2)]
+        db.session.commit()
+
+        assert db.session.query(Message).count() == 1
+        assert db.session.query(Recipient).count() == 2
+
+        assert RecipientModel.has_opened(message, 1) == False
+        assert message.recipients[0].has_opened == True
+
+        assert RecipientModel.has_opened(message, 1) == True
+        assert message.recipients[0].has_opened == True
+
+        RecipientModel.set_recipients(message, [])
+        db.session.query(Message).delete()
+        db.session.commit()
+        assert db.session.query(Message).count() == 0
 
         
 
