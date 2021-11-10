@@ -2,5 +2,8 @@
 <script>
     {% include "js/notifications.js" %}
     window.addEventListener('load', function() { get_notifications(); });
+    var intervalId = setInterval(function() {
+        get_notifications();
+    }, 60000);
 </script>
 {% endif %}

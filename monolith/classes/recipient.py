@@ -25,6 +25,8 @@ class RecipientModel:
                 db.session.commit()
                 return flag
 
+        return False
+
     @staticmethod
     def set_recipients(message: Message, recipients: List[int], replying:bool=False) -> None:
         _recipients = []

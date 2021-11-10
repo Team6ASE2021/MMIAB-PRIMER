@@ -31,7 +31,13 @@ def participate():
                 )
                 return redirect(url_for("lottery.next_lottery"))
 
-        return render_template("lottery_participate.html", form=form)
+        print('lottery test')
+        return render_template(
+            "lottery_bs.html", 
+            form=form, 
+            date=next_lottery_date(),
+            is_participating=False
+        )
 
 
 @lottery.route("/lottery", methods=["GET"])
@@ -42,9 +48,11 @@ def next_lottery():
     datetime.datetime.today()
     if is_participating:
         choice = LotteryModel.get_participant(current_user.get_id()).choice
-    return render_template(
-        "lottery.html",
-        date=next_lottery_date(),
-        is_participating=is_participating,
-        choice=choice,
-    )
+        return render_template(
+            "lottery_bs.html",
+            date=next_lottery_date(),
+            is_participating=True,
+            choice=choice,
+        )
+    else:
+        return redirect(url_for('lottery.participate'))
