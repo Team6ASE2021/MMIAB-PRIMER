@@ -63,7 +63,12 @@ class UserModel:
         return user
 
     @staticmethod
-    def update_user(id: int, fields=None) -> None:
+    def update_user(id : int, fields=None) -> None:
+        """
+        Updates data about a specific user using those contained in dict fields.
+        It checks that the new email was not already taken, that the user has confirmed
+        his old password before changing it and it manages the storage of a new profile picture.
+        """
         if fields is not None:
             filtered_fields = {
                 k: v
@@ -148,6 +153,10 @@ class UserModel:
 
     @staticmethod
     def toggle_content_filter(id: int):
+        """
+        It enables the content filter option for a user if disabled
+        and viceversa.
+        """
         db_user = db.session.query(User).filter(User.id == id)
         if db_user.count() == 0:
             raise NotExistingUserError("No user found!")
@@ -158,6 +167,10 @@ class UserModel:
 
     @staticmethod
     def _filter_users_by_keyword(users: List[User], key_word: str) -> List[User]:
+        """
+        Returns a list of users filtered by the presence of a key_word in one of
+        the (relevant) columns in the database.
+        """
         filter_users = lambda elem: (
             key_word in elem.firstname
             or key_word in elem.lastname
@@ -186,6 +199,10 @@ class UserModel:
     def filter_available_recipients(
         current_id: int, recipients: List[int]
     ) -> List[int]:
+        """
+        Filters a list of ids removing elements if the correspond
+        to blacklisted users.
+        """
         valid_users = [
             user.id
             for user in (
@@ -242,18 +259,28 @@ class UserBlacklist:
 
     @staticmethod
     def filter_blacklist(current_id: int, users: List[User]) -> List[User]:
+        """
+        Filters a list of User removing elements if they are on the blacklist
+        of the specified user.
+        """
         current_user = UserModel.get_user_info_by_id(current_id)
         blocked_users = UserBlacklist._get_blacklist(current_user)
         return [user for user in users if user.id not in blocked_users]
 
     @staticmethod
     def get_blocked_users(current_id: int) -> List[User]:
+        """
+        Returns a list of blacklisted users
+        """
         current_user = UserModel.get_user_info_by_id(current_id)
         blocked_users = UserBlacklist._get_blacklist(current_user)
         return UserModel.get_users_by_ids(list(blocked_users))
 
     @staticmethod
     def is_user_blocked(current_id: int, other_id: int) -> bool:
+        """
+        Check if a user is in the blacklist of a given one.
+        """
         current_user = UserModel.get_user_info_by_id(current_id)
         return other_id in UserBlacklist._get_blacklist(current_user)
 

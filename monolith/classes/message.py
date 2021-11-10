@@ -24,6 +24,7 @@ class ContentFilter:
         """
         Populates unsafe_words list with the contents of a file in monolith/static/txt folder
         if the list is still empty.
+        Returns the unsafe words list.
         """
         if len(ContentFilter.__UNSAFE_WORDS) == 0:
             _dir = path.dirname(path.abspath(__file__))
@@ -35,8 +36,15 @@ class ContentFilter:
 
     @staticmethod
     def filter_content(message_body) -> bool:
+        """
+        For every word in the message_body string checks if it is unsafe.
+        For every occurrence of the unsafe words in the body it is checked that
+        it is followed and preceded by non-alphanumeric characters.
+        It at least an unsafe word was found returns True, False otherwise.
+        """
         _body = message_body.lower()
-        for uw in ContentFilter.unsafe_words():
+        _unsafe_words = ContentFilter.unsafe_words()
+        for uw in _unsafe_words:
             index = _body.find(uw)
             while index >= 0:
                 #
@@ -98,6 +106,11 @@ class MessageModel:
 
     @staticmethod
     def get_new_arrived_messages():
+        """
+        Retrieves from the database all messages not sent yet with a
+        scheduled delivery datetime preceding the current one.
+        Returns a list dicts containing infos about those messages.
+        """
         messages = db.session.query(Message).filter(
             Message.is_sent == True,
             Message.is_arrived == False,
@@ -174,6 +187,10 @@ class MessageModel:
 
     @staticmethod
     def delete_draft(id_message: int):
+        """
+        Deletes a message from the database only if it is a draft.
+        """
+
         #check if message exists
         mess = MessageModel.id_message_exists(id_message)
 
@@ -186,6 +203,10 @@ class MessageModel:
 
     @staticmethod
     def delete_read_message(id_message: int, id_user: int) -> bool:
+        """
+        If a message was already read by a recipients, it marks that
+        message as read and deleted for that recipient.
+        """
         mess = MessageModel.id_message_exists(id_message)
 
         user_rcp = next(
@@ -230,6 +251,10 @@ class MessageModel:
 
     @staticmethod
     def get_replying_info(reply_to: Optional[int]) -> Optional[dict]:
+        """
+        Returns a dict of infos about a message useful to represent it
+        when it is to be replied to.
+        """
         try:
             if reply_to is None:
                 raise NotExistingMessageError(
@@ -253,6 +278,9 @@ class MessageModel:
 
     @staticmethod
     def get_timeline_day_mess_send(id, year, month, day):
+        """
+        Returns a list of sent messages scheduled for a specific day.
+        """
         start_of_today = datetime(year, month, day)
         start_of_tomorrow = start_of_today + timedelta(days=1)
         result = (
@@ -269,6 +297,9 @@ class MessageModel:
 
     @staticmethod
     def get_timeline_day_mess_received(id, year, month, day):
+        """
+        Returns a list of received messages on a specific day.
+        """
         start_of_today = datetime(year, month, day)
         start_of_tomorrow = start_of_today + timedelta(days=1)
         result = (
@@ -294,6 +325,7 @@ class MessageModel:
             result = result.filter(Message.to_filter == False)
 
         messages = result.join(User, Message.id_sender == User.id).all()
+        # Contains for each message a flag indicating id the specified user has already opened it
         opened_dict = {
             m.Message.id_message: next(
                 (
@@ -310,6 +342,9 @@ class MessageModel:
 
     @staticmethod
     def get_timeline_month_mess_send(id, month, year):
+        """
+        Returns a list of sent messages scheduled for a given month
+        """
         month_fst = datetime(year, month, 1)
         next_month_fst = month_fst + timedelta(days=calendar.monthrange(year, month)[1])
         result = (
@@ -326,6 +361,9 @@ class MessageModel:
 
     @staticmethod
     def get_timeline_month_mess_received(id, month, year):
+        """
+        Returns a list of received messages received on a given month
+        """
         month_fst = datetime(year, month, 1)
         next_month_fst = month_fst + timedelta(days=calendar.monthrange(year, month)[1])
         result = (
