@@ -29,6 +29,14 @@ function get_new_notification(message, icon) {
 
 function _pop_notifications(notifications) {
 
+    /*
+    var notifications= {
+        'sender_notify': [],
+        'recipient_notify': [{'id_message': 1}],
+        'lottery_notify': [],
+    }
+    */
+
     console.log(notifications)
     var alert_box = document.getElementById("alert-box")
     for (n of notifications.sender_notify) {
