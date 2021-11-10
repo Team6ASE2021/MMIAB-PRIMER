@@ -10,7 +10,6 @@ mailbox = Blueprint("mailbox", __name__)
 
 @mailbox.route("/message/list/sent", methods=["GET"])
 @login_required
-# get message id to retrive message from the db table
 def mailbox_list_sent():
 
     message_list = []
@@ -20,10 +19,10 @@ def mailbox_list_sent():
         )
 
     return render_template(
-        "mailbox_bs.html", 
-        message_list=message_list, 
+        "mailbox_bs.html",
+        message_list=message_list,
         list_type="sent",
-        withdraw=current_user.lottery_points > 0
+        withdraw=current_user.lottery_points > 0,
     )
 
 
@@ -39,8 +38,8 @@ def mailbox_list_received():
         )
 
     return render_template(
-        "mailbox_bs.html", 
-        message_list=message_list, 
+        "mailbox_bs.html",
+        message_list=message_list,
         opened_dict=opened_dict,
         list_type="received",
     )
@@ -56,4 +55,6 @@ def mailbox_list_draft():
             current_user.get_id()
         )
 
-    return render_template("mailbox_bs.html", message_list=message_list, list_type="draft")
+    return render_template(
+        "mailbox_bs.html", message_list=message_list, list_type="draft"
+    )

@@ -35,7 +35,6 @@ messages = Blueprint("messages", __name__)
 def draft():
     reply_to = request.args.get("reply_to", None)
     send_to = request.args.get("send_to", None) if reply_to is None else None
-    print(send_to)
     replying_info = MessageModel.get_replying_info(reply_to)
 
     form = EditMessageForm(recipients=[{"name": "Recipient"}])
@@ -324,11 +323,14 @@ def get_timeline_day_received(year, month, day):
         },
     )
 
+
 @messages.route("/timeline", methods=["GET"])
 @login_required
 def get_timeline_current_month():
     _now = datetime.now()
-    return redirect(url_for('messages.get_timeline_month', _year=_now.year, _month=_now.month))
+    return redirect(
+        url_for("messages.get_timeline_month", _year=_now.year, _month=_now.month)
+    )
 
 
 @messages.route("/timeline/month/<int:_year>/<int:_month>", methods=["GET"])

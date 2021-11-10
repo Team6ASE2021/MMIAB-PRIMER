@@ -15,7 +15,7 @@ class TestViewsLotteryParticipate:
 
     def test_participate_already_played(self, test_client):
         user = {"email": "test@test.com", "password": "test"}
-        test_client.post(url_for("auth.login"), data=user)
+        test_client.post("/login", data=user)
         response = test_client.get(
             url_for("lottery.participate"), follow_redirects=True
         )

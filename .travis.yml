@@ -13,4 +13,4 @@ branches:
   only:
   - main
 notifications:
-  email: false
+  email: false 

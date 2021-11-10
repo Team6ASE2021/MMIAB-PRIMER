@@ -79,7 +79,7 @@ def edit_profile():
 
     if request.method == "POST":
         if form.validate_on_submit():
-
+            # this filters non empty fields in a concise way
             form_data = {
                 i: form.data[i] for i in form.data if i not in ["csrf_token", "submit"]
             }
@@ -131,6 +131,7 @@ def user_list() -> Optional[Text]:
 @users.route("/users/<int:id>/delete", methods=["GET"])
 @login_required
 def delete_user(id: int) -> Response:
+    # TODO: remove id from url, using only current_user.get_id
     if id != current_user.get_id():
         abort(HTTPStatus.UNAUTHORIZED)
     else:
