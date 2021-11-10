@@ -17,24 +17,6 @@ from monolith.database import User
 
 @pytest.mark.usefixtures("clean_db_and_logout")
 class TestViewsUser:
-
-    # TODO: refactor to generate test data automatically
-
-    def test_users_list(self, test_client):
-        response = test_client.get("/users")
-        assert response.status_code == 200
-        assert b"User List" in response.data
-
-    def test_users_list_logged(self, test_client):
-        test_client.post(
-            "/login",
-            data={"email": "example@example.com", "password": "admin"},
-            follow_redirects=True,
-        )
-        response = test_client.get("/users")
-        assert response.status_code == 200
-        assert b"User List" in response.data
-
     def test_show_create_user_form(self, test_client):
         response = test_client.get("/create_user")
         assert response.status_code == 200
@@ -383,9 +365,7 @@ class TestViewsUser:
 
         new_user = UserModel.get_user_info_by_email(data["email"])
 
-        response = test_client.get(
-            "users/" + str(new_user.id) + "/delete", follow_redirects=True
-        )
+        response = test_client.get("user/delete", follow_redirects=True)
         assert response.status_code == 200
         assert b"Login" in response.data
         assert new_user.id not in [user.id for user in UserModel.get_user_list()]
@@ -432,19 +412,6 @@ class TestViewsUser:
         db.session.delete(user)
         db.session.commit()
         test_client.post("/logout")
-
-    def test_user_delete_other_user(self, test_client):
-        response = test_client.post(
-            "/login",
-            data={"email": "example@example.com", "password": "admin"},
-            follow_redirects=True,
-        )
-        assert response.status_code == 200
-
-        response = test_client.get("users/100/delete")
-        assert response.status_code == HTTPStatus.UNAUTHORIZED
-
-        test_client.get("/logout")
 
     def test_user_blacklist(self, test_client):
         response = test_client.post(

@@ -34,9 +34,11 @@ messages = Blueprint("messages", __name__)
 @messages.route("/draft", methods=["POST", "GET"])
 @login_required
 def draft():
+    """
+    Route handler to create a new draft
+    """
     reply_to = request.args.get("reply_to", None)
     send_to = request.args.get("send_to", None) if reply_to is None else None
-    print(send_to)
     replying_info = MessageModel.get_replying_info(reply_to)
 
     form = EditMessageForm(recipients=[{"name": "Recipient"}])
@@ -54,6 +56,8 @@ def draft():
             new_draft.to_filter = ContentFilter.filter_content(new_draft.body_message)
 
             if form.image.data:
+                # save the image with a unique and safe name and store the image relative
+                #  path in the db
                 file = form.image.data
                 name = file.filename
                 name = str(uuid4()) + secure_filename(name)
@@ -85,6 +89,10 @@ def draft():
 @messages.route("/draft/edit/<int:id>", methods=["POST", "GET"])
 @login_required
 def edit_draft(id):
+    """
+    Route handler that allows the sender of a message to edit an unsent draft
+    :param id: id of the draft to edit
+    """
     try:
         draft = MessageModel.id_message_exists(id)
     except NotExistingMessageError:
@@ -94,7 +102,9 @@ def edit_draft(id):
         abort(
             HTTPStatus.UNAUTHORIZED, description="You are not allowed to see this page!"
         )
-
+    """
+    populates form fields with old values of draft
+    """
     replying_info = MessageModel.get_replying_info(draft.reply_to)
 
     old_recipients = [recipient.id_recipient for recipient in draft.recipients]
@@ -283,6 +293,10 @@ def reply_to_message(id):
 @messages.route("/recipients", methods=["GET"])
 @login_required
 def get_recipients():
+    """
+    returns the allowed (not blacklisted) recipients for the current user,
+    filtering by the name searched
+    """
     _filter = request.args.get("q", None)
     recipients = list(
         map(
@@ -320,6 +334,11 @@ def get_timeline_day_sent(year, month, day):
     )
 
 
+"""
+routes handling calendar views
+"""
+
+
 @messages.route(
     "/timeline/day/<int:year>/<int:month>/<int:day>/received", methods=["GET"]
 )
@@ -345,11 +364,14 @@ def get_timeline_day_received(year, month, day):
         },
     )
 
+
 @messages.route("/timeline", methods=["GET"])
 @login_required
 def get_timeline_current_month():
     _now = datetime.now()
-    return redirect(url_for('messages.get_timeline_month', _year=_now.year, _month=_now.month))
+    return redirect(
+        url_for("messages.get_timeline_month", _year=_now.year, _month=_now.month)
+    )
 
 
 @messages.route("/timeline/month/<int:_year>/<int:_month>", methods=["GET"])

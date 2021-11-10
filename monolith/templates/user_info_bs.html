@@ -144,7 +144,7 @@
                                                 {{'Disable' if user.content_filter == True else 'Enable' }} Content Filter
                                         </a></li>
                                         <li><a class="dropdown-item" href="{{url_for('users.blacklist')}}">Blacklist</a></li>
-                                        <li><a class="dropdown-item" href="{{url_for('users.delete_user',id=user.id)}}" onclick="return confirm(' Are you sure you want to delete your account? Remember that ALL sent messages will still be available to the recipients');">
+                                        <li><a class="dropdown-item" href="{{url_for('users.delete_user')}}" onclick="return confirm(' Are you sure you want to delete your account? Remember that ALL sent messages will still be available to the recipients');">
                                             Delete Account
                                         </a></li>
                                         <li><hr class="dropdown-divider"></li>

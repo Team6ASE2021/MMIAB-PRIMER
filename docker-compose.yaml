@@ -10,8 +10,12 @@ services:
         expose:
             - "5000"
         volumes:
+        
             - ./monolith/db:/code/monolith/db
-            - /etc/localtime:/etc/localtime:ro
+            #docker sets the timezone to UTC by default, this (ugly) fix makes sure that the timezone of the
+            # celery workers is the same as the host
+            # In the future we should handle conversions of timezones and not mounting the  etc/timezone volume
+            - /etc/localtime:/etc/localtime:ro 
     celery:
         depends_on:
             - redis
@@ -23,6 +27,7 @@ services:
             -  redis
         volumes:
             - ./monolith/db:/code/monolith/db
+            # see mmiab volumes
             - /etc/localtime:/etc/localtime:ro
 
     redis:

@@ -1,11 +1,16 @@
+from sqlalchemy import and_
+
 from monolith.database import db
 from monolith.database import Message
 from monolith.database import Recipient
 from monolith.database import User
-from sqlalchemy import and_
 
 
 class MailboxUtility:
+    """
+    Utility class to handle mailbox db calls
+    """
+
     @staticmethod
     def get_sended_message_by_id_user(id):
         """
@@ -26,24 +31,33 @@ class MailboxUtility:
         has this option enabled.
         """
         mess = (
-            db.session.query(Message,User)
+            db.session.query(Message, User)
             .filter(Message.is_arrived == True)
             .filter(
-                Message.recipients.any(and_(
-                    Recipient.id_recipient == id,
-                    Recipient.read_deleted == False
-                ))
+                Message.recipients.any(
+                    and_(Recipient.id_recipient == id, Recipient.read_deleted == False)
+                )
             )
         )
         if (
             db.session.query(User)
             .filter(User.id == id, User.content_filter == True)
-            .count() 
+            .count()
             > 0
         ):
             mess = mess.filter(Message.to_filter == False)
         mess = mess.join(User, Message.id_sender == User.id).all()
-        opened_dict = {m.Message.id_message: next((rcp.has_opened for rcp in m.Message.recipients if rcp.id_recipient == id), True) for m in mess}
+        opened_dict = {
+            m.Message.id_message: next(
+                (
+                    rcp.has_opened
+                    for rcp in m.Message.recipients
+                    if rcp.id_recipient == id
+                ),
+                True,
+            )
+            for m in mess
+        }
 
         return mess, opened_dict
 
@@ -55,9 +69,10 @@ class MailboxUtility:
         mess = (
             db.session.query(Message)
             .filter(
-                Message.id_sender == id, 
-                Message.is_sent == False, 
-                Message.is_arrived == False
-            ).all()
+                Message.id_sender == id,
+                Message.is_sent == False,
+                Message.is_arrived == False,
+            )
+            .all()
         )
         return mess

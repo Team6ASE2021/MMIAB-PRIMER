@@ -4,6 +4,10 @@ from monolith.database import User
 
 
 class LotteryModel:
+    """
+    utility class to handle lottery db side
+    """
+
     @staticmethod
     def get_participants():
         list = db.session.query(LotteryParticipant).join(User).all()

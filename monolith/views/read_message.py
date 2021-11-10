@@ -1,4 +1,5 @@
-from monolith.database import Message, Notify
+from http import HTTPStatus
+
 from flask import abort
 from flask import Blueprint
 from flask import render_template
@@ -7,12 +8,10 @@ from flask_login.utils import login_required
 from monolith.auth import current_user
 from monolith.classes.message import MessageModel
 from monolith.classes.message import NotExistingMessageError
-from monolith.classes.user import NotExistingUserError
-from monolith.classes.user import UserModel
 from monolith.classes.notify import NotifyModel
 from monolith.classes.recipient import RecipientModel
-
-from http import HTTPStatus
+from monolith.classes.user import NotExistingUserError
+from monolith.classes.user import UserModel
 
 read_message = Blueprint("read_message", __name__)
 
@@ -30,23 +29,26 @@ def read_messages(id):
 
     # some controls to check if user is allowed to read the message or not
     if not MessageModel.user_can_read(current_user.id, mess):
-        abort(HTTPStatus.UNAUTHORIZED, description="You are not allowed to read this message")
+        abort(
+            HTTPStatus.UNAUTHORIZED,
+            description="You are not allowed to read this message",
+        )
 
     try:
         sender = UserModel.get_user_info_by_id(mess.id_sender)
 
         if (
-            mess.id_sender != current_user.id and 
-            RecipientModel.is_recipient(mess, current_user.id) and
-            not RecipientModel.has_opened(mess, current_user.id)
-        ):
+            mess.id_sender != current_user.id
+            and RecipientModel.is_recipient(mess, current_user.id)
+            and not RecipientModel.has_opened(mess, current_user.id)
+        ):  # sends a notification to the user that the recipients have opened its message
             NotifyModel.add_notify(
-                id_message=mess.id_message, 
-                id_user=mess.id_sender, 
+                id_message=mess.id_message,
+                id_user=mess.id_sender,
                 for_sender=True,
-                from_recipient=current_user.id
+                from_recipient=current_user.id,
             )
-            
+
     except NotExistingUserError:
         sender = None
 

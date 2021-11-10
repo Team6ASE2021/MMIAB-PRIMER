@@ -10,9 +10,11 @@ mailbox = Blueprint("mailbox", __name__)
 
 @mailbox.route("/message/list/sent", methods=["GET"])
 @login_required
-# get message id to retrive message from the db table
 def mailbox_list_sent():
-
+    """
+    Displays messages sent by current user
+    :return: sent messages mailbox template
+    """
     message_list = []
     if current_user.is_authenticated:
         message_list = MailboxUtility.get_sended_message_by_id_user(
@@ -20,17 +22,20 @@ def mailbox_list_sent():
         )
 
     return render_template(
-        "mailbox_bs.html", 
-        message_list=message_list, 
+        "mailbox_bs.html",
+        message_list=message_list,
         list_type="sent",
-        withdraw=current_user.lottery_points > 0
+        withdraw=current_user.lottery_points > 0,
     )
 
 
 @mailbox.route("/message/list/received", methods=["GET"])
 @login_required
 def mailbox_list_received():
-
+    """
+    Displays messages received by current user
+    :return: sent messages mailbox template
+    """
     message_list = []
     opened_dict = {}
     if current_user.is_authenticated:
@@ -39,8 +44,8 @@ def mailbox_list_received():
         )
 
     return render_template(
-        "mailbox_bs.html", 
-        message_list=message_list, 
+        "mailbox_bs.html",
+        message_list=message_list,
         opened_dict=opened_dict,
         list_type="received",
     )
@@ -49,11 +54,16 @@ def mailbox_list_received():
 @mailbox.route("/message/list/draft", methods=["GET"])
 @login_required
 def mailbox_list_draft():
-
+    """
+    Displays messages drafted and not sent yet by current user
+    :return: sent messages mailbox template
+    """
     message_list = []
     if current_user.is_authenticated:
         message_list = MailboxUtility.get_draft_message_by_id_user(
             current_user.get_id()
         )
 
-    return render_template("mailbox_bs.html", message_list=message_list, list_type="draft")
+    return render_template(
+        "mailbox_bs.html", message_list=message_list, list_type="draft"
+    )

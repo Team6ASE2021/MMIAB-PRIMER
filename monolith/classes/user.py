@@ -1,16 +1,15 @@
-import os 
-
+import os
 from typing import List
 from typing import Optional
 from typing import Set
-
 from uuid import uuid4
+
+from flask.globals import current_app
+from werkzeug.utils import secure_filename
 
 from monolith.database import db
 from monolith.database import User
 
-from flask.globals import current_app
-from werkzeug.utils import secure_filename
 
 class UserModel:
 
@@ -37,14 +36,18 @@ class UserModel:
 
     def get_user_dict_by_id(id: int) -> dict:
         user = UserModel.get_user_info_by_id(id)
-        return {str(k)[5:]: getattr(user, str(k)[5:]) for k in user.__table__.columns if str(k)[5:] != 'password'}
+        return {
+            str(k)[5:]: getattr(user, str(k)[5:])
+            for k in user.__table__.columns
+            if str(k)[5:] != "password"
+        }
 
     @staticmethod
     def get_users_by_ids(ids: List[int]) -> List[User]:
         return db.session.query(User).filter(User.id.in_(ids)).all()
 
     @staticmethod
-    def get_user_info_by_email(email: str) -> Optional[User]:
+    def get_user_info_by_email(email: str) -> User:
         user = db.session.query(User).filter(email == User.email).first()
         if user is None:
             raise NotExistingUserError(f"No user with email {email} was found")
@@ -67,7 +70,18 @@ class UserModel:
         his old password before changing it and it manages the storage of a new profile picture.
         """
         if fields is not None:
-            filtered_fields = {k: v for k, v in fields.items() if k not in ['email', 'password', 'old_password', 'new_password', 'profile_picture']}
+            filtered_fields = {
+                k: v
+                for k, v in fields.items()
+                if k
+                not in [
+                    "email",
+                    "password",
+                    "old_password",
+                    "new_password",
+                    "profile_picture",
+                ]
+            }
             user = db.session.query(User).filter(User.id == id)
             rows = user.update(values=filtered_fields)
 
@@ -77,15 +91,21 @@ class UserModel:
             db.session.commit()
 
             if "email" in fields.keys():
-                query = db.session.query(User).filter(User.email == fields['email'], User.id != id)
+                query = db.session.query(User).filter(
+                    User.email == fields["email"], User.id != id
+                )
                 if query.count() > 0:
-                    raise EmailAlreadyExistingError("An user with this email already exists")
+                    raise EmailAlreadyExistingError(
+                        "An user with this email already exists"
+                    )
                 else:
-                    user.first().email = fields['email']
+                    user.first().email = fields["email"]
 
             if "new_password" in fields.keys():
                 if "old_password" not in fields.keys():
-                    raise WrongPasswordError("You must enter your old password to change it")
+                    raise WrongPasswordError(
+                        "You must enter your old password to change it"
+                    )
                 if not user.first().check_password(fields["old_password"]):
                     raise WrongPasswordError("You entered the wrong password")
 
@@ -101,7 +121,6 @@ class UserModel:
                 file.save(path)
 
             db.session.commit()
-
 
     @staticmethod
     def delete_user(id: Optional[int] = None, email: str = "") -> int:
@@ -170,8 +189,9 @@ class UserModel:
         valid_users = UserBlacklist.filter_blacklist(user_id, UserModel.get_user_list())
         return UserModel._filter_users_by_keyword(valid_users, key_word)
 
-
-    def search_blacklist_by_keyword(user_id: int, key_word: Optional[str]) -> List[User]:
+    def search_blacklist_by_keyword(
+        user_id: int, key_word: Optional[str]
+    ) -> List[User]:
         blocked_users = UserBlacklist.get_blocked_users(user_id)
         return UserModel._filter_users_by_keyword(blocked_users, key_word)
 
@@ -264,14 +284,18 @@ class UserBlacklist:
         current_user = UserModel.get_user_info_by_id(current_id)
         return other_id in UserBlacklist._get_blacklist(current_user)
 
+
 class NotExistingUserError(Exception):
     pass
+
 
 class WrongPasswordError(Exception):
     pass
 
+
 class EmailAlreadyExistingError(Exception):
     pass
+
 
 class BlockingCurrentUserError(Exception):
     pass

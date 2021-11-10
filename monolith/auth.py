@@ -5,13 +5,19 @@ from flask_login import LoginManager
 
 from monolith.database import User
 
+# setup for the login required decorator redirects
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 login_manager.login_message = "you must be logged in to view this page"
 login_manager.login_message_category = "warning"
 
 
-def admin_required(func):
+def admin_required(func):  # pragma: no cover
+    """
+    this is not used right now, kept for future extensions that considers
+    admin actions
+    """
+
     @functools.wraps(func)
     def _admin_required(*args, **kw):
         admin = current_user.is_authenticated and current_user.is_admin

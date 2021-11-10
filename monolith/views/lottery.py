@@ -1,7 +1,6 @@
 import datetime
 
 from flask import Blueprint
-from flask import flash
 from flask import redirect
 from flask.globals import request
 from flask.helpers import url_for
@@ -19,8 +18,11 @@ lottery = Blueprint("lottery", __name__)
 @lottery.route("/lottery/participate", methods=["GET", "POST"])
 @login_required
 def participate():
+    """
+    Get the user choice for the next lottery
+    """
+    # TODO: - maybe allow changing choice before a deadline?
     if LotteryModel.is_participating(current_user.get_id()):
-        flash("You have already chosen your number")
         return redirect(url_for("lottery.next_lottery"))
     else:
         form = LotteryForm()
@@ -31,18 +33,21 @@ def participate():
                 )
                 return redirect(url_for("lottery.next_lottery"))
 
-        print('lottery test')
         return render_template(
-            "lottery_bs.html", 
-            form=form, 
+            "lottery_bs.html",
+            form=form,
             date=next_lottery_date(),
-            is_participating=False
+            is_participating=False,
         )
 
 
 @lottery.route("/lottery", methods=["GET"])
 @login_required
 def next_lottery():
+    """
+    Displays the date of the next lottery, and shows user choice
+    if it's present
+    """
     choice = 0
     is_participating = LotteryModel.is_participating(current_user.get_id())
     datetime.datetime.today()
@@ -55,4 +60,4 @@ def next_lottery():
             choice=choice,
         )
     else:
-        return redirect(url_for('lottery.participate'))
+        return redirect(url_for("lottery.participate"))
