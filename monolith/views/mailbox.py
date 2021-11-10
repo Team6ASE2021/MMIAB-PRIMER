@@ -11,7 +11,10 @@ mailbox = Blueprint("mailbox", __name__)
 @mailbox.route("/message/list/sent", methods=["GET"])
 @login_required
 def mailbox_list_sent():
-
+    """
+    Displays messages sent by current user
+    :return: sent messages mailbox template
+    """
     message_list = []
     if current_user.is_authenticated:
         message_list = MailboxUtility.get_sended_message_by_id_user(
@@ -29,7 +32,10 @@ def mailbox_list_sent():
 @mailbox.route("/message/list/received", methods=["GET"])
 @login_required
 def mailbox_list_received():
-
+    """
+    Displays messages received by current user
+    :return: sent messages mailbox template
+    """
     message_list = []
     opened_dict = {}
     if current_user.is_authenticated:
@@ -48,7 +54,10 @@ def mailbox_list_received():
 @mailbox.route("/message/list/draft", methods=["GET"])
 @login_required
 def mailbox_list_draft():
-
+    """
+    Displays messages drafted and not sent yet by current user
+    :return: sent messages mailbox template
+    """
     message_list = []
     if current_user.is_authenticated:
         message_list = MailboxUtility.get_draft_message_by_id_user(

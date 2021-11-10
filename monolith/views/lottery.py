@@ -20,9 +20,8 @@ lottery = Blueprint("lottery", __name__)
 def participate():
     """
     Get the user choice for the next lottery
-    # TODO:
-    - maybe allow changing choice before a deadline?
     """
+    # TODO: - maybe allow changing choice before a deadline?
     if LotteryModel.is_participating(current_user.get_id()):
         return redirect(url_for("lottery.next_lottery"))
     else:

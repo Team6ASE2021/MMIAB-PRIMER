@@ -10,6 +10,7 @@ services:
         expose:
             - "5000"
         volumes:
+        
             - ./monolith/db:/code/monolith/db
             #docker sets the timezone to UTC by default, this (ugly) fix makes sure that the timezone of the
             # celery workers is the same as the host
