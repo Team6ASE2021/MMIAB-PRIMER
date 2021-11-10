@@ -53,7 +53,6 @@ class NotifyModel:
         recipient_notify = list(filter(lambda n: n.for_recipient == True, notify_list))
         lottery_notify = list(filter(lambda n: n.for_lottery == True, notify_list))
 
-        print(recipients_dict)
         map_dictionary = lambda n: {
             "id_user": n.id_user,
             "id_message" : n.id_message,

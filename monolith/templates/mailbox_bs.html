@@ -241,7 +241,7 @@
                                   {% set delete_url = url_for('messages.delete_message', id=id_message) %}
                               {% elif list_type == 'draft' %}
                                   {# TODO: add link #}
-                                  {% set delete_url = url_for('home.index') %}
+                                  {% set delete_url = url_for('messages.delete_draft', id=id_message) %}
                               {% endif %}
 
                                   {% if list_type=='draft' %}

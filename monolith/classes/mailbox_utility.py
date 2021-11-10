@@ -37,7 +37,6 @@ class MailboxUtility:
         mess = mess.join(User, Message.id_sender == User.id).all()
         opened_dict = {m.Message.id_message: next((rcp.has_opened for rcp in m.Message.recipients if rcp.id_recipient == id), True) for m in mess}
 
-        print(mess)
         return mess, opened_dict
 
     @staticmethod
