@@ -234,10 +234,20 @@ class TestViewsMessagesDraft:
             "body_message": draft_body,
             "date_of_send": "10:05 07/07/2022",
         }
+
+        print(db.session.query(Message).count())
+
         response = test_client.post("/draft", data=data, follow_redirects=True)
         assert response.status_code == HTTPStatus.OK
+ 
+        print(db.session.query(Message).count())
 
+        #not mine
         response = test_client.get("/draft/1/delete",follow_redirects = True)
+        assert response.status_code == 404
+
+        #not exists
+        response = test_client.get("/draft/50/delete",follow_redirects = True)
         assert response.status_code == 404
 
         print(db.session.query(Message).count())
