@@ -8,6 +8,9 @@ from sqlalchemy import and_
 class MailboxUtility:
     @staticmethod
     def get_sended_message_by_id_user(id):
+        """
+        Returns the list of sent messages by a specific user.
+        """
         mess = (
             db.session.query(Message)
             .filter(Message.id_sender == id, Message.is_sent == True)
@@ -17,6 +20,11 @@ class MailboxUtility:
 
     @staticmethod
     def get_received_message_by_id_user(id):
+        """
+        Returns the list of received messages by a specific user,
+        filtering out those which contain unsafe words if the user
+        has this option enabled.
+        """
         mess = (
             db.session.query(Message,User)
             .filter(Message.is_arrived == True)
@@ -41,6 +49,9 @@ class MailboxUtility:
 
     @staticmethod
     def get_draft_message_by_id_user(id):
+        """
+        Returns the list of drafts created by a specific user.
+        """
         mess = (
             db.session.query(Message)
             .filter(

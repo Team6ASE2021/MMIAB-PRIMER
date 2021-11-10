@@ -17,6 +17,9 @@ class RecipientModel:
 
     @staticmethod
     def has_opened(message: Message, id: int) -> bool:
+        """
+        Returns true if the specified recipient has opened the given message
+        """
         if message is not None:
             rcps = list(filter(lambda r: r.id_recipient == id, message.recipients))
             if len(rcps) > 0:

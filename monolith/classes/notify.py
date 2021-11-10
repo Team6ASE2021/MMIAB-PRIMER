@@ -30,6 +30,10 @@ class NotifyModel:
         db.session.commit()
 
     def get_notify(id_user):
+        """
+        Returns a dictionary contaning three lists of notifications for the specified user,
+        one for each kind.
+        """
         notifies = (
             db.session.query(Notify)
             .filter(
@@ -73,19 +77,3 @@ class NotifyModel:
             'lottery_notify': lottery_notify
         }
 
-    """
-    def to_notify(id_sender, id_recipient, id_message):
-        count = db.session\
-                .query(Notify)\
-                .filter(Notify.id_user == id_sender, \
-                        Notify.for_sender == True, \
-                        Notify.id_message == id_message, \
-                        Notify.from_recipient == id_recipient)\
-                .count()
-
-        if count == 0:
-            return True
-        else:
-            return False
-    def to_notify(id_sender, id_recipient, id_message):
-    """
