@@ -76,14 +76,13 @@ class Message(db.Model):
     # boolean variables that describe the state of the message
     is_sent = db.Column(db.Boolean, default=False)
     is_arrived = db.Column(db.Boolean, default=False)
-    #is_notified_sender = db.Column(db.Boolean, default = False)
+    # is_notified_sender = db.Column(db.Boolean, default = False)
 
     # boolean flag that tells if the message must be filtered for users who resquest it
     to_filter = db.Column(db.Boolean, default=False)
 
     # id of the message this one is a reply for
     reply_to = db.Column(db.Integer)
-
 
     # constructor of the message object
     def __init__(self, *args, **kw):
@@ -116,11 +115,11 @@ class Notify(db.Model):
     id_message = db.Column(db.Integer)
     id_user = db.Column(db.Integer)
 
-    is_notified = db.Column(db.Boolean, default = False)
-    for_recipient = db.Column(db.Boolean, default = False)
-    for_sender = db.Column(db.Boolean, default = False)
-    for_lottery = db.Column(db.Boolean, default = False)
-    from_recipient = db.Column(db.Integer, default = None)
+    is_notified = db.Column(db.Boolean, default=False)
+    for_recipient = db.Column(db.Boolean, default=False)
+    for_sender = db.Column(db.Boolean, default=False)
+    for_lottery = db.Column(db.Boolean, default=False)
+    from_recipient = db.Column(db.Integer, default=None)
 
     # constructor of the notify object
     def __init__(self, *args, **kw):
