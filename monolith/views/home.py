@@ -13,13 +13,11 @@ home = Blueprint("home", __name__)
 @home.route("/")
 def index():
 
-    if current_user is not None and hasattr(current_user, "id"):
-        welcome = "Logged In!"
+    if current_user.is_authenticated:
+        return redirect(url_for('mailbox.mailbox_list_received'))
 
-    else:
-        welcome = None
+    return render_template("index_bs.html")
 
-    return render_template("index.html", welcome=welcome)
 
 @home.route("/notification")
 def notification():

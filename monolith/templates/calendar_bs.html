@@ -26,12 +26,10 @@
          <!--<link rel="stylesheet" href="css/calendar.css">-->
          {% from 'alert_macro.html' import warning %}
          {% from 'alert_macro.html' import flash %}
-        <script>
-            {% include "js/notifications.js" %}
-            window.addEventListener('load', function() { get_notifications(); });
-        </script>
+         {% include 'notifications.html' %}
     </head>
     <body>
+    {% include "navbar_bs.html" %}
     <div style="min-height: 80px;">
         <div class="container py-3 overflow-hidden" style="padding-bottom: 200px;">
             <div class="row justify-content-center mb-3">
@@ -47,7 +45,7 @@
             </div>
         </div>
     </div>
-    <div class="container overflow-hidden">
+    <div id="main-container" class="container overflow-hidden">
       <div class="row py-2">
           <div class="col-1">
               <div class="d-grid px-0">

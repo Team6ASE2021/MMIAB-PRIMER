@@ -144,7 +144,7 @@ function populate_day_nav(container, calendar, type) {
 
 function populate_calendar(calendar){
 
-    var container = document.getElementsByClassName("container")[0];
+    var container = document.getElementById("main-container");
     populate_day_names(container);
     var fst_row_days = populate_first_row(container, calendar);
     var full_rows_days = populate_full_rows(container, calendar, fst_row_days);

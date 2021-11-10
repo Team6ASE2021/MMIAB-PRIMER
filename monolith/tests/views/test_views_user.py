@@ -376,7 +376,7 @@ class TestViewsUser:
             "users/" + str(new_user.id) + "/delete", follow_redirects=True
         )
         assert response.status_code == 200
-        assert b"Hi Anonymous" in response.data
+        assert b"Login" in response.data
         assert new_user.id not in [user.id for user in UserModel.get_user_list()]
 
     def test_user_delete_other_user(self, test_client):
