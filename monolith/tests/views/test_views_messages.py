@@ -228,12 +228,29 @@ class TestViewsMessagesDraft:
         response = test_client.post("/login", data=admin_user, follow_redirects=True)
         assert response.status_code == 200
 
+        draft_body = "test_draft"
+
+        data = {
+            "body_message": draft_body,
+            "date_of_send": "10:05 07/07/2022",
+        }
+        response = test_client.post("/draft", data=data, follow_redirects=True)
+        assert response.status_code == HTTPStatus.OK
+
         response = test_client.get("/draft/1/delete",follow_redirects = True)
         assert response.status_code == 404
 
         print(db.session.query(Message).count())
-        response = test_client.get("/draft/0/delete",follow_redirects = True)
+
+        response = test_client.get("/draft/2/delete",follow_redirects = True)
+        assert response.status_code == 401
+
+        print(db.session.query(Message).count())
+
+        response = test_client.get("/draft/3/delete",follow_redirects = True)
         assert response.status_code == 200
+
+        test_client.get("/logout")
 
 
 @pytest.mark.usefixtures("clean_db_and_logout")
