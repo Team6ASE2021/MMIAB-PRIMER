@@ -1,17 +1,21 @@
 import io
+from datetime import datetime
 from http import HTTPStatus
 
 import mock
+import pytest
+from flask.helpers import get_flashed_messages
+from flask.helpers import url_for
 from werkzeug.datastructures import FileStorage
-
-from datetime import datetime
 
 from monolith.app import db
 from monolith.auth import current_user
 from monolith.classes.user import UserModel
+from monolith.database import Report
 from monolith.database import User
 
 
+@pytest.mark.usefixtures("clean_db_and_logout")
 class TestViewsUser:
 
     # TODO: refactor to generate test data automatically
@@ -111,7 +115,6 @@ class TestViewsUser:
             )
             UserModel.delete_user(email=data["email"])
 
-
     def test_show_update_user_form(self, test_client):
 
         response = test_client.post(
@@ -125,7 +128,7 @@ class TestViewsUser:
         assert b"Save" in response.data
         assert b"Admin" in response.data
 
-        test_client.get('/logout')
+        test_client.get("/logout")
 
     def test_update_user_bad_field(self, test_client):
         response = test_client.post(
@@ -140,11 +143,13 @@ class TestViewsUser:
             "email": "abc@abc.com",
             "dateofbirth": "fail",
         }
-        response = test_client.post("/user/profile/edit", data=data, follow_redirects=True)
+        response = test_client.post(
+            "/user/profile/edit", data=data, follow_redirects=True
+        )
         assert response.status_code == HTTPStatus.OK
         assert b"Not a valid" in response.data
 
-        test_client.get('/logout')
+        test_client.get("/logout")
 
     def test_update_user_email_exists_already(self, test_client):
         user = User(
@@ -153,7 +158,7 @@ class TestViewsUser:
             email="ex1@ex.com",
             dateofbirth=datetime.strptime("01/01/2000", "%d/%m/%Y"),
         )
-        UserModel.create_user(user, 'old_pass')
+        UserModel.create_user(user, "old_pass")
 
         response = test_client.post(
             "/login",
@@ -168,11 +173,13 @@ class TestViewsUser:
             "email": "example@example.com",
             "dateofbirth": "01/01/2000",
         }
-        response = test_client.post("/user/profile/edit", data=data, follow_redirects=True)
+        response = test_client.post(
+            "/user/profile/edit", data=data, follow_redirects=True
+        )
         assert response.status_code == HTTPStatus.OK
         assert b"An user with this email already exists" in response.data
 
-        test_client.get('/logout')
+        test_client.get("/logout")
         UserModel.delete_user(email=user.email)
 
     def test_update_user_ok(self, test_client):
@@ -182,7 +189,7 @@ class TestViewsUser:
             email="ex1@ex.com",
             dateofbirth=datetime.strptime("01/01/1990", "%d/%m/%Y"),
         )
-        UserModel.create_user(user, 'old_pass')
+        UserModel.create_user(user, "old_pass")
 
         response = test_client.post(
             "/login",
@@ -198,16 +205,18 @@ class TestViewsUser:
             "new_password": "master",
             "dateofbirth": "01/01/2000",
         }
-        response = test_client.post("/user/profile/edit", data=data, follow_redirects=True)
+        response = test_client.post(
+            "/user/profile/edit", data=data, follow_redirects=True
+        )
         assert response.status_code == HTTPStatus.OK
         assert b"User" in response.data
-        assert bytes(data["firstname"], 'utf-8') in response.data
-        assert bytes(data["lastname"], 'utf-8') in response.data
-        assert bytes(data["email"], 'utf-8') in response.data
-        assert bytes(data["dateofbirth"], 'utf-8') in response.data
+        assert bytes(data["firstname"], "utf-8") in response.data
+        assert bytes(data["lastname"], "utf-8") in response.data
+        assert bytes(data["email"], "utf-8") in response.data
+        assert bytes(data["dateofbirth"], "utf-8") in response.data
         assert UserModel.user_exists(email="abc@abc.com")
 
-        test_client.get('/logout')
+        test_client.get("/logout")
         UserModel.delete_user(email="abc@abc.com")
 
     def test_update_user_with_img_bad_file_extension(self, test_client):
@@ -217,7 +226,7 @@ class TestViewsUser:
             email="ex1@ex.com",
             dateofbirth=datetime.strptime("01/01/1990", "%d/%m/%Y"),
         )
-        UserModel.create_user(user, 'old_pass')
+        UserModel.create_user(user, "old_pass")
 
         response = test_client.post(
             "/login",
@@ -234,11 +243,13 @@ class TestViewsUser:
             "profile_picture": file,
             "dateofbirth": "01/01/2000",
         }
-        response = test_client.post("/user/profile/edit", data=data, follow_redirects=True)
+        response = test_client.post(
+            "/user/profile/edit", data=data, follow_redirects=True
+        )
         assert response.status_code == HTTPStatus.OK
         assert b"You can only upload a jpg,jpeg, or png file" in response.data
 
-        test_client.get('/logout')
+        test_client.get("/logout")
         UserModel.delete_user(email="ex1@ex.com")
 
     def test_update_user_with_img_ok_file_extension(self, test_client):
@@ -248,7 +259,7 @@ class TestViewsUser:
             email="ex1@ex.com",
             dateofbirth=datetime.strptime("01/01/1990", "%d/%m/%Y"),
         )
-        UserModel.create_user(user, 'old_pass')
+        UserModel.create_user(user, "old_pass")
 
         response = test_client.post(
             "/login",
@@ -276,7 +287,7 @@ class TestViewsUser:
                 in UserModel.get_user_info_by_email(data["email"]).pfp_path
             )
 
-        test_client.get('/logout')
+        test_client.get("/logout")
         UserModel.delete_user(email="ex1@ex.com")
 
     def test_show_user_info_not_logged(self, test_client):
@@ -376,8 +387,51 @@ class TestViewsUser:
             "users/" + str(new_user.id) + "/delete", follow_redirects=True
         )
         assert response.status_code == 200
-        assert b"Hi Anonymous" in response.data
+        assert b"Login" in response.data
         assert new_user.id not in [user.id for user in UserModel.get_user_list()]
+
+    def test_report_user_not_auth(self, test_client):
+        response = test_client.get(url_for("users.report", id=1), follow_redirects=True)
+        assert response.status_code == HTTPStatus.OK
+        assert b"Login" in response.data
+
+    def test_report_user_already_reported(self, test_client):
+        user = User(
+            firstname="Lorenzo",
+            lastname="Volpi",
+            email="ex1@ex.com",
+            dateofbirth=datetime.strptime("01/01/1990", "%d/%m/%Y"),
+        )
+        db.session.add(user)
+        report = Report(id_reported=2, id_signaller=1, date_of_report=datetime.now())
+
+        db.session.add(report)
+        admin_user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=admin_user)
+        response = test_client.get(url_for("users.report", id=2), follow_redirects=True)
+        assert response.status_code == HTTPStatus.OK
+        assert "You have already reported this user" in get_flashed_messages()
+        db.session.delete(user)
+        db.session.delete(report)
+        db.session.commit()
+        test_client.post("/logout")
+
+    def test_report_user_ok(self, test_client):
+        user = User(
+            firstname="Lorenzo",
+            lastname="Volpi",
+            email="ex1@ex.com",
+            dateofbirth=datetime.strptime("01/01/1990", "%d/%m/%Y"),
+        )
+        db.session.add(user)
+        admin_user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=admin_user)
+        response = test_client.get(url_for("users.report", id=2), follow_redirects=True)
+        assert response.status_code == HTTPStatus.OK
+        assert f"You have reported the user: {user.id}" in get_flashed_messages()
+        db.session.delete(user)
+        db.session.commit()
+        test_client.post("/logout")
 
     def test_user_delete_other_user(self, test_client):
         response = test_client.post(

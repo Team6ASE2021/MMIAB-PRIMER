@@ -9,7 +9,23 @@ class RecipientModel:
 
     @staticmethod
     def get_recipients(message: Message) -> List[int]:
-        return [recipient.id_recipient for recipient in message.recipients]
+        return [recipient.id_recipient for recipient in (message.recipients if message is not None else [])]
+
+    @staticmethod
+    def is_recipient(message: Message, id: int) -> bool:
+        return id in RecipientModel.get_recipients(message)
+
+    @staticmethod
+    def has_opened(message: Message, id: int) -> bool:
+        if message is not None:
+            rcps = list(filter(lambda r: r.id_recipient == id, message.recipients))
+            if len(rcps) > 0:
+                flag = rcps[0].has_opened
+                rcps[0].has_opened = True
+                db.session.commit()
+                return flag
+
+        return False
 
     @staticmethod
     def set_recipients(message: Message, recipients: List[int], replying:bool=False) -> None:

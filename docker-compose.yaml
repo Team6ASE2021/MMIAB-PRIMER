@@ -11,6 +11,7 @@ services:
             - "5000"
         volumes:
             - ./monolith/db:/code/monolith/db
+            - /etc/localtime:/etc/localtime:ro
     celery:
         depends_on:
             - redis
@@ -22,6 +23,8 @@ services:
             -  redis
         volumes:
             - ./monolith/db:/code/monolith/db
+            - /etc/localtime:/etc/localtime:ro
+
     redis:
         image: "redis:alpine"
         container_name: rd01

@@ -5,12 +5,12 @@
 }
 */
 
-.message-container:hover{
+.message-row:hover{
     opacity: 0.8;
 }
 
 .message-row{
-    min-height: 100px;
+    min-height: 110px;
 }
 
 .body-row {

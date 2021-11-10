@@ -8,7 +8,7 @@ from monolith.database import LotteryParticipant
 from monolith.database import User
 
 
-@pytest.mark.usefixtures("lottery_setup")
+@pytest.mark.usefixtures("clean_db_and_logout", "lottery_setup")
 class TestBackgroundTasks:
     def test_get_new_app(self):
         # app = do_task()

@@ -1,5 +1,6 @@
+from monolith.classes.notify import NotifyModel
 from monolith.classes.user import UserModel
-from flask import Blueprint, render_template, flash, redirect, url_for, request, current_app
+from flask import Blueprint, render_template, flash, redirect, url_for, request, current_app, jsonify
 # from flask_mail import Mail, Message
 
 
@@ -11,21 +12,15 @@ home = Blueprint("home", __name__)
 
 @home.route("/")
 def index():
+
+    if current_user.is_authenticated:
+        return redirect(url_for('mailbox.mailbox_list_received'))
+
+    return render_template("index_bs.html")
+
+
+@home.route("/notification")
+def notification():
     #pop-up notification
-    notify_rec = MessageModel.get_notify_recipient(current_user.get_id())
-    notify_send = MessageModel.get_notify_sender(current_user.get_id())
-
-    for notify in notify_send:
-        flash("A message that you sent has arrive!")
-    
-    for notify in notify_rec:
-        flash("You have receive a message")
-
-    if current_user is not None and hasattr(current_user, "id"):
-        welcome = "Logged In!"
-
-    else:
-        welcome = None
-
-    return render_template("index.html", welcome=welcome)
-
+    notifies = NotifyModel.get_notify(current_user.get_id())
+    return jsonify(notifications=notifies)

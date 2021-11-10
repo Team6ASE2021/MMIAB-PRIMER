@@ -14,7 +14,6 @@ from monolith.classes.recipient import RecipientModel
 from monolith.classes.user import UserModel
 from monolith.database import db
 from monolith.database import Message
-from monolith.database import Recipient
 from monolith.database import User
 
 
@@ -222,42 +221,43 @@ class TestViewsMessagesDraft:
         ) == [1, 3]
         test_client.get("/logout")
 
+@pytest.mark.usefixtures('clean_db_and_logout')
+class TestViewsDeleteDraft:
     def test_delete_draft(self,test_client):
+
         admin_user = {"email": "example@example.com", "password": "admin"}
+
+        draft_body = "test_draft"
+        mess = MessageModel.create_message(
+            id_sender=2, 
+            body_message=draft_body, 
+            date_of_send=datetime.strptime("10:05 07/07/2022", "%H:%M %d/%m/%Y"),
+            is_sent=True,
+        )
+        assert mess.id_message == 1
 
         response = test_client.post("/login", data=admin_user, follow_redirects=True)
         assert response.status_code == 200
 
-        draft_body = "test_draft"
-
-        data = {
-            "body_message": draft_body,
-            "date_of_send": "10:05 07/07/2022",
-        }
-
-        print(db.session.query(Message).count())
-
-        response = test_client.post("/draft", data=data, follow_redirects=True)
-        assert response.status_code == HTTPStatus.OK
- 
-        print(db.session.query(Message).count())
-
         #not mine
-        response = test_client.get("/draft/1/delete",follow_redirects = True)
-        assert response.status_code == 404
-
-        #not exists
-        response = test_client.get("/draft/50/delete",follow_redirects = True)
-        assert response.status_code == 404
-
-        print(db.session.query(Message).count())
-
-        response = test_client.get("/draft/2/delete",follow_redirects = True)
+        response = test_client.get("/draft/1/delete", follow_redirects=True)
+        assert b'You are not allowed to delete this draft' in response.data
         assert response.status_code == 401
 
-        print(db.session.query(Message).count())
+        #not exists
+        response = test_client.get("/draft/50/delete")
+        assert response.status_code == 404
 
-        response = test_client.get("/draft/3/delete",follow_redirects = True)
+        mess.id_sender = 1
+        db.session.commit()
+
+        response = test_client.get("/draft/1/delete")
+        assert response.status_code == 403
+
+        mess.is_sent = False
+        db.session.commit()
+
+        response = test_client.get("/draft/1/delete",follow_redirects = True)
         assert response.status_code == 200
 
         test_client.get("/logout")
@@ -265,25 +265,6 @@ class TestViewsMessagesDraft:
 
 @pytest.mark.usefixtures("clean_db_and_logout")
 class TestViewsMessagesSend:
-    def test_send_message_not_logged(self, test_client):
-
-        message = Message(
-            id_sender=1,
-            body_message="Ciao",
-            date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"),
-        )
-        db.session.add(message)
-        db.session.flush()
-        message.recipients.append(Recipient(id_recipient=1))
-        db.session.commit()
-
-        response = test_client.post("/send_message/" + str(message.id_message))
-
-        assert response.status_code == 401
-        RecipientModel.set_recipients(message, [])
-        db.session.delete(message)
-        db.session.commit()
-
     def test_send_message_id_wrong(self, test_client):
         admin_user = {"email": "example@example.com", "password": "admin"}
         response = test_client.post("/login", data=admin_user)
@@ -299,6 +280,75 @@ class TestViewsMessagesSend:
         response = test_client.post("/send_message/" + str(message.id_message))
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
+        test_client.post("/logout")
+        RecipientModel.set_recipients(message, [])
+        db.session.delete(message)
+        db.session.commit()
+
+    def test_send_message_already_sent(self, test_client):
+        admin_user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=admin_user)
+
+        message = Message(
+            id_sender=1,
+            body_message="Ciao",
+            date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"),
+        )
+        message.is_sent = True
+        MessageModel.add_draft(message)
+        RecipientModel.set_recipients(message, [1])
+
+        response = test_client.post(
+            "/send_message/" + str(message.id_message), follow_redirects=True
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert "This message has already been sent" in get_flashed_messages()
+        test_client.post("/logout")
+        RecipientModel.set_recipients(message, [])
+        db.session.delete(message)
+        db.session.commit()
+
+    def test_send_message_no_date(self, test_client):
+        admin_user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=admin_user)
+
+        message = Message(
+            id_sender=1,
+            body_message="Ciao",
+        )
+        MessageModel.add_draft(message)
+        RecipientModel.set_recipients(message, [1])
+
+        response = test_client.post(
+            "/send_message/" + str(message.id_message), follow_redirects=True
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert "You have to set the date of send" in get_flashed_messages()
+        test_client.post("/logout")
+        RecipientModel.set_recipients(message, [])
+        db.session.delete(message)
+        db.session.commit()
+
+    def test_send_message_no_recipients(self, test_client):
+        admin_user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=admin_user)
+
+        message = Message(
+            id_sender=1,
+            body_message="Ciao",
+            date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"),
+        )
+        MessageModel.add_draft(message)
+        RecipientModel.set_recipients(message, [])
+
+        response = test_client.post(
+            "/send_message/" + str(message.id_message), follow_redirects=True
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert "You have to set the receipent" in get_flashed_messages()
         test_client.post("/logout")
         RecipientModel.set_recipients(message, [])
         db.session.delete(message)
@@ -557,7 +607,7 @@ class TestViewsMessagesDeleteReadMessage:
         assert b"You are not allowed to delete this message" in response.data
         MessageModel.delete_message(2)
 
-    def test_delete_mess_ok(self, test_client):
+    def test_delete_mess_unread(self, test_client):
         user = {"email": "example1@example1.com", "password": "admin1"}
         message = Message(
             id_sender=1,
@@ -580,7 +630,37 @@ class TestViewsMessagesDeleteReadMessage:
             url_for("messages.delete_message", id=id), follow_redirects=True
         )
         assert response.status_code == HTTPStatus.OK
+        print(response.data)
+        assert b"You cannot delete an unread message" in response.data
+        MessageModel.delete_message(2)
+
+    def test_delete_mess_ok(self, test_client):
+        user = {"email": "example1@example1.com", "password": "admin1"}
+        message = Message(
+            id_sender=1,
+            body_message="Ciao",
+            date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"),
+        )
+        MessageModel.add_draft(message)
+        RecipientModel.set_recipients(message, [2])
+        message.recipients[0].has_opened = True
+        db.session.commit()
+
+        test_client.post("/login", data=user, follow_redirects=True)
+        id = (
+            db.session.query(Message)
+            .order_by(Message.id_message.desc())
+            .first()
+            .id_message
+        )
+        message.is_arrived = True
+        db.session.commit()
+        response = test_client.get(
+            url_for("messages.delete_message", id=id), follow_redirects=True
+        )
+        assert response.status_code == HTTPStatus.OK
         assert b"Message succesfully deleted" in response.data
+        MessageModel.delete_message(2)
 
 
 @pytest.mark.usefixtures("clean_db_and_logout", "draft_setup")
@@ -650,6 +730,30 @@ class TestReplyToMessage:
         test_client.get("/logout")
 
 
+@pytest.mark.usefixtures("clean_db_and_logout")
+class TestTimeline:
+    def test_view_daily_timeline_sent(self, test_client):
+        user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=user)
+        resp = test_client.get("/timeline/day/2021/3/6/sent", follow_redirects=True)
+        assert resp.status_code == HTTPStatus.OK
+        test_client.post("/logout")
+
+    def test_view_daily_timeline_received(self, test_client):
+        user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=user)
+        resp = test_client.get("/timeline/day/2021/3/6/received", follow_redirects=True)
+        assert resp.status_code == HTTPStatus.OK
+        test_client.post("/logout")
+
+    def test_view_monthly_timeline(self, test_client):
+        user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=user)
+        resp = test_client.get("/timeline/month/2021/3", follow_redirects=True)
+        assert resp.status_code == HTTPStatus.OK
+        test_client.post("/logout")
+
+
 @pytest.mark.usefixtures("clean_db_and_logout", "draft_setup")
 class TestWithDrawMessage:
     def test_withdraw_not_logged_in(self, test_client):
@@ -710,6 +814,7 @@ class TestWithDrawMessage:
         mess = MessageModel.id_message_exists(1)
         UserModel.update_points_to_user(1, 1)
         mess.is_sent = True
+        db.session.commit()
         resp = test_client.get(
             url_for("messages.withdraw_message", id=1), follow_redirects=True
         )

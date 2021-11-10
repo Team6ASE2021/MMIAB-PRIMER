@@ -2,6 +2,7 @@ from monolith.database import db
 from monolith.database import Message
 from monolith.database import Recipient
 from monolith.database import User
+from sqlalchemy import and_
 
 
 class MailboxUtility:
@@ -19,7 +20,12 @@ class MailboxUtility:
         mess = (
             db.session.query(Message,User)
             .filter(Message.is_arrived == True)
-            .filter(Message.recipients.any(Recipient.id_recipient == id))
+            .filter(
+                Message.recipients.any(and_(
+                    Recipient.id_recipient == id,
+                    Recipient.read_deleted == False
+                ))
+            )
         )
         if (
             db.session.query(User)
@@ -29,7 +35,10 @@ class MailboxUtility:
         ):
             mess = mess.filter(Message.to_filter == False)
         mess = mess.join(User, Message.id_sender == User.id).all()
-        return mess
+        opened_dict = {m.Message.id_message: next((rcp.has_opened for rcp in m.Message.recipients if rcp.id_recipient == id), True) for m in mess}
+
+        print(mess)
+        return mess, opened_dict
 
     @staticmethod
     def get_draft_message_by_id_user(id):

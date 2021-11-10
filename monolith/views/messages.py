@@ -19,7 +19,8 @@ from flask_login.utils import login_required
 from werkzeug.utils import secure_filename
 
 from monolith.auth import current_user
-from monolith.classes.message import ContentFilter, NotExistingDraftError
+from monolith.classes.message import ContentFilter
+from monolith.classes.message import NotDraftError
 from monolith.classes.message import MessageModel
 from monolith.classes.message import NotExistingMessageError
 from monolith.classes.recipient import RecipientModel
@@ -70,7 +71,7 @@ def draft():
                 new_draft, draft_recipients, replying=replying_info is not None
             )
 
-            return redirect("/read_message/" + str(new_draft.id_message))
+            return redirect("/message/list/draft")
 
     return render_template(
         "draft_bs.html",
@@ -145,7 +146,7 @@ def edit_draft(id):
                 current_user.id, draft_recipients
             )
 
-            return redirect("/read_message/" + str(draft.id_message))
+            return redirect("/message/list/draft")
 
     return render_template(
         "draft_bs.html",
@@ -162,13 +163,8 @@ def edit_draft(id):
 
 
 @messages.route("/send_message/<int:id>", methods=["GET", "POST"])
+@login_required
 def send_message(id):
-    # check if the current user is logged
-    if current_user.get_id() == None:
-        abort(
-            HTTPStatus.UNAUTHORIZED, description="You must be logged to send a message"
-        )
-
     try:
         # get the message from the database
         message = MessageModel.id_message_exists(id)
@@ -176,6 +172,11 @@ def send_message(id):
         # check if the id_sender and the id of the current user correspond
         if current_user.get_id() != message.id_sender:
             abort(HTTPStatus.UNAUTHORIZED, "You can't send this message")
+
+        # check if the message has already been sent
+        if message.is_sent == True:
+            flash("This message has already been sent")
+            return redirect(url_for("messages.edit_draft", id=message.id_message))
 
         # check if the date_of_send is not Null
         if message.date_of_send is None:
@@ -215,8 +216,10 @@ def delete_message(id: int):
             description="You are not allowed to delete this message",
         )
     else:
-        MessageModel.delete_message(id)
-        flash("Message succesfully deleted")
+        if MessageModel.delete_read_message(id, current_user.get_id()):
+            flash("Message succesfully deleted")
+        else:
+            flash("You cannot delete an unread message")
         return redirect(url_for("mailbox.mailbox_list_received"))
 
 @messages.route("/draft/<int:id>/delete", methods=["GET"])
@@ -225,11 +228,9 @@ def delete_draft(id: int):
     try:
         mess = MessageModel.id_message_exists(id)
     except NotExistingMessageError:
-        abort(404, description="Message not found")
+        abort(HTTPStatus.NOT_FOUND, description="Message not found")
     
-    if (
-        mess.id_sender != current_user.get_id() 
-    ):
+    if ( mess.id_sender != current_user.id ):
         abort(
             HTTPStatus.UNAUTHORIZED,
             description="You are not allowed to delete this draft",
@@ -239,8 +240,8 @@ def delete_draft(id: int):
             MessageModel.delete_draft(id)
             flash("Message succesfully deleted")
             return redirect(url_for("mailbox.mailbox_list_draft"))
-        except NotExistingDraftError:
-            abort(404, description="Draft not found")
+        except NotDraftError:
+            abort(HTTPStatus.FORBIDDEN, description="This message is not a draft")
 
 @messages.route("/message/<int:id>/withdraw", methods=["GET"])
 @login_required
@@ -302,6 +303,7 @@ def get_timeline_day_sent(year, month, day):
     today_dt = datetime(year, month, day)
     tomorrow = today_dt + timedelta(days=1)
     yesterday = today_dt - timedelta(days=1)
+
     messages = MessageModel.get_timeline_day_mess_send(
         current_user.id, year, month, day
     )
@@ -327,13 +329,14 @@ def get_timeline_day_received(year, month, day):
     tomorrow = today_dt + timedelta(days=1)
     yesterday = today_dt - timedelta(days=1)
 
-    messages = MessageModel.get_timeline_day_mess_received(
+    messages, opened_dict = MessageModel.get_timeline_day_mess_received(
         current_user.id, year, month, day
     )
 
     return render_template(
         "mailbox_bs.html",
         message_list=messages,
+        opened_dict=opened_dict,
         list_type="received",
         calendar_view={
             "today": (year, month, day),
@@ -341,6 +344,12 @@ def get_timeline_day_received(year, month, day):
             "yesterday": (yesterday.year, yesterday.month, yesterday.day),
         },
     )
+
+@messages.route("/timeline", methods=["GET"])
+@login_required
+def get_timeline_current_month():
+    _now = datetime.now()
+    return redirect(url_for('messages.get_timeline_month', _year=_now.year, _month=_now.month))
 
 
 @messages.route("/timeline/month/<int:_year>/<int:_month>", methods=["GET"])
@@ -365,7 +374,7 @@ def get_timeline_month(_year, _month):
         received[elem.date_of_send.day - 1] += 1
 
     return render_template(
-        "calendar.html",
+        "calendar_bs.html",
         calendar_view={
             "year": _year,
             "month": _month,

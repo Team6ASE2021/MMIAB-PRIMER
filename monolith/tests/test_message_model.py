@@ -120,29 +120,9 @@ class TestMessage:
         db.session.commit()
         message.recipients = [Recipient(id_recipient=1)]
 
-        MessageModel.arrived_message()
+        MessageModel.get_new_arrived_messages()
         assert message.is_arrived == True
 
-        db.session.delete(message)
-        db.session.commit()
-
-    def test_get_notify(self):
-        message = Message(
-            id_sender=1,
-            body_message="Ciao",
-            date_of_send=datetime.datetime.now(),
-            is_sent=True,
-            is_arrived=True,
-        )
-        db.session.add(message)
-        db.session.commit()
-        message.recipients = [Recipient(id_recipient=1)]
-
-        user = UserModel.get_user_info_by_id(message.recipients[0].id_recipient)
-        MessageModel.get_notify_recipient(user.id)
-        assert message.recipients[0].is_notified == True
-
-        message.recipients = []
         db.session.delete(message)
         db.session.commit()
 
@@ -162,6 +142,33 @@ class TestMessage:
         db.session.commit()
         nlen = db.session.query(Message).count()
         assert _len - nlen == 1
+
+    def test_delete_read_message(self):
+        message = Message(
+            id_sender=2,
+            body_message="Ciao",
+            date_of_send=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
+        )
+        db.session.add(message)
+        db.session.commit()
+        message.recipients = [Recipient(id_recipient=1)]
+        db.session.commit()
+
+        assert MessageModel.delete_read_message(message.id_message, 2) == False
+        assert message.recipients[0].read_deleted == False
+
+        assert MessageModel.delete_read_message(message.id_message, 1) == False
+        assert message.recipients[0].read_deleted == False
+
+        message.recipients[0].has_opened = True
+        db.session.commit()
+        print(message.recipients[0].has_opened)
+        assert MessageModel.delete_read_message(message.id_message, 1) == True
+        assert message.recipients[0].read_deleted == True
+
+        message.recipients = []
+        db.session.delete(message)
+        db.session.commit()
 
     def test_withdraw_message_not_exists(self):
         with pytest.raises(NotExistingMessageError):

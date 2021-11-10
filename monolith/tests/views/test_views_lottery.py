@@ -30,8 +30,8 @@ class TestViewsLotteryParticipate:
             url_for("lottery.participate"), follow_redirects=True
         )
         assert response.status_code == HTTPStatus.OK
-        assert b"Please choose a number" in response.data
-        assert b"Play with this number" in response.data
+        assert b"Choose a number between 1 and 50" in response.data
+        assert b"Participate" in response.data
 
     def test_participate_choice_out_of_range(self, test_client):
         user = {"email": "example@example.com", "password": "admin"}
@@ -42,7 +42,7 @@ class TestViewsLotteryParticipate:
         )
         assert response.status_code == HTTPStatus.OK
         assert b"between 1 and 50" in response.data
-        assert b"Play with this number" in response.data
+        assert b"Participate" in response.data
         data = {"choice": 0}
         response = test_client.post(
             url_for("lottery.participate"), data=data, follow_redirects=True
@@ -79,7 +79,7 @@ class TestViewsSeeLottery:
         )
         assert response.status_code == HTTPStatus.OK
         assert b"The next lottery will be" in response.data
-        assert b"Click here to play" in response.data
+        assert b"Participate" in response.data
 
     def test_see_lottery_already_participant(self, test_client):
         user = {"email": "test@test.com", "password": "test"}

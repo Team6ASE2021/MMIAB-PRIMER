@@ -91,6 +91,12 @@ function populate_last_row(container, calendar, day_num){
 
     var row = container.querySelector('#last-row');
     var day_1 = row.firstElementChild
+
+    if(last_row_days == 0) {
+        row.removeChild(day_1);
+        return;
+    }
+
     set_sent_received(day_1, calendar.sent, calendar.received, day_num);
     day_1.querySelector(".day-number").textContent = ++day_num;
     set_day_link(day_1, calendar, day_num);
@@ -144,7 +150,7 @@ function populate_day_nav(container, calendar, type) {
 
 function populate_calendar(calendar){
 
-    var container = document.getElementsByClassName("container")[0];
+    var container = document.getElementById("main-container");
     populate_day_names(container);
     var fst_row_days = populate_first_row(container, calendar);
     var full_rows_days = populate_full_rows(container, calendar, fst_row_days);
