@@ -259,17 +259,32 @@ class MessageModel:
         start_of_today = datetime(year, month, day)
         start_of_tomorrow = start_of_today + timedelta(days=1)
         result = (
-            db.session.query(Message)
+            db.session.query(Message, User)
             .filter(
                 Message.is_sent == True,
                 Message.is_arrived == True,
                 Message.date_of_send >= start_of_today,
                 Message.date_of_send < start_of_tomorrow,
             )
-            .filter(Message.recipients.any(Recipient.id_recipient == id))
-            .all()
-        )
-        return result
+            .filter(
+                Message.recipients.any(and_(
+                    Recipient.id_recipient == id,
+                    Recipient.read_deleted == False
+                ))
+            )
+        ) 
+        if (
+            db.session.query(User)
+            .filter(User.id == id, User.content_filter == True)
+            .count() 
+            > 0
+        ):
+            result = result.filter(Message.to_filter == False)
+        
+        messages = result.join(User, Message.id_sender == User.id).all()
+        opened_dict = {m.Message.id_message: next((rcp.has_opened for rcp in m.Message.recipients if rcp.id_recipient == id), True) for m in messages}
+
+        return messages, opened_dict 
 
     @staticmethod
     def get_timeline_month_mess_send(id, month, year):
@@ -299,10 +314,22 @@ class MessageModel:
                 Message.date_of_send >= month_fst,
                 Message.date_of_send < next_month_fst,
             )
-            .filter(Message.recipients.any(Recipient.id_recipient == id))
-            .all()
+            .filter(
+                Message.recipients.any(and_(
+                    Recipient.id_recipient == id,
+                    Recipient.read_deleted == False
+                ))
+            )
         )
-        return result
+        if (
+            db.session.query(User)
+            .filter(User.id == id, User.content_filter == True)
+            .count() 
+            > 0
+        ):
+            result = result.filter(Message.to_filter == False)
+
+        return result.all()
 
 
 class NotExistingMessageError(Exception):

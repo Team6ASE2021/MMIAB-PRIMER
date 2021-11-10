@@ -308,13 +308,14 @@ def get_timeline_day_received(year, month, day):
     tomorrow = today_dt + timedelta(days=1)
     yesterday = today_dt - timedelta(days=1)
 
-    messages = MessageModel.get_timeline_day_mess_received(
+    messages, opened_dict = MessageModel.get_timeline_day_mess_received(
         current_user.id, year, month, day
     )
 
     return render_template(
         "mailbox_bs.html",
         message_list=messages,
+        opened_dict=opened_dict,
         list_type="received",
         calendar_view={
             "today": (year, month, day),

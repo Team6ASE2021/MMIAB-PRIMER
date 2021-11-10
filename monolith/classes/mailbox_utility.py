@@ -20,10 +20,12 @@ class MailboxUtility:
         mess = (
             db.session.query(Message,User)
             .filter(Message.is_arrived == True)
-            .filter(Message.recipients.any(and_(
-                Recipient.id_recipient == id,
-                Recipient.read_deleted == False)
-            ))
+            .filter(
+                Message.recipients.any(and_(
+                    Recipient.id_recipient == id,
+                    Recipient.read_deleted == False
+                ))
+            )
         )
         if (
             db.session.query(User)
@@ -33,9 +35,9 @@ class MailboxUtility:
         ):
             mess = mess.filter(Message.to_filter == False)
         mess = mess.join(User, Message.id_sender == User.id).all()
-        print(mess)
         opened_dict = {m.Message.id_message: next((rcp.has_opened for rcp in m.Message.recipients if rcp.id_recipient == id), True) for m in mess}
-        print(opened_dict)
+
+        print(mess)
         return mess, opened_dict
 
     @staticmethod

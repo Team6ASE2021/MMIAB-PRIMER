@@ -32,6 +32,7 @@ def mailbox_list_sent():
 def mailbox_list_received():
 
     message_list = []
+    opened_dict = {}
     if current_user.is_authenticated:
         message_list, opened_dict = MailboxUtility.get_received_message_by_id_user(
             current_user.get_id()

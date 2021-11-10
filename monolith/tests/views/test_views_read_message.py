@@ -9,7 +9,7 @@ from monolith.database import Message
 @pytest.mark.usefixtures("clean_db_and_logout", "messages_setup")
 class TestViewsReadMessage:
     def test_read_mess_not_auth(self, test_client):
-        test_client.get("/logout", follow_redirects=True)
+        test_client.get("/logout")
 
         response = test_client.get("/read_message/1", follow_redirects=True)
         assert response.status_code == HTTPStatus.OK

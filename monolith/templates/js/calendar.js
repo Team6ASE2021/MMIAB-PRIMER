@@ -91,6 +91,12 @@ function populate_last_row(container, calendar, day_num){
 
     var row = container.querySelector('#last-row');
     var day_1 = row.firstElementChild
+
+    if(last_row_days == 0) {
+        row.removeChild(day_1);
+        return;
+    }
+
     set_sent_received(day_1, calendar.sent, calendar.received, day_num);
     day_1.querySelector(".day-number").textContent = ++day_num;
     set_day_link(day_1, calendar, day_num);
