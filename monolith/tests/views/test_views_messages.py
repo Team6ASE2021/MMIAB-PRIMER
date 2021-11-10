@@ -14,7 +14,6 @@ from monolith.classes.recipient import RecipientModel
 from monolith.classes.user import UserModel
 from monolith.database import db
 from monolith.database import Message
-from monolith.database import Recipient
 from monolith.database import User
 
 
@@ -225,7 +224,6 @@ class TestViewsMessagesDraft:
 
 @pytest.mark.usefixtures("clean_db_and_logout")
 class TestViewsMessagesSend:
-
     def test_send_message_id_wrong(self, test_client):
         admin_user = {"email": "example@example.com", "password": "admin"}
         response = test_client.post("/login", data=admin_user)
@@ -241,6 +239,75 @@ class TestViewsMessagesSend:
         response = test_client.post("/send_message/" + str(message.id_message))
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
+        test_client.post("/logout")
+        RecipientModel.set_recipients(message, [])
+        db.session.delete(message)
+        db.session.commit()
+
+    def test_send_message_already_sent(self, test_client):
+        admin_user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=admin_user)
+
+        message = Message(
+            id_sender=1,
+            body_message="Ciao",
+            date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"),
+        )
+        message.is_sent = True
+        MessageModel.add_draft(message)
+        RecipientModel.set_recipients(message, [1])
+
+        response = test_client.post(
+            "/send_message/" + str(message.id_message), follow_redirects=True
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert "This message has already been sent" in get_flashed_messages()
+        test_client.post("/logout")
+        RecipientModel.set_recipients(message, [])
+        db.session.delete(message)
+        db.session.commit()
+
+    def test_send_message_no_date(self, test_client):
+        admin_user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=admin_user)
+
+        message = Message(
+            id_sender=1,
+            body_message="Ciao",
+        )
+        MessageModel.add_draft(message)
+        RecipientModel.set_recipients(message, [1])
+
+        response = test_client.post(
+            "/send_message/" + str(message.id_message), follow_redirects=True
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert "You have to set the date of send" in get_flashed_messages()
+        test_client.post("/logout")
+        RecipientModel.set_recipients(message, [])
+        db.session.delete(message)
+        db.session.commit()
+
+    def test_send_message_no_recipients(self, test_client):
+        admin_user = {"email": "example@example.com", "password": "admin"}
+        test_client.post("/login", data=admin_user)
+
+        message = Message(
+            id_sender=1,
+            body_message="Ciao",
+            date_of_send=datetime.strptime("01/01/2022", "%d/%m/%Y"),
+        )
+        MessageModel.add_draft(message)
+        RecipientModel.set_recipients(message, [])
+
+        response = test_client.post(
+            "/send_message/" + str(message.id_message), follow_redirects=True
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert "You have to set the receipent" in get_flashed_messages()
         test_client.post("/logout")
         RecipientModel.set_recipients(message, [])
         db.session.delete(message)
@@ -554,6 +621,7 @@ class TestViewsMessagesDeleteReadMessage:
         assert b"Message succesfully deleted" in response.data
         MessageModel.delete_message(2)
 
+
 @pytest.mark.usefixtures("clean_db_and_logout", "draft_setup")
 class TestReplyToMessage:
     def test_reply_to_not_auth(self, test_client):
@@ -620,26 +688,27 @@ class TestReplyToMessage:
         assert bytes(message.first().body_message, "utf-8") in resp.data
         test_client.get("/logout")
 
+
 @pytest.mark.usefixtures("clean_db_and_logout")
 class TestTimeline:
-    def test_view_daily_timeline_sent(self,test_client):
+    def test_view_daily_timeline_sent(self, test_client):
         user = {"email": "example@example.com", "password": "admin"}
         test_client.post("/login", data=user)
-        resp = test_client.get("/timeline/day/2021/3/6/sent",follow_redirects=True)
+        resp = test_client.get("/timeline/day/2021/3/6/sent", follow_redirects=True)
         assert resp.status_code == HTTPStatus.OK
         test_client.post("/logout")
 
-    def test_view_daily_timeline_received(self,test_client):
+    def test_view_daily_timeline_received(self, test_client):
         user = {"email": "example@example.com", "password": "admin"}
         test_client.post("/login", data=user)
-        resp = test_client.get("/timeline/day/2021/3/6/received",follow_redirects=True)
+        resp = test_client.get("/timeline/day/2021/3/6/received", follow_redirects=True)
         assert resp.status_code == HTTPStatus.OK
         test_client.post("/logout")
 
-    def test_view_monthly_timeline(self,test_client):
+    def test_view_monthly_timeline(self, test_client):
         user = {"email": "example@example.com", "password": "admin"}
         test_client.post("/login", data=user)
-        resp = test_client.get("/timeline/month/2021/3",follow_redirects=True)
+        resp = test_client.get("/timeline/month/2021/3", follow_redirects=True)
         assert resp.status_code == HTTPStatus.OK
         test_client.post("/logout")
 
@@ -711,4 +780,3 @@ class TestWithDrawMessage:
         assert resp.status_code == HTTPStatus.OK
         assert not mess.is_sent
         test_client.post("/logout")
-

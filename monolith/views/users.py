@@ -131,15 +131,12 @@ def user_list() -> Optional[Text]:
 @users.route("/users/<int:id>/delete", methods=["GET"])
 @login_required
 def delete_user(id: int) -> Response:
-    try:
-        if id != current_user.get_id():
-            abort(HTTPStatus.UNAUTHORIZED)
-        else:
-            UserModel.delete_user(id)
-            flash("We're sad to see you go!")
-            return redirect("/")
-    except NotExistingUserError:
-        abort(HTTPStatus.NOT_FOUND)
+    if id != current_user.get_id():
+        abort(HTTPStatus.UNAUTHORIZED)
+    else:
+        UserModel.delete_user(id)
+        flash("We're sad to see you go!")
+        return redirect("/")
 
 
 @users.route("/user/content_filter", methods=["GET"])
@@ -149,16 +146,16 @@ def set_content_filter():
     return redirect("/users/" + str(current_user.id))
 
 
-@users.route("/user/report/<id>", methods=["GET", "POST"])
+@users.route("/user/report/<id>", methods=["GET"])
 @login_required
 def report(id):
 
     res = ReportModel.add_report(id, current_user.id)
 
-    if res == True:
-        flash("You have report the user: " + id)
+    if res:
+        flash("You have reported the user: " + id)
     else:
-        flash("You have already report this user")
+        flash("You have already reported this user")
 
     return redirect(url_for("users.user_info", id=id))
 
