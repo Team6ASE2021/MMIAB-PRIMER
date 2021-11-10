@@ -20,6 +20,7 @@ from werkzeug.utils import secure_filename
 
 from monolith.auth import current_user
 from monolith.classes.message import ContentFilter
+from monolith.classes.message import NotDraftError
 from monolith.classes.message import MessageModel
 from monolith.classes.message import NotExistingMessageError
 from monolith.classes.recipient import RecipientModel
@@ -221,6 +222,26 @@ def delete_message(id: int):
             flash("You cannot delete an unread message")
         return redirect(url_for("mailbox.mailbox_list_received"))
 
+@messages.route("/draft/<int:id>/delete", methods=["GET"])
+@login_required
+def delete_draft(id: int):
+    try:
+        mess = MessageModel.id_message_exists(id)
+    except NotExistingMessageError:
+        abort(HTTPStatus.NOT_FOUND, description="Message not found")
+    
+    if ( mess.id_sender != current_user.id ):
+        abort(
+            HTTPStatus.UNAUTHORIZED,
+            description="You are not allowed to delete this draft",
+        )
+    else:
+        try:
+            MessageModel.delete_draft(id)
+            flash("Message succesfully deleted")
+            return redirect(url_for("mailbox.mailbox_list_draft"))
+        except NotDraftError:
+            abort(HTTPStatus.FORBIDDEN, description="This message is not a draft")
 
 @messages.route("/message/<int:id>/withdraw", methods=["GET"])
 @login_required

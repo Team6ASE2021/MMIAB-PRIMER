@@ -174,6 +174,18 @@ class MessageModel:
         db.session.commit()
 
     @staticmethod
+    def delete_draft(id_message: int):
+        #check if message exists
+        mess = MessageModel.id_message_exists(id_message)
+
+        if mess.is_arrived == False and mess.is_sent == False:
+            mess.recipients = []
+            db.session.delete(mess)
+            db.session.commit()
+        else:
+            raise NotDraftError("This message is not a draft")
+
+    @staticmethod
     def delete_read_message(id_message: int, id_user: int) -> bool:
         mess = MessageModel.id_message_exists(id_message)
 
@@ -333,6 +345,13 @@ class MessageModel:
 
 
 class NotExistingMessageError(Exception):
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
+
+class NotDraftError(Exception):
     def __init__(self, value):
         self.value = value
 

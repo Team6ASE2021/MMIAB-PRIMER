@@ -221,6 +221,47 @@ class TestViewsMessagesDraft:
         ) == [1, 3]
         test_client.get("/logout")
 
+@pytest.mark.usefixtures('clean_db_and_logout')
+class TestViewsDeleteDraft:
+    def test_delete_draft(self,test_client):
+
+        admin_user = {"email": "example@example.com", "password": "admin"}
+
+        draft_body = "test_draft"
+        mess = MessageModel.create_message(
+            id_sender=2, 
+            body_message=draft_body, 
+            date_of_send=datetime.strptime("10:05 07/07/2022", "%H:%M %d/%m/%Y"),
+            is_sent=True,
+        )
+        assert mess.id_message == 1
+
+        response = test_client.post("/login", data=admin_user, follow_redirects=True)
+        assert response.status_code == 200
+
+        #not mine
+        response = test_client.get("/draft/1/delete", follow_redirects=True)
+        assert b'You are not allowed to delete this draft' in response.data
+        assert response.status_code == 401
+
+        #not exists
+        response = test_client.get("/draft/50/delete")
+        assert response.status_code == 404
+
+        mess.id_sender = 1
+        db.session.commit()
+
+        response = test_client.get("/draft/1/delete")
+        assert response.status_code == 403
+
+        mess.is_sent = False
+        db.session.commit()
+
+        response = test_client.get("/draft/1/delete",follow_redirects = True)
+        assert response.status_code == 200
+
+        test_client.get("/logout")
+
 
 @pytest.mark.usefixtures("clean_db_and_logout")
 class TestViewsMessagesSend:
