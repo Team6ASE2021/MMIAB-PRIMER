@@ -212,6 +212,10 @@ def send_message(id):
 @messages.route("/message/<int:id>/delete", methods=["GET"])
 @login_required
 def delete_message(id: int):
+    """
+    Route handler that allows to delete a read message by the recipient
+    :return: redirect to the mailbox
+    """
     try:
         mess = MessageModel.id_message_exists(id)
     except NotExistingMessageError:
@@ -236,6 +240,10 @@ def delete_message(id: int):
 @messages.route("/draft/<int:id>/delete", methods=["GET"])
 @login_required
 def delete_draft(id: int):
+    """
+    Route handler that allows to delete a draft by the recipient
+    :return: redirect to the mailbox
+    """
     try:
         mess = MessageModel.id_message_exists(id)
     except NotExistingMessageError:
@@ -258,6 +266,10 @@ def delete_draft(id: int):
 @messages.route("/message/<int:id>/withdraw", methods=["GET"])
 @login_required
 def withdraw_message(id: int):
+    """
+    Route handler that allows to withdraw a sent message
+    :return: redirect to the mailbox
+    """
     try:
         mess = MessageModel.id_message_exists(id)
         user = UserModel.get_user_info_by_id(mess.id_sender)
@@ -281,6 +293,10 @@ def withdraw_message(id: int):
 @messages.route("/message/<int:id>/reply", methods=["GET"])
 @login_required
 def reply_to_message(id):
+    """
+    Route handler that allows to reply to a received message
+    :return: redirect to the new draft created
+    """
     try:
         message = MessageModel.id_message_exists(id)
     except NotExistingMessageError:
@@ -313,6 +329,10 @@ def get_recipients():
     return jsonify(recipients=recipients)
 
 
+"""
+routes handling calendar views
+"""
+
 @messages.route("/timeline/day/<int:year>/<int:month>/<int:day>/sent", methods=["GET"])
 @login_required
 def get_timeline_day_sent(year, month, day):
@@ -334,11 +354,6 @@ def get_timeline_day_sent(year, month, day):
             "yesterday": (yesterday.year, yesterday.month, yesterday.day),
         },
     )
-
-
-"""
-routes handling calendar views
-"""
 
 
 @messages.route(

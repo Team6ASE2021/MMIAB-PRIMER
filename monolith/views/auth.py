@@ -17,6 +17,10 @@ auth = Blueprint("auth", __name__)
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
+    """
+    Presents a user the login form and lets him perform the login
+    :return: login form
+    """
     form = LoginForm()
     if form.validate_on_submit():
         email, password = form.data["email"], form.data["password"]
@@ -47,5 +51,9 @@ def login():
 
 @auth.route("/logout")
 def logout():
+    """
+    Lets the user perform the logout
+    :return: redirect to the homepage
+    """
     logout_user()
     return redirect("/")
