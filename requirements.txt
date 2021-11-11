@@ -28,6 +28,7 @@ pyflakes==2.3.1
 pytz==2021.3
 r2c-py-ast==0.1.0b1
 redis==3.5.3
+redis-server
 six==1.16.0
 SQLAlchemy==1.4.26
 testfixtures==6.18.3

@@ -5,8 +5,6 @@ from flask import Flask
 from flask_migrate import Migrate
 
 from monolith.auth import login_manager
-from monolith.constants import _ALLOWED_EXTENSIONS
-from monolith.constants import _MAX_CONTENT_LENGTH
 from monolith.constants import _UPLOAD_FOLDER
 from monolith.database import db
 from monolith.database import User
@@ -16,19 +14,14 @@ from monolith.views import blueprints
 
 
 def create_app(testing: bool = False) -> Flask:
-    app = Flask(__name__)
-    app.config["WTF_CSRF_SECRET_KEY"] = "A SECRET KEY"
-    app.config["SECRET_KEY"] = "ANOTHER ONE"
+    app = Flask(__name__, instance_relative_config=True)
+    app.config.from_object("config")
+    app.config.from_pyfile("config.py")
     app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, _UPLOAD_FOLDER)
-    app.config["MAX_CONTENT_LENGTH"] = _MAX_CONTENT_LENGTH
-    app.config["UPLOAD_EXTENSIONS"] = _ALLOWED_EXTENSIONS
     if testing:
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///tests/mmiab.db"
     else:
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db/mmiab.db"
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["CELERY_BROKER_URL"] = "redis://localhost:6379/0"
-    app.config["CELERY_RESULT_BACKEND"] = "redis://localhost:6379/0"
 
     for bp in blueprints:
         app.register_blueprint(bp)
