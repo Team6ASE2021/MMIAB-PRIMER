@@ -63,7 +63,7 @@ class UserModel:
         return user
 
     @staticmethod
-    def update_user(id : int, fields=None) -> None:
+    def update_user(id: int, fields=None) -> None:
         """
         Updates data about a specific user using those contained in dict fields.
         It checks that the new email was not already taken, that the user has confirmed

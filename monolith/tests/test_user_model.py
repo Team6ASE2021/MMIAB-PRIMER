@@ -1,19 +1,18 @@
 import datetime
+import io
 
+import mock
 import pytest
 import sqlalchemy
-
-import io
-import mock
 from werkzeug.datastructures import FileStorage
 
 from monolith.auth import current_user
 from monolith.classes.user import BlockingCurrentUserError
-from monolith.classes.user import WrongPasswordError
 from monolith.classes.user import EmailAlreadyExistingError
 from monolith.classes.user import NotExistingUserError
 from monolith.classes.user import UserBlacklist
 from monolith.classes.user import UserModel
+from monolith.classes.user import WrongPasswordError
 from monolith.database import db
 from monolith.database import User
 
@@ -33,9 +32,9 @@ class TestUserModel:
 
     def test_get_user_dict(self):
         data = UserModel.get_user_dict_by_id(1)
-        assert data['firstname'] == 'Admin'
-        assert data['lastname'] == 'Admin'
-        assert data['email'] == 'example@example.com'
+        assert data["firstname"] == "Admin"
+        assert data["lastname"] == "Admin"
+        assert data["email"] == "example@example.com"
 
         with pytest.raises(NotExistingUserError):
             UserModel.get_user_dict_by_id(100)
@@ -98,10 +97,10 @@ class TestUserModel:
 
     def test_update_user(self):
         fields = {
-            'firstname': "Marco",
-            'old_password': "old_pass",
-            'new_password': "new_pass",
-            'email': "ex2@ex2.com",
+            "firstname": "Marco",
+            "old_password": "old_pass",
+            "new_password": "new_pass",
+            "email": "ex2@ex2.com",
             User.dateofbirth: datetime.datetime.strptime("02/02/2002", "%d/%m/%Y"),
         }
         user = User(
@@ -110,32 +109,32 @@ class TestUserModel:
             email="ex1@ex.com",
             dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
         )
-        UserModel.create_user(user, 'old_pass')
+        UserModel.create_user(user, "old_pass")
 
         UserModel.update_user(2, fields=fields)
         assert user.firstname == "Marco"
         assert user.lastname == "Piazzesi"
-        assert user.check_password(fields['new_password'])
-        assert user.email == fields['email']
+        assert user.check_password(fields["new_password"])
+        assert user.email == fields["email"]
 
         fields = {
-            'firstname': "Ferdinando",
-            'email': "ex3@ex3.com",
+            "firstname": "Ferdinando",
+            "email": "ex3@ex3.com",
             User.dateofbirth: datetime.datetime.strptime("02/02/2002", "%d/%m/%Y"),
         }
         UserModel.update_user(2, fields=fields)
         assert user.firstname == "Ferdinando"
         assert user.lastname == "Piazzesi"
-        assert user.email == fields['email']
+        assert user.email == fields["email"]
 
         db.session.delete(user)
         db.session.commit()
 
     def test_update_user_email_existing(self):
         fields = {
-            'firstname': "Marco",
-            'email': "example@example.com",
-            'dateofbirth': datetime.datetime.strptime("02/02/2002", "%d/%m/%Y"),
+            "firstname": "Marco",
+            "email": "example@example.com",
+            "dateofbirth": datetime.datetime.strptime("02/02/2002", "%d/%m/%Y"),
         }
         user = User(
             firstname="Niccolò",
@@ -143,7 +142,7 @@ class TestUserModel:
             email="ex1@ex.com",
             dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
         )
-        UserModel.create_user(user, 'old_pass')
+        UserModel.create_user(user, "old_pass")
 
         with pytest.raises(EmailAlreadyExistingError):
             UserModel.update_user(2, fields=fields)
@@ -152,7 +151,7 @@ class TestUserModel:
         assert user.email == "ex1@ex.com"
         db.session.delete(user)
         db.session.commit()
-    
+
     def test_update_user_wrong_password(self):
         user = User(
             firstname="Niccolò",
@@ -160,12 +159,12 @@ class TestUserModel:
             email="ex1@ex.com",
             dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
         )
-        UserModel.create_user(user, 'old_pass')
+        UserModel.create_user(user, "old_pass")
 
         fields = {
-            'firstname': "Marco",
-            'new_password': "new_pass",
-            'dateofbirth': datetime.datetime.strptime("02/02/2002", "%d/%m/%Y"),
+            "firstname": "Marco",
+            "new_password": "new_pass",
+            "dateofbirth": datetime.datetime.strptime("02/02/2002", "%d/%m/%Y"),
         }
 
         with pytest.raises(WrongPasswordError):
@@ -173,16 +172,16 @@ class TestUserModel:
 
         assert user.firstname == "Marco"
         assert user.lastname == "Piazzesi"
-        assert user.check_password('old_pass')
+        assert user.check_password("old_pass")
 
-        fields['old_password'] = "not_old_pass"
+        fields["old_password"] = "not_old_pass"
 
         with pytest.raises(WrongPasswordError):
             UserModel.update_user(2, fields=fields)
 
         assert user.firstname == "Marco"
         assert user.lastname == "Piazzesi"
-        assert user.check_password('old_pass')
+        assert user.check_password("old_pass")
         db.session.delete(user)
         db.session.commit()
 
@@ -193,15 +192,12 @@ class TestUserModel:
             email="ex1@ex.com",
             dateofbirth=datetime.datetime.strptime("01/01/2000", "%d/%m/%Y"),
         )
-        UserModel.create_user(user, 'old_pass')
+        UserModel.create_user(user, "old_pass")
 
         with mock.patch.object(FileStorage, "save", autospec=True, return_value=None):
             image_name = "fake-image-stream.jpg"
             file = FileStorage(filename=image_name, stream=io.BytesIO(b"data data"))
-            fields = {
-                'firstname': "Marco",
-                'profile_picture': file
-            }
+            fields = {"firstname": "Marco", "profile_picture": file}
             UserModel.update_user(2, fields=fields)
             assert user.firstname == "Marco"
             assert user.pfp_path != None

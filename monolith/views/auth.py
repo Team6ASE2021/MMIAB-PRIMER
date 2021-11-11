@@ -24,7 +24,7 @@ def login():
             user = UserModel.get_user_info_by_email(email=email)
             if user.is_banned == True:
                 flash("You are banned!")
-                return redirect(url_for('auth.login'))
+                return redirect(url_for("auth.login"))
             elif user.authenticate(password):
                 login_user(user)
 

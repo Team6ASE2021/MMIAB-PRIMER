@@ -81,4 +81,3 @@ class NotifyModel:
             "recipient_notify": recipient_notify,
             "lottery_notify": lottery_notify,
         }
-

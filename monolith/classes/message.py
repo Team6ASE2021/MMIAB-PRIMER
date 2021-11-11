@@ -191,7 +191,7 @@ class MessageModel:
         Deletes a message from the database only if it is a draft.
         """
 
-        #check if message exists
+        # check if message exists
         mess = MessageModel.id_message_exists(id_message)
 
         if mess.is_arrived == False and mess.is_sent == False:
@@ -397,6 +397,7 @@ class NotExistingMessageError(Exception):
 
     def __str__(self):
         return repr(self.value)
+
 
 class NotDraftError(Exception):
     def __init__(self, value):

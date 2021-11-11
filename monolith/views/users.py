@@ -161,7 +161,7 @@ def report(id):
     res = ReportModel.add_report(id, current_user.id)
 
     if res:
-        flash("You have reported the user: " + id)
+        flash(f"You have reported the user: {id}")
     else:
         flash("You have already reported this user")
 
