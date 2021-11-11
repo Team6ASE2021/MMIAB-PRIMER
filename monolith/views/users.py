@@ -150,7 +150,7 @@ def set_content_filter():
     return redirect("/users/" + str(current_user.id))
 
 
-@users.route("/user/report/<id>", methods=["GET"])
+@users.route("/user/report/<int:id>", methods=["GET"])
 @login_required
 def report(id):
     """
