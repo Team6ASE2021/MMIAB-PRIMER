@@ -85,7 +85,8 @@ def _lottery_draw():
         - keep track of old lottery draws
     """
     logger.log(logging.INFO, "Drawing next lottery winners...")
-    winner = random.randint(1, 50)
+    # winner = random.randint(1, 50)
+    winner = 42
     logger.log(logging.INFO, f"Winning number: {winner}")
 
     participants = LotteryModel.get_participants()
